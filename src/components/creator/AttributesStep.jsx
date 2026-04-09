@@ -7,7 +7,7 @@ function AttributesStep({ attributeValues, onAttributeChange }) {
   return (
     <section className="creator-panel">
       <div className="creator-panel__header">
-        <p className="creator-panel__kicker">Step 2</p>
+        <p className="creator-panel__kicker">Step 3</p>
         <h2>Spend your attribute points</h2>
         <p>
           Keep it readable and thematic: 12 points total, up to {ATTRIBUTE_CAP} in any one attribute.

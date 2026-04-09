@@ -1,15 +1,15 @@
 import { callings, originPaths, origins } from '../../data/gameData'
 
 function IdentityStep({ identity, onIdentityChange }) {
-  const visibleOrigins = origins.filter((origin) => origin.path === identity.path)
+  const selectedCalling = callings.find((calling) => calling.id === identity.callingId)
 
   return (
     <section className="creator-panel">
       <div className="creator-panel__header">
         <p className="creator-panel__kicker">Step 1</p>
-        <h2>Choose your identity</h2>
+        <h2>Choose your calling</h2>
         <p>
-          Start with a calling, then choose where your story begins.
+          Start with the role this character is meant to play in the world.
         </p>
       </div>
 
@@ -66,6 +66,33 @@ function IdentityStep({ identity, onIdentityChange }) {
             )
           })}
         </div>
+      </div>
+
+      {selectedCalling ? (
+        <section className="creator-highlight">
+          <span className="creator-highlight__eyebrow">Selected Calling</span>
+          <h3>{selectedCalling.name}</h3>
+          <p>{selectedCalling.description}</p>
+          <div className="choice-card__stats">
+            <span>{selectedCalling.passive}</span>
+            <span>{selectedCalling.starterAbility}</span>
+          </div>
+        </section>
+      ) : null}
+    </section>
+  )
+}
+
+function OriginStep({ identity, onIdentityChange }) {
+  const visibleOrigins = origins.filter((origin) => origin.path === identity.path)
+  return (
+    <section className="creator-panel">
+      <div className="creator-panel__header">
+        <p className="creator-panel__kicker">Step 2</p>
+        <h2>Choose your origin</h2>
+        <p>
+          Pick the world path first, then choose the island or power that shaped this character.
+        </p>
       </div>
 
       <div className="choice-group">
@@ -130,4 +157,4 @@ function IdentityStep({ identity, onIdentityChange }) {
   )
 }
 
-export default IdentityStep
+export { IdentityStep, OriginStep }

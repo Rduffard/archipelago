@@ -7,7 +7,7 @@ function ReviewStep({ identity, attributeValues, derivedStats }) {
   return (
     <section className="creator-panel">
       <div className="creator-panel__header">
-        <p className="creator-panel__kicker">Step 3</p>
+        <p className="creator-panel__kicker">Step 4</p>
         <h2>Review the character frame</h2>
         <p>
           This is still boilerplate, but it already reflects your system: calling, origin, points, and derived stats.
