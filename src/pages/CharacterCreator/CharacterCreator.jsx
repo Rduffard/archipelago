@@ -1,29 +1,34 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import AttributesStep from '../../components/creator/AttributesStep'
-import { IdentityStep, OriginStep } from '../../components/creator/IdentityStep'
+import { CallingStep, WorldPathStep } from '../../components/creator/IdentityStep'
 import ReviewStep from '../../components/creator/ReviewStep'
-import { ATTRIBUTE_POINTS, callings, origins } from '../../data/gameData'
+import { ATTRIBUTE_POINTS, callings, origins, originPaths } from '../../data/gameData'
 import { calculateDerivedStats, createEmptyAttributes, getRemainingPoints } from '../../lib/character'
 import './CharacterCreator.css'
 
 const initialIdentity = {
   name: '',
   pronouns: '',
-  callingId: callings[0].id,
-  path: 'archipelago',
-  originId: origins.find((origin) => origin.path === 'archipelago')?.id ?? '',
+  callingId: '',
+  path: '',
+  originId: '',
+}
+
+const PATH_ORIGIN_MAP = {
+  yuma: 'yuma-core',
+  lilin: 'lilin-core',
 }
 
 const steps = [
   {
-    id: 'calling',
-    title: 'Calling',
-    description: 'Choose the playstyle and basic identity.',
+    id: 'identity',
+    title: 'Roots',
+    description: 'Name the character and choose a world path or island origin.',
   },
   {
-    id: 'origin',
-    title: 'Origin',
-    description: 'Pick the path and place that shaped the character.',
+    id: 'calling',
+    title: 'Calling',
+    description: 'Define the role this character plays.',
   },
   {
     id: 'attributes',
@@ -33,7 +38,7 @@ const steps = [
   {
     id: 'review',
     title: 'Review',
-    description: 'Confirm the sheet and save it.',
+    description: 'Check the frame and save the sheet.',
   },
 ]
 
@@ -45,16 +50,38 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
 
   const derivedStats = calculateDerivedStats(attributeValues)
   const remainingPoints = getRemainingPoints(attributeValues)
+  const selectedCalling = callings.find((entry) => entry.id === identity.callingId)
+  const selectedOrigin = origins.find((entry) => entry.id === identity.originId)
+  const selectedPath = originPaths.find((entry) => entry.id === identity.path)
+
+  const isIdentityComplete =
+    Boolean(identity.name.trim()) &&
+    Boolean(identity.path) &&
+    (identity.path === 'archipelago' ? Boolean(identity.originId) : Boolean(PATH_ORIGIN_MAP[identity.path]))
+
+  const validations = useMemo(
+    () => ({
+      identity: isIdentityComplete,
+      calling: Boolean(identity.callingId),
+      attributes: remainingPoints === 0,
+      review:
+        isIdentityComplete &&
+        Boolean(identity.callingId) &&
+        Boolean(identity.originId) &&
+        remainingPoints === 0,
+    }),
+    [identity.callingId, identity.originId, isIdentityComplete, remainingPoints],
+  )
 
   function handleIdentityChange(field, value) {
+    setSaveMessage('')
+
     setIdentity((current) => {
       if (field === 'path') {
-        const nextOrigin = origins.find((origin) => origin.path === value)
-
         return {
           ...current,
           path: value,
-          originId: nextOrigin?.id ?? '',
+          originId: value === 'archipelago' ? '' : PATH_ORIGIN_MAP[value] ?? '',
         }
       }
 
@@ -66,6 +93,8 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
   }
 
   function handleAttributeChange(key, nextValue) {
+    setSaveMessage('')
+
     setAttributeValues((current) => {
       const clampedValue = Math.max(0, Math.min(4, nextValue))
       const draft = { ...current, [key]: clampedValue }
@@ -79,7 +108,7 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
   }
 
   async function handleSaveCharacter() {
-    if (!onCreateCharacter) {
+    if (!onCreateCharacter || !validations.review) {
       return
     }
 
@@ -105,38 +134,49 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
     setSaveMessage(`${payload.name || 'Character'} saved to your roster.`)
   }
 
+  function getStepValidity(stepId) {
+    return validations[stepId]
+  }
+
+  function isStepAccessible(stepIndex) {
+    return steps.slice(0, stepIndex).every((step) => getStepValidity(step.id))
+  }
+
+  function handleGoToStep(stepIndex) {
+    if (stepIndex === currentStep || isStepAccessible(stepIndex)) {
+      setCurrentStep(stepIndex)
+    }
+  }
+
   function handleNextStep() {
-    setCurrentStep((current) => Math.min(current + 1, steps.length - 1))
+    const nextStep = Math.min(currentStep + 1, steps.length - 1)
+
+    if (isStepAccessible(nextStep)) {
+      setCurrentStep(nextStep)
+    }
   }
 
   function handlePreviousStep() {
     setCurrentStep((current) => Math.max(current - 1, 0))
   }
 
-  const isIdentityValid = Boolean(identity.name.trim()) && Boolean(identity.callingId)
-  const isOriginValid = Boolean(identity.path) && Boolean(identity.originId)
-  const isAttributesValid = remainingPoints === 0
-  const canSave = Boolean(identity.name.trim()) && remainingPoints === 0
   const currentStepMeta = steps[currentStep]
+  const canGoNext = currentStepMeta.id === 'review' ? false : isStepAccessible(currentStep + 1)
 
   let stepContent = null
-  let canGoNext = false
 
-  if (currentStepMeta.id === 'calling') {
-    stepContent = <IdentityStep identity={identity} onIdentityChange={handleIdentityChange} />
-    canGoNext = isIdentityValid
+  if (currentStepMeta.id === 'identity') {
+    stepContent = <WorldPathStep identity={identity} onIdentityChange={handleIdentityChange} />
   }
 
-  if (currentStepMeta.id === 'origin') {
-    stepContent = <OriginStep identity={identity} onIdentityChange={handleIdentityChange} />
-    canGoNext = isOriginValid
+  if (currentStepMeta.id === 'calling') {
+    stepContent = <CallingStep identity={identity} onIdentityChange={handleIdentityChange} />
   }
 
   if (currentStepMeta.id === 'attributes') {
     stepContent = (
       <AttributesStep attributeValues={attributeValues} onAttributeChange={handleAttributeChange} />
     )
-    canGoNext = isAttributesValid
   }
 
   if (currentStepMeta.id === 'review') {
@@ -149,6 +189,30 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
     )
   }
 
+  let actionHint = 'You can jump between unlocked steps from the rail above.'
+
+  if (currentStepMeta.id === 'identity' && !validations.identity) {
+    if (!identity.name.trim()) {
+      actionHint = 'Give the character a name before moving on.'
+    } else if (!identity.path) {
+      actionHint = 'Pick Yuma, Lilin, or the Archipelago to continue.'
+    } else {
+      actionHint = 'Choose one of the island origins to continue.'
+    }
+  }
+
+  if (currentStepMeta.id === 'calling' && !validations.calling) {
+    actionHint = 'Choose a calling before moving on.'
+  }
+
+  if (currentStepMeta.id === 'attributes' && !validations.attributes) {
+    actionHint = `Spend the remaining ${remainingPoints} point${remainingPoints === 1 ? '' : 's'} to continue.`
+  }
+
+  if (currentStepMeta.id === 'review' && !validations.review) {
+    actionHint = `Spend all ${ATTRIBUTE_POINTS} points and finish the earlier choices to save.`
+  }
+
   return (
     <section className="creator-page creator-page--embedded">
       {showIntro ? (
@@ -156,41 +220,45 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
           <p className="hero-banner__eyebrow">Sanguine Archipelago</p>
           <h1>Character Creator</h1>
           <p className="hero-banner__copy">
-            A guided first pass for your DnD Beyond style app, grounded in callings,
-            origin islands, and thematic attributes.
+            A guided first pass for your tabletop app, grounded in world paths, callings,
+            island origins, and thematic attributes.
           </p>
         </section>
       ) : null}
 
       <section className="creator-stepper">
-        {steps.map((step, index) => (
-          <article
-            key={step.id}
-            className={`creator-stepper__item ${
-              index === currentStep ? 'is-current' : index < currentStep ? 'is-complete' : ''
-            }`}
-          >
-            <span className="creator-stepper__index">{index + 1}</span>
-            <div>
-              <strong>{step.title}</strong>
-              <p>{step.description}</p>
-            </div>
-          </article>
-        ))}
+        {steps.map((step, index) => {
+          const isCurrent = index === currentStep
+          const isComplete = getStepValidity(step.id)
+          const isAccessible = isStepAccessible(index)
+
+          return (
+            <button
+              key={step.id}
+              type="button"
+              className={`creator-stepper__item ${isCurrent ? 'is-current' : ''} ${
+                isComplete ? 'is-complete' : ''
+              }`}
+              onClick={() => handleGoToStep(index)}
+              disabled={!isAccessible}
+            >
+              <span className="creator-stepper__index">{index + 1}</span>
+              <div>
+                <strong>{step.title}</strong>
+                <p>{step.description}</p>
+              </div>
+            </button>
+          )
+        })}
       </section>
 
-      <section className="status-strip">
-        <div>
-          <span>Calling</span>
-          <strong>{callings.find((entry) => entry.id === identity.callingId)?.name}</strong>
-        </div>
-        <div>
-          <span>Origin</span>
-          <strong>{origins.find((entry) => entry.id === identity.originId)?.name}</strong>
-        </div>
-        <div>
-          <span>Points Left</span>
-          <strong>{remainingPoints}</strong>
+      <section className="creator-summary">
+        <p className="creator-summary__label">Current Build</p>
+        <div className="creator-summary__chips">
+          <span>{selectedPath?.name || 'No world path yet'}</span>
+          <span>{selectedOrigin?.name || (identity.path === 'archipelago' ? 'No island origin yet' : 'Origin pending')}</span>
+          <span>{selectedCalling?.name || 'No calling yet'}</span>
+          <span>{remainingPoints} point{remainingPoints === 1 ? '' : 's'} left</span>
         </div>
       </section>
 
@@ -200,8 +268,8 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
         <div>
           <p>
             {currentStepMeta.id === 'review'
-              ? `Spend all ${ATTRIBUTE_POINTS} points and give the character a name to save.`
-              : 'Move one step at a time. We only ask for what matters right now.'}
+              ? 'This final pass is where the sheet stops being an idea and becomes something you can save.'
+              : 'The flow is staged so new players can stay simple while island-born builds open deeper nuance.'}
           </p>
           {saveMessage ? <strong>{saveMessage}</strong> : null}
         </div>
@@ -219,13 +287,23 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
           ) : null}
 
           {currentStepMeta.id !== 'review' ? (
-            <button type="button" onClick={handleNextStep} disabled={!canGoNext}>
-              Next Step
-            </button>
+            <div className="creator-submit__primary">
+              <button type="button" onClick={handleNextStep} disabled={!canGoNext}>
+                Next Step
+              </button>
+              {!canGoNext ? <p className="creator-submit__hint">{actionHint}</p> : null}
+            </div>
           ) : (
-            <button type="button" onClick={handleSaveCharacter} disabled={!canSave || isSaving}>
-              {isSaving ? 'Saving...' : 'Save Character'}
-            </button>
+            <div className="creator-submit__primary">
+              <button
+                type="button"
+                onClick={handleSaveCharacter}
+                disabled={!validations.review || isSaving}
+              >
+                {isSaving ? 'Saving...' : 'Save Character'}
+              </button>
+              {!validations.review ? <p className="creator-submit__hint">{actionHint}</p> : null}
+            </div>
           )}
         </div>
       </section>

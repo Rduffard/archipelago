@@ -1,8 +1,9 @@
-import { callings, origins } from '../../data/gameData'
+import { callings, origins, originPaths } from '../../data/gameData'
 
 function ReviewStep({ identity, attributeValues, derivedStats }) {
   const calling = callings.find((entry) => entry.id === identity.callingId)
   const origin = origins.find((entry) => entry.id === identity.originId)
+  const path = originPaths.find((entry) => entry.id === identity.path)
 
   return (
     <section className="creator-panel">
@@ -10,7 +11,8 @@ function ReviewStep({ identity, attributeValues, derivedStats }) {
         <p className="creator-panel__kicker">Step 4</p>
         <h2>Review the character frame</h2>
         <p>
-          This is still boilerplate, but it already reflects your system: calling, origin, points, and derived stats.
+          This is still early, but it now reflects the order your world actually cares about:
+          path, calling, origin, and then the numbers.
         </p>
       </div>
 
@@ -25,6 +27,10 @@ function ReviewStep({ identity, attributeValues, derivedStats }) {
             <div>
               <dt>Pronouns</dt>
               <dd>{identity.pronouns || 'Unspecified'}</dd>
+            </div>
+            <div>
+              <dt>World Path</dt>
+              <dd>{path?.name || 'Choose one'}</dd>
             </div>
             <div>
               <dt>Calling</dt>

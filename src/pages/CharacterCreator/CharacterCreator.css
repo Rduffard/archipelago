@@ -58,11 +58,34 @@
   font-size: 1.05rem;
 }
 
-.status-strip {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0 2rem;
+.creator-summary {
+  margin: 1rem 0 2rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid rgba(214, 190, 152, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 248, 237, 0.03);
+}
+
+.creator-summary__label {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #a99072;
+}
+
+.creator-summary__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.creator-summary__chips span {
+  border-radius: 999px;
+  padding: 0.4rem 0.75rem;
+  background: rgba(209, 179, 143, 0.12);
+  color: #f0dfc8;
+  font-size: 0.9rem;
 }
 
 .creator-stepper {
@@ -80,6 +103,10 @@
   border-radius: 18px;
   border: 1px solid rgba(214, 190, 152, 0.14);
   background: rgba(255, 248, 237, 0.04);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .creator-stepper__item p {
@@ -95,6 +122,16 @@
 .creator-stepper__item.is-current {
   border-color: #d1b38f;
   box-shadow: 0 0 0 1px rgba(209, 179, 143, 0.18);
+}
+
+.creator-stepper__item:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.creator-stepper__item:not(:disabled):hover {
+  transform: translateY(-2px);
+  border-color: rgba(214, 190, 152, 0.34);
 }
 
 .creator-stepper__item.is-complete .creator-stepper__index {
@@ -114,30 +151,12 @@
   flex: 0 0 auto;
 }
 
-.status-strip div,
 .creator-panel,
 .review-card {
   border: 1px solid rgba(214, 190, 152, 0.18);
   background: rgba(14, 18, 25, 0.78);
   border-radius: 22px;
   backdrop-filter: blur(10px);
-}
-
-.status-strip div {
-  padding: 1rem 1.1rem;
-}
-
-.status-strip span {
-  display: block;
-  margin-bottom: 0.35rem;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: #a99072;
-}
-
-.status-strip strong {
-  font-size: 1.15rem;
 }
 
 .creator-stack {
@@ -200,6 +219,10 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.choice-grid--paths.is-archipelago-open {
+  align-items: stretch;
+}
+
 .choice-card {
   border: 1px solid rgba(214, 190, 152, 0.16);
   border-radius: 18px;
@@ -224,6 +247,27 @@
 
 .choice-card--compact {
   min-height: 100%;
+}
+
+.choice-card--path {
+  min-height: 100%;
+}
+
+.choice-card--path.is-dimmed {
+  opacity: 0.22;
+  filter: saturate(0.6);
+  transform: scale(0.985);
+}
+
+.choice-card--path.is-dimmed:hover {
+  transform: scale(0.98);
+  box-shadow: none;
+}
+
+.choice-card--path.is-selected {
+  box-shadow:
+    0 0 0 1px rgba(209, 179, 143, 0.22),
+    0 18px 30px rgba(0, 0, 0, 0.2);
 }
 
 .choice-card__label {
@@ -360,6 +404,39 @@
   background: rgba(255, 248, 237, 0.03);
 }
 
+.creator-highlight--origin {
+  background:
+    linear-gradient(135deg, rgba(73, 33, 23, 0.28), rgba(17, 31, 43, 0.18)),
+    rgba(255, 248, 237, 0.03);
+}
+
+.choice-group--nested {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(214, 190, 152, 0.12);
+}
+
+.choice-group__header--split {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.creator-inline-back {
+  border: 1px solid rgba(214, 190, 152, 0.18);
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  background: rgba(255, 248, 237, 0.06);
+  color: #f3eadb;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.creator-inline-back:hover {
+  border-color: rgba(214, 190, 152, 0.34);
+}
+
 .creator-highlight__eyebrow {
   display: inline-block;
   margin-bottom: 0.6rem;
@@ -411,6 +488,12 @@
   align-items: center;
 }
 
+.creator-submit__primary {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: end;
+}
+
 .creator-submit button {
   border: none;
   border-radius: 999px;
@@ -431,14 +514,23 @@
   color: #f3eadb !important;
 }
 
+.creator-submit__hint {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #d9c5ab;
+}
+
 @media (max-width: 960px) {
   .creator-stepper,
   .choice-grid,
   .choice-grid--paths,
   .review-grid,
-  .status-strip,
   .creator-grid {
     grid-template-columns: 1fr;
+  }
+
+  .choice-group__header--split {
+    flex-direction: column;
   }
 
   .attribute-row {
@@ -455,5 +547,10 @@
     width: 100%;
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .creator-submit__primary {
+    width: 100%;
+    justify-items: stretch;
   }
 }
