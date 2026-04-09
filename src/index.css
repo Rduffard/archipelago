@@ -1,0 +1,32 @@
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: Georgia, 'Times New Roman', serif;
+  background:
+    radial-gradient(circle at top, rgba(167, 107, 63, 0.25), transparent 28%),
+    linear-gradient(180deg, #0f1a24 0%, #1b2833 40%, #100f10 100%);
+  color: #f3eadb;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+p {
+  margin: 0;
+}
