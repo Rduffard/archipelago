@@ -53,9 +53,11 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
   const selectedCalling = callings.find((entry) => entry.id === identity.callingId)
   const selectedOrigin = origins.find((entry) => entry.id === identity.originId)
   const selectedPath = originPaths.find((entry) => entry.id === identity.path)
+  const trimmedName = identity.name.trim()
+  const hasValidName = trimmedName.length >= 2
 
   const isIdentityComplete =
-    Boolean(identity.name.trim()) &&
+    hasValidName &&
     Boolean(identity.path) &&
     (identity.path === 'archipelago' ? Boolean(identity.originId) : Boolean(PATH_ORIGIN_MAP[identity.path]))
 
@@ -113,7 +115,7 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
     }
 
     const payload = {
-      name: identity.name.trim(),
+      name: trimmedName,
       pronouns: identity.pronouns.trim(),
       calling: identity.callingId,
       origin: identity.originId,
@@ -192,8 +194,10 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
   let actionHint = 'You can jump between unlocked steps from the rail above.'
 
   if (currentStepMeta.id === 'identity' && !validations.identity) {
-    if (!identity.name.trim()) {
+    if (!trimmedName) {
       actionHint = 'Give the character a name before moving on.'
+    } else if (!hasValidName) {
+      actionHint = 'Character names need at least 2 characters.'
     } else if (!identity.path) {
       actionHint = 'Pick Yuma, Lilin, or the Archipelago to continue.'
     } else {

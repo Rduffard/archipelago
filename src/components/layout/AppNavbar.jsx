@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },
+  { to: '/map', label: 'Lore Map' },
   { to: '/characters', label: 'Characters' },
   { to: '/campaigns/new', label: 'Campaigns' },
   { to: '/achievements', label: 'Achievements' },

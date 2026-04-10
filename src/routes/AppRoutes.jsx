@@ -5,6 +5,7 @@ import CharacterCreatorPage from '../pages/CharacterCreator/CharacterCreatorPage
 import CharactersPage from '../pages/Characters/CharactersPage'
 import DashboardPage from '../pages/Dashboard/DashboardPage'
 import LoginPage from '../pages/Login/LoginPage'
+import MapPage from '../pages/Map/MapPage'
 import PlaceholderPage from '../pages/Placeholder/PlaceholderPage'
 
 function AppRoutes() {
@@ -16,6 +17,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/map" element={<MapPage />} />
           <Route path="/characters" element={<CharactersPage />} />
           <Route path="/characters/new" element={<CharacterCreatorPage />} />
           <Route path="/campaigns/new" element={<PlaceholderPage />} />
