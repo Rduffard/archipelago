@@ -20,6 +20,25 @@ const MAP_SURFACE_RADIUS = 44
 const MAP_OUTER_BORDER_OFFSET = 10
 const worldCache = new Map()
 
+function MapLabelLayer({ label, profile }) {
+  if (!profile.mapLabel) {
+    return null
+  }
+
+  return (
+    <g className="map-layer__map-label" aria-hidden="true">
+      <text
+        x={profile.mapLabel.x}
+        y={profile.mapLabel.y}
+        fontSize={profile.mapLabel.fontSize ?? 28}
+        letterSpacing={profile.mapLabel.letterSpacing ?? '0.12em'}
+      >
+        {label}
+      </text>
+    </g>
+  )
+}
+
 function createTickSegments(width, height, inset, spacing, minorLength, majorEvery = 4, majorLength = 18) {
   const segments = []
 
@@ -55,13 +74,16 @@ function MapCanvas({
   const overridesByProfile = useMapStore((state) => state.shapeEditor.overridesByProfile)
   const shapeRevision = useMapStore((state) => state.shapeEditor.revision)
   const selectedShapeId = useMapStore((state) => state.shapeEditor.selectedShapeId)
+  const selectedPointIndex = useMapStore((state) => state.shapeEditor.selectedPointIndex)
   const showCoastline = useMapStore((state) => state.ui.showCoastline)
   const showShapeMask = useMapStore((state) => state.ui.showShapeMask)
   const showAuthoredShapes = useMapStore((state) => state.ui.showAuthoredShapes)
   const showShapeEditor = useMapStore((state) => state.ui.showShapeEditor)
   const showPoints = useMapStore((state) => state.ui.showPoints)
+  const mapLabelOverrides = useMapStore((state) => state.mapEditor.labelsByProfile)
   const setWorld = useMapStore((state) => state.setWorld)
   const updateShapeOverride = useMapStore((state) => state.updateShapeOverride)
+  const setShapeEditorSelectedPoint = useMapStore((state) => state.setShapeEditorSelectedPoint)
   const shapeOverrides = overridesByProfile[profileId] ?? {}
 
   useEffect(() => {
@@ -109,6 +131,7 @@ function MapCanvas({
   }, [setWorld, profileId, detailBandId, onWorldReady, shapeOverrides, shapeRevision])
 
   const profile = getWorldProfile(profileId, shapeOverrides)
+  const profileLabel = mapLabelOverrides[profileId] ?? profile.label
 
   return (
     <g>
@@ -140,6 +163,8 @@ function MapCanvas({
           />
         </clipPath>
       </defs>
+
+      <MapLabelLayer label={profileLabel} profile={profile} />
 
       <rect
         className="map-layer__world-shadow"
@@ -192,21 +217,25 @@ function MapCanvas({
             ) : null}
             <CellLayer
               cells={cells}
-              focusRegions={profile.focusRegions}
+              focusRegions={onActivateFocusRegion ? profile.focusRegions : []}
               onActivateFocusRegion={onActivateFocusRegion}
             />
             {showShapeEditor && selectedShapeId ? (
               <ShapeEditorLayer
                 points={shapeOverrides[selectedShapeId] ?? profile.masks.land.find((shape) => shape.shapeId === selectedShapeId)?.points ?? []}
+                selectedPointIndex={selectedPointIndex}
                 onChange={(nextPoints) => updateShapeOverride(profileId, selectedShapeId, nextPoints)}
                 onDeletePoint={onDeleteShapePoint}
+                onSelectPoint={setShapeEditorSelectedPoint}
               />
             ) : null}
-            <IslandHoverLayer
-              islandAreas={islandAreas}
-              focusRegions={profile.focusRegions}
-              onActivateFocusRegion={onActivateFocusRegion}
-            />
+            {onActivateFocusRegion ? (
+              <IslandHoverLayer
+                islandAreas={islandAreas}
+                focusRegions={profile.focusRegions}
+                onActivateFocusRegion={onActivateFocusRegion}
+              />
+            ) : null}
             {showCoastline ? <CoastlineLayer coastline={coastline} /> : null}
             {showPoints ? <PointLayer points={points} /> : null}
           </>

@@ -34,10 +34,15 @@ const initialUi = {
 
 const initialShapeEditor = {
   selectedShapeId: null,
+  selectedPointIndex: null,
   overridesByProfile: {},
   revision: 0,
   past: [],
   future: [],
+}
+
+const initialMapEditor = {
+  labelsByProfile: {},
 }
 
 function cloneOverrides(overridesByProfile) {
@@ -59,6 +64,7 @@ const useMapStore = create((set) => ({
   world: initialWorld,
   ui: initialUi,
   shapeEditor: initialShapeEditor,
+  mapEditor: initialMapEditor,
   setCamera: (nextCamera) =>
     set((state) => ({
       camera:
@@ -128,6 +134,14 @@ const useMapStore = create((set) => ({
       shapeEditor: {
         ...state.shapeEditor,
         selectedShapeId,
+        selectedPointIndex: null,
+      },
+    })),
+  setShapeEditorSelectedPoint: (selectedPointIndex) =>
+    set((state) => ({
+      shapeEditor: {
+        ...state.shapeEditor,
+        selectedPointIndex,
       },
     })),
   updateShapeOverride: (profileId, shapeId, points) =>
@@ -162,7 +176,10 @@ const useMapStore = create((set) => ({
       }
 
       return {
-        shapeEditor: pushShapeHistory(state, nextOverridesByProfile),
+        shapeEditor: {
+          ...pushShapeHistory(state, nextOverridesByProfile),
+          selectedPointIndex: pointIndex >= nextPoints.length ? nextPoints.length - 1 : pointIndex,
+        },
       }
     }),
   resetShapeOverride: (profileId, shapeId) =>
@@ -177,6 +194,7 @@ const useMapStore = create((set) => ({
       return {
         shapeEditor: {
           ...pushShapeHistory(state, nextOverridesByProfile),
+          selectedPointIndex: null,
         },
       }
     }),
@@ -192,6 +210,7 @@ const useMapStore = create((set) => ({
         shapeEditor: {
           ...state.shapeEditor,
           revision: state.shapeEditor.revision + 1,
+          selectedPointIndex: null,
           overridesByProfile: previousOverridesByProfile,
           past: state.shapeEditor.past.slice(0, -1),
           future: [
@@ -213,6 +232,7 @@ const useMapStore = create((set) => ({
         shapeEditor: {
           ...state.shapeEditor,
           revision: state.shapeEditor.revision + 1,
+          selectedPointIndex: null,
           overridesByProfile: nextOverridesByProfile,
           past: [
             ...state.shapeEditor.past,
@@ -222,6 +242,16 @@ const useMapStore = create((set) => ({
         },
       }
     }),
+  setMapLabelOverride: (profileId, label) =>
+    set((state) => ({
+      mapEditor: {
+        ...state.mapEditor,
+        labelsByProfile: {
+          ...state.mapEditor.labelsByProfile,
+          [profileId]: label,
+        },
+      },
+    })),
   activateProfile: (profileId, camera) =>
     set((state) => ({
       camera: camera ? { ...state.camera, ...camera } : state.camera,

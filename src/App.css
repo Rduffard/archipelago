@@ -541,6 +541,47 @@
   border-color: rgba(214, 190, 152, 0.34);
 }
 
+.map-toolbar__button--back {
+  background: rgba(209, 179, 143, 0.14);
+  border-color: rgba(214, 190, 152, 0.3);
+}
+
+.map-viewport-shell__back {
+  position: absolute;
+  z-index: 3;
+  top: 6rem;
+  left: 3.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: rgba(248, 238, 220, 0.94);
+  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 1.02rem;
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 6px rgba(16, 27, 37, 0.22);
+  cursor: pointer;
+}
+
+.map-viewport-shell__back:hover {
+  color: #fff8ec;
+}
+
+.map-viewport-shell__back-arrow {
+  font-size: 0;
+  line-height: 1;
+}
+
+.map-viewport-shell__back-arrow::before {
+  content: '<---';
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+}
+
 .map-shape-editor {
   display: flex;
   flex-wrap: wrap;
@@ -560,6 +601,14 @@
 }
 
 .map-shape-editor__select {
+  border: 1px solid rgba(214, 190, 152, 0.18);
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+  background: rgba(16, 23, 31, 0.92);
+  color: #f3eadb;
+}
+
+.map-shape-editor__input {
   border: 1px solid rgba(214, 190, 152, 0.18);
   border-radius: 12px;
   padding: 0.7rem 0.85rem;
@@ -907,6 +956,13 @@
   vector-effect: non-scaling-stroke;
 }
 
+.map-layer__shape-editor-point[data-selected='true'] {
+  fill: rgba(255, 226, 163, 1);
+  stroke: rgba(255, 248, 232, 0.98);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 8px rgba(255, 218, 145, 0.45));
+}
+
 .map-layer__world-frame {
   pointer-events: none;
   stroke: rgba(242, 229, 200, 0.58);
@@ -981,6 +1037,23 @@
   text-anchor: middle;
   dominant-baseline: middle;
   letter-spacing: 0.18em;
+}
+
+.map-layer__map-label {
+  pointer-events: none;
+}
+
+.map-layer__map-label text {
+  fill: rgba(244, 237, 223, 0.9);
+  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-style: italic;
+  font-weight: 700;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: rgba(30, 45, 60, 0.18);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+  text-shadow: 0 1px 8px rgba(18, 28, 38, 0.14);
 }
 
 .map-inspector {

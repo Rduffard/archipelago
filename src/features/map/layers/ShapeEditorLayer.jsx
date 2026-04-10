@@ -32,7 +32,13 @@ function normalizePoints(points) {
   ])
 }
 
-function ShapeEditorLayer({ points, onChange, onDeletePoint }) {
+function ShapeEditorLayer({
+  points,
+  selectedPointIndex,
+  onChange,
+  onDeletePoint,
+  onSelectPoint,
+}) {
   const layerRef = useRef(null)
   const [dragIndex, setDragIndex] = useState(null)
 
@@ -176,12 +182,18 @@ function ShapeEditorLayer({ points, onChange, onDeletePoint }) {
         <circle
           key={`shape-editor-point-${index}`}
           className="map-layer__shape-editor-point"
+          data-selected={selectedPointIndex === index ? 'true' : 'false'}
           cx={x}
           cy={y}
           r="7"
           onMouseDown={(event) => {
             event.stopPropagation()
+            onSelectPoint?.(index)
             setDragIndex(index)
+          }}
+          onClick={(event) => {
+            event.stopPropagation()
+            onSelectPoint?.(index)
           }}
           onContextMenu={(event) => {
             event.preventDefault()

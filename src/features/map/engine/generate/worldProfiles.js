@@ -36,6 +36,12 @@ export const WORLD_PROFILES = {
       width: 1360,
       height: 860,
     },
+    mapLabel: {
+      x: 800,
+      y: -44,
+      fontSize: 30,
+      letterSpacing: '0.14em',
+    },
     defaultBandId: 'world',
     detailBands: [
       {
@@ -108,6 +114,12 @@ export const WORLD_PROFILES = {
       y: 250,
       width: 1280,
       height: 520,
+    },
+    mapLabel: {
+      x: 800,
+      y: -44,
+      fontSize: 28,
+      letterSpacing: '0.12em',
     },
     defaultBandId: 'overview',
     detailBands: [

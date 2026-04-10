@@ -6,6 +6,7 @@ import MapCanvas, {
 } from '../../features/map/components/MapCanvas'
 import MapViewport from '../../features/map/components/MapViewport'
 import {
+  DEFAULT_WORLD_PROFILE,
   getBandForZoom,
   getProfileBand,
   WORLD_PROFILES,
@@ -23,6 +24,7 @@ function MapPage() {
   const ui = useMapStore((state) => state.ui)
   const selectedCellId = useMapStore((state) => state.ui.selectedCellId)
   const shapeEditor = useMapStore((state) => state.shapeEditor)
+  const mapLabelOverrides = useMapStore((state) => state.mapEditor.labelsByProfile)
   const activateProfile = useMapStore((state) => state.activateProfile)
   const clearWorldGeometry = useMapStore((state) => state.clearWorldGeometry)
   const setDetailBandId = useMapStore((state) => state.setDetailBandId)
@@ -32,11 +34,14 @@ function MapPage() {
   const resetShapeOverride = useMapStore((state) => state.resetShapeOverride)
   const undoShapeEditor = useMapStore((state) => state.undoShapeEditor)
   const redoShapeEditor = useMapStore((state) => state.redoShapeEditor)
+  const setShapeEditorSelectedPoint = useMapStore((state) => state.setShapeEditorSelectedPoint)
+  const setMapLabelOverride = useMapStore((state) => state.setMapLabelOverride)
   const toggleUiFlag = useMapStore((state) => state.toggleUiFlag)
   const selectedCell = cells.find((cell) => cell.id === selectedCellId) ?? null
   const landCells = cells.filter((cell) => !cell.isWater).length
   const waterCells = cells.length - landCells
   const activeProfile = WORLD_PROFILES[profileId]
+  const activeProfileLabel = mapLabelOverrides[profileId] ?? activeProfile.label
   const activeBand = getProfileBand(profileId, detailBandId)
   const resolvedShapes = getResolvedProfileShapePolygons(
     profileId,
@@ -56,6 +61,11 @@ function MapPage() {
   const [isProfileTransitioning, setIsProfileTransitioning] = useState(false)
   const canUndo = shapeEditor.past.length > 0
   const canRedo = shapeEditor.future.length > 0
+  const selectedShapePoints = selectedShapeId ? (resolvedShapes[selectedShapeId] ?? []) : []
+  const selectedPointIndex = shapeEditor.selectedPointIndex
+  const hasSelectedPoint = selectedPointIndex !== null
+    && selectedPointIndex >= 0
+    && selectedPointIndex < selectedShapePoints.length
 
   useEffect(() => {
     return () => {
@@ -78,6 +88,12 @@ function MapPage() {
       setShapeEditorSelectedShape(selectedShapeId)
     }
   }, [selectedShapeId, setShapeEditorSelectedShape, shapeEditor.selectedShapeId])
+
+  useEffect(() => {
+    if (!hasSelectedPoint && shapeEditor.selectedPointIndex !== null) {
+      setShapeEditorSelectedPoint(null)
+    }
+  }, [hasSelectedPoint, setShapeEditorSelectedPoint, shapeEditor.selectedPointIndex])
 
   useEffect(() => {
     function handleDocumentClick(event) {
@@ -122,6 +138,12 @@ function MapPage() {
       if (isUndo) {
         event.preventDefault()
         undoShapeEditor()
+        return
+      }
+
+      if ((event.key === 'Delete' || event.key === 'Backspace') && hasSelectedPoint && selectedShapeId) {
+        event.preventDefault()
+        deleteShapePoint(profileId, selectedShapeId, selectedPointIndex)
       }
     }
 
@@ -130,7 +152,16 @@ function MapPage() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [redoShapeEditor, ui.showShapeEditor, undoShapeEditor])
+  }, [
+    deleteShapePoint,
+    hasSelectedPoint,
+    profileId,
+    redoShapeEditor,
+    selectedPointIndex,
+    selectedShapeId,
+    ui.showShapeEditor,
+    undoShapeEditor,
+  ])
 
   useEffect(() => {
     if (
@@ -276,7 +307,7 @@ function MapPage() {
             <span className="map-toolbar__label">World Profile</span>
             <details ref={profileMenuRef} className="map-profile-menu">
               <summary className="map-profile-menu__trigger">
-                <span>{activeProfile?.label ?? profileId}</span>
+                <span>{activeProfileLabel}</span>
                 <span className="map-profile-menu__caret">▾</span>
               </summary>
 
@@ -334,6 +365,15 @@ function MapPage() {
                 ))}
               </select>
             </div>
+            <div className="map-shape-editor__group">
+              <span className="map-toolbar__label">Map Title</span>
+              <input
+                className="map-shape-editor__input"
+                type="text"
+                value={activeProfileLabel}
+                onChange={(event) => setMapLabelOverride(profileId, event.target.value)}
+              />
+            </div>
             <button
               type="button"
               className="map-toolbar__button"
@@ -354,13 +394,25 @@ function MapPage() {
               type="button"
               className="map-toolbar__button"
               onClick={() => {
-                const currentPoints = resolvedShapes[selectedShapeId] ?? []
+                if (selectedShapeId && hasSelectedPoint) {
+                  deleteShapePoint(profileId, selectedShapeId, selectedPointIndex)
+                }
+              }}
+              disabled={!selectedShapeId || !hasSelectedPoint || selectedShapePoints.length <= 3}
+            >
+              Delete Selected Point
+            </button>
+            <button
+              type="button"
+              className="map-toolbar__button"
+              onClick={() => {
+                const currentPoints = selectedShapePoints
 
                 if (selectedShapeId && currentPoints.length > 3) {
                   updateShapeOverride(profileId, selectedShapeId, currentPoints.slice(0, -1))
                 }
               }}
-              disabled={!selectedShapeId || (resolvedShapes[selectedShapeId]?.length ?? 0) <= 3}
+              disabled={!selectedShapeId || selectedShapePoints.length <= 3}
             >
               Remove Last Point
             </button>
@@ -377,16 +429,26 @@ function MapPage() {
               Reset Shape
             </button>
             <p className="map-shape-editor__hint">
-              Drag points to reshape the coast. Right-click a point to delete it. Click a midpoint to insert a new vertex, or click empty map space to append one. Use Ctrl+Z / Ctrl+Shift+Z to undo and redo.
+              Drag points to reshape the coast. Click a point to select it, then press Delete or Backspace to remove it. Right-click still works too. Click a midpoint to insert a new vertex, or click empty map space to append one. Use Ctrl+Z / Ctrl+Shift+Z to undo and redo.
             </p>
           </div>
         ) : null}
 
         <div className="map-shell__layout">
           <div className={`map-viewport-shell ${isProfileTransitioning ? 'is-transitioning' : ''}`}>
+            {profileId !== DEFAULT_WORLD_PROFILE ? (
+              <button
+                type="button"
+                className="map-viewport-shell__back"
+                onClick={() => transitionToProfile(DEFAULT_WORLD_PROFILE, 96)}
+              >
+                <span className="map-viewport-shell__back-arrow" aria-hidden="true">←</span>
+                <span>Back to Emerald Vale</span>
+              </button>
+            ) : null}
             <MapViewport>
               <MapCanvas
-                onActivateFocusRegion={handleActivateFocusRegion}
+                onActivateFocusRegion={ui.showShapeEditor ? undefined : handleActivateFocusRegion}
                 onWorldReady={handleWorldReady}
                 suppressRender={isProfileTransitioning}
                 onDeleteShapePoint={(pointIndex) => {
@@ -472,7 +534,7 @@ function MapPage() {
               </div>
               <div>
                 <dt>World Profile</dt>
-                <dd>{activeProfile?.label ?? profileId}</dd>
+                <dd>{activeProfileLabel}</dd>
               </div>
               <div>
                 <dt>Detail Band</dt>
