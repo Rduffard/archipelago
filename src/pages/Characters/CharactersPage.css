@@ -1,0 +1,23 @@
+.characters-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.characters-toolbar__cta {
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 0.95rem 1.2rem;
+  background: #d1b38f;
+  color: #1b130c;
+  font-weight: 700;
+}
+
+@media (max-width: 980px) {
+  .characters-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

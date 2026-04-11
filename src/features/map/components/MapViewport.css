@@ -1,0 +1,133 @@
+.map-viewport {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.map-viewport__hint {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.map-viewport__hint span {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(209, 179, 143, 0.12);
+  color: #e6ccb0;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.map-viewport__frame {
+  aspect-ratio: 16 / 10;
+  min-height: 0;
+  max-height: min(78vh, 52rem);
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(239, 223, 192, 0.18);
+  background:
+    linear-gradient(180deg, rgba(18, 30, 40, 0.94), rgba(8, 16, 22, 0.98));
+  box-shadow:
+    inset 0 0 0 1px rgba(17, 27, 36, 0.6),
+    inset 0 18px 30px rgba(211, 234, 255, 0.05);
+  cursor: grab;
+}
+
+.map-viewport__frame.is-panning {
+  cursor: grabbing;
+}
+
+.map-viewport__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.map-viewport__backdrop {
+  fill: url(#map-sea-depth);
+}
+
+.map-viewport__backdrop--ripples {
+  opacity: 0.7;
+}
+
+.map-viewport__backdrop--speckle {
+  opacity: 0.55;
+}
+
+.map-viewport__backdrop--grain {
+  opacity: 0.45;
+  mix-blend-mode: screen;
+}
+
+.map-viewport__backdrop--glow {
+  mix-blend-mode: screen;
+  opacity: 0.9;
+}
+
+.map-viewport__backdrop--vignette {
+  opacity: 0.9;
+}
+
+.map-viewport__nautical-lines,
+.map-viewport__chart-circles {
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-viewport__nautical-lines path {
+  fill: none;
+  stroke: rgba(235, 243, 250, 0.16);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.map-viewport__nautical-lines path:nth-child(2) {
+  stroke: rgba(235, 243, 250, 0.12);
+}
+
+.map-viewport__nautical-lines path:nth-child(3) {
+  stroke: rgba(235, 243, 250, 0.1);
+}
+
+.map-viewport__nautical-lines path:nth-child(4) {
+  stroke: rgba(235, 243, 250, 0.08);
+}
+
+.map-viewport__chart-circles circle {
+  fill: none;
+  stroke: rgba(247, 236, 213, 0.08);
+  stroke-width: 1.2;
+}
+
+.map-viewport__chart-circles circle:nth-child(2),
+.map-viewport__chart-circles circle:nth-child(5) {
+  stroke: rgba(247, 236, 213, 0.06);
+}
+
+.map-viewport__surface-frame {
+  pointer-events: none;
+}
+
+.map-viewport__surface-frame rect:first-child {
+  fill: none;
+  stroke: rgba(238, 223, 193, 0.58);
+  stroke-width: 1.4;
+}
+
+.map-viewport__surface-frame rect:last-child {
+  fill: none;
+  stroke: rgba(65, 45, 31, 0.34);
+  stroke-width: 1;
+}
+
+.map-viewport__ornaments {
+  pointer-events: none;
+}
+
+@media (max-width: 980px) {
+  .map-viewport__frame {
+    aspect-ratio: 10 / 12;
+    max-height: none;
+  }
+}

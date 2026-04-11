@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import useMapStore from '../store/useMapStore'
+import './MapViewport.css'
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)

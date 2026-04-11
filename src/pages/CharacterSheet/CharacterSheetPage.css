@@ -1,0 +1,223 @@
+.character-sheet {
+  margin-top: 1.1rem;
+}
+
+.character-sheet__hero {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.character-sheet__identity {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.character-sheet__identity h2,
+.character-sheet__detail-card h3 {
+  margin: 0;
+}
+
+.character-sheet__subtitle,
+.character-sheet__meta,
+.character-sheet__detail-card p,
+.character-sheet__notes-copy {
+  color: #cabca8;
+}
+
+.character-sheet__subtitle,
+.character-sheet__meta,
+.character-sheet__detail-card p {
+  margin: 0.45rem 0 0;
+}
+
+.character-sheet__portrait {
+  width: 7rem;
+  height: 7rem;
+  border-radius: 22px;
+  object-fit: cover;
+  border: 1px solid rgba(214, 190, 152, 0.22);
+}
+
+.character-sheet__portrait--placeholder {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at top, rgba(209, 179, 143, 0.24), transparent 62%),
+    rgba(255, 248, 237, 0.06);
+}
+
+.character-sheet__portrait--placeholder span {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #f3eadb;
+}
+
+.character-sheet__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.character-sheet__action-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 0.78rem 1rem;
+  background: #d1b38f;
+  color: #1b130c;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.character-sheet__delete {
+  border: 1px solid rgba(255, 155, 138, 0.36);
+  border-radius: 999px;
+  padding: 0.78rem 1rem;
+  background: rgba(255, 155, 138, 0.1);
+  color: #ffd0c7;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.character-sheet__delete:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.character-sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.character-sheet__stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.character-sheet__stat-card,
+.character-sheet__detail-card {
+  padding: 0.85rem;
+  border-radius: 16px;
+  border: 1px solid rgba(214, 190, 152, 0.12);
+  background: rgba(255, 248, 237, 0.03);
+}
+
+.character-sheet__stat-card span,
+.character-sheet__detail-card header span,
+.character-sheet__detail-meta {
+  display: block;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #d1b38f;
+}
+
+.character-sheet__stat-card strong {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.character-sheet__stack,
+.character-sheet__list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.character-sheet__list {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.character-sheet__detail-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.character-sheet__detail-meta {
+  margin-top: 0.55rem;
+}
+
+.character-sheet__reputation-score.is-positive {
+  color: #bde8c7;
+}
+
+.character-sheet__reputation-score.is-negative {
+  color: #ffc9bf;
+}
+
+.character-sheet__glossary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 0.9rem;
+}
+
+.character-sheet__accordion {
+  border: 1px solid rgba(214, 190, 152, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 248, 237, 0.03);
+  padding: 0.85rem 0.9rem;
+}
+
+.character-sheet__accordion summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  cursor: pointer;
+  color: #f3eadb;
+  font-weight: 700;
+  list-style: none;
+}
+
+.character-sheet__accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.character-sheet__accordion summary span:last-child {
+  color: #d1b38f;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.character-sheet__notes {
+  grid-column: 1 / -1;
+}
+
+.character-sheet__notes-copy {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+@media (min-width: 1180px) {
+  .character-sheet__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .character-sheet__identity,
+  .character-sheet__detail-card header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .character-sheet__grid,
+  .character-sheet__stat-grid,
+  .character-sheet__glossary-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import CharacterRoster from '../characters/CharacterRoster'
 import PageHeader from '../layout/PageHeader'
+import './Dashboard.css'
 
 const dashboardActions = [
   {

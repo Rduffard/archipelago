@@ -1,0 +1,44 @@
+.roster-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.roster-item {
+  display: block;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(214, 190, 152, 0.12);
+  background: rgba(255, 248, 237, 0.03);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.roster-item h3 {
+  margin: 0;
+}
+
+.roster-item p {
+  color: #cabca8;
+}
+
+.roster-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(214, 190, 152, 0.34);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.18);
+}
+
+.roster-item__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.roster-item__stats span {
+  border-radius: 999px;
+  padding: 0.28rem 0.6rem;
+  background: rgba(209, 179, 143, 0.12);
+  color: #e6ccb0;
+  font-size: 0.78rem;
+}

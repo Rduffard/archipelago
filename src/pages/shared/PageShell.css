@@ -1,0 +1,9 @@
+.page-shell {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.page-shell__error {
+  margin: 0 0 1rem;
+}

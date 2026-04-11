@@ -14,6 +14,10 @@ import {
 import { getResolvedProfileShapePolygons } from '../../features/map/engine/generate/worldShapePolygons'
 import useMapStore from '../../features/map/store/useMapStore'
 import fitCameraToBounds from '../../features/map/utils/fitCameraToBounds'
+import MapInspector from './components/MapInspector'
+import MapToolbar from './components/MapToolbar'
+import '../shared/PageShell.css'
+import './MapPage.css'
 
 function MapPage() {
   const cells = useMapStore((state) => state.world.cells)
@@ -210,6 +214,13 @@ function MapPage() {
     }, 180)
   }, [camera.zoom, detailBandId, profileId, setDetailBandId])
 
+  useEffect(() => {
+    return () => {
+      isTransitioningRef.current = false
+      pendingTransitionKeyRef.current = ''
+    }
+  }, [clearWorldGeometry])
+
   function transitionToProfile(nextProfileId, padding = 72) {
     const nextProfile = WORLD_PROFILES[nextProfileId]
 
@@ -260,13 +271,6 @@ function MapPage() {
     }, 420)
   }
 
-  useEffect(() => {
-    return () => {
-      isTransitioningRef.current = false
-      pendingTransitionKeyRef.current = ''
-    }
-  }, [clearWorldGeometry])
-
   function handleActivateFocusRegion(region) {
     if (!region?.targetProfileId) {
       return
@@ -284,8 +288,26 @@ function MapPage() {
     transitionToProfile(nextProfileId, nextProfileId === 'emerald_vale' ? 96 : 84)
   }
 
+  function handleDeleteSelectedPoint() {
+    if (selectedShapeId && hasSelectedPoint) {
+      deleteShapePoint(profileId, selectedShapeId, selectedPointIndex)
+    }
+  }
+
+  function handleRemoveLastPoint() {
+    if (selectedShapeId && selectedShapePoints.length > 3) {
+      updateShapeOverride(profileId, selectedShapeId, selectedShapePoints.slice(0, -1))
+    }
+  }
+
+  function handleResetShape() {
+    if (selectedShapeId) {
+      resetShapeOverride(profileId, selectedShapeId)
+    }
+  }
+
   return (
-    <main className="standalone-page map-page">
+    <main className="page-shell map-page">
       <PageHeader
         eyebrow="World Engine"
         title="Explore the Lore"
@@ -296,143 +318,35 @@ function MapPage() {
 
       <section className="map-shell">
         <div className="map-shell__meta">
-          <p className="standalone-page__eyebrow">Base World Model</p>
+          <p className="page-shell__eyebrow">Base World Model</p>
           <p>
             World size {MAP_WORLD_WIDTH} x {MAP_WORLD_HEIGHT} with authored macro and regional world profiles.
           </p>
         </div>
 
-        <div className="map-toolbar" aria-label="Map debug controls">
-          <div className="map-toolbar__group">
-            <span className="map-toolbar__label">World Profile</span>
-            <details ref={profileMenuRef} className="map-profile-menu">
-              <summary className="map-profile-menu__trigger">
-                <span>{activeProfileLabel}</span>
-                <span className="map-profile-menu__caret">▾</span>
-              </summary>
-
-              <div className="map-profile-menu__list" role="listbox" aria-label="World profile">
-                {Object.values(WORLD_PROFILES).map((profile) => (
-                  <button
-                    key={profile.id}
-                    type="button"
-                    className={`map-profile-menu__option ${profile.id === profileId ? 'is-active' : ''}`}
-                    onClick={() => {
-                      handleProfileChange(profile.id)
-                      profileMenuRef.current?.removeAttribute('open')
-                    }}
-                  >
-                    <span>{profile.label}</span>
-                    <small>{profile.description}</small>
-                  </button>
-                ))}
-              </div>
-            </details>
-          </div>
-          <button type="button" className={`map-toolbar__button ${ui.showCoastline ? 'is-active' : ''}`} onClick={() => toggleUiFlag('showCoastline')}>
-            Coastline
-          </button>
-          <button type="button" className={`map-toolbar__button ${ui.showCellEdges ? 'is-active' : ''}`} onClick={() => toggleUiFlag('showCellEdges')}>
-            Cell Edges
-          </button>
-          <button type="button" className={`map-toolbar__button ${ui.showShapeMask ? 'is-active' : ''}`} onClick={() => toggleUiFlag('showShapeMask')}>
-            Shape Mask
-          </button>
-          <button type="button" className={`map-toolbar__button ${ui.showAuthoredShapes ? 'is-active' : ''}`} onClick={() => toggleUiFlag('showAuthoredShapes')}>
-            Authored Shapes
-          </button>
-          <button type="button" className={`map-toolbar__button ${ui.showShapeEditor ? 'is-active' : ''}`} onClick={() => toggleUiFlag('showShapeEditor')}>
-            Shape Editor
-          </button>
-          <button type="button" className={`map-toolbar__button ${ui.showPoints ? 'is-active' : ''}`} onClick={() => toggleUiFlag('showPoints')}>
-            Seed Points
-          </button>
-        </div>
-
-        {ui.showShapeEditor ? (
-          <div className="map-shape-editor">
-            <div className="map-shape-editor__group">
-              <span className="map-toolbar__label">Editing Shape</span>
-              <select
-                className="map-shape-editor__select"
-                value={selectedShapeId ?? ''}
-                onChange={(event) => setShapeEditorSelectedShape(event.target.value)}
-              >
-                {shapeIds.map((shapeId) => (
-                  <option key={shapeId} value={shapeId}>
-                    {shapeId}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="map-shape-editor__group">
-              <span className="map-toolbar__label">Map Title</span>
-              <input
-                className="map-shape-editor__input"
-                type="text"
-                value={activeProfileLabel}
-                onChange={(event) => setMapLabelOverride(profileId, event.target.value)}
-              />
-            </div>
-            <button
-              type="button"
-              className="map-toolbar__button"
-              onClick={() => undoShapeEditor()}
-              disabled={!canUndo}
-            >
-              Undo
-            </button>
-            <button
-              type="button"
-              className="map-toolbar__button"
-              onClick={() => redoShapeEditor()}
-              disabled={!canRedo}
-            >
-              Redo
-            </button>
-            <button
-              type="button"
-              className="map-toolbar__button"
-              onClick={() => {
-                if (selectedShapeId && hasSelectedPoint) {
-                  deleteShapePoint(profileId, selectedShapeId, selectedPointIndex)
-                }
-              }}
-              disabled={!selectedShapeId || !hasSelectedPoint || selectedShapePoints.length <= 3}
-            >
-              Delete Selected Point
-            </button>
-            <button
-              type="button"
-              className="map-toolbar__button"
-              onClick={() => {
-                const currentPoints = selectedShapePoints
-
-                if (selectedShapeId && currentPoints.length > 3) {
-                  updateShapeOverride(profileId, selectedShapeId, currentPoints.slice(0, -1))
-                }
-              }}
-              disabled={!selectedShapeId || selectedShapePoints.length <= 3}
-            >
-              Remove Last Point
-            </button>
-            <button
-              type="button"
-              className="map-toolbar__button"
-              onClick={() => {
-                if (selectedShapeId) {
-                  resetShapeOverride(profileId, selectedShapeId)
-                }
-              }}
-              disabled={!selectedShapeId}
-            >
-              Reset Shape
-            </button>
-            <p className="map-shape-editor__hint">
-              Drag points to reshape the coast. Click a point to select it, then press Delete or Backspace to remove it. Right-click still works too. Click a midpoint to insert a new vertex, or click empty map space to append one. Use Ctrl+Z / Ctrl+Shift+Z to undo and redo.
-            </p>
-          </div>
-        ) : null}
+        <MapToolbar
+          activeProfileLabel={activeProfileLabel}
+          canRedo={canRedo}
+          canUndo={canUndo}
+          handleProfileChange={handleProfileChange}
+          hasSelectedPoint={hasSelectedPoint}
+          onDeleteSelectedPoint={handleDeleteSelectedPoint}
+          onRedo={redoShapeEditor}
+          onRemoveLastPoint={handleRemoveLastPoint}
+          onResetShape={handleResetShape}
+          onTitleChange={(value) => setMapLabelOverride(profileId, value)}
+          onToggleUiFlag={toggleUiFlag}
+          onUndo={undoShapeEditor}
+          profileId={profileId}
+          profileMenuRef={profileMenuRef}
+          resetShapeDisabled={!selectedShapeId}
+          selectedShapeId={selectedShapeId}
+          selectedShapePoints={selectedShapePoints}
+          setShapeEditorSelectedShape={setShapeEditorSelectedShape}
+          shapeIds={shapeIds}
+          ui={ui}
+          worldProfiles={WORLD_PROFILES}
+        />
 
         <div className="map-shell__layout">
           <div className={`map-viewport-shell ${isProfileTransitioning ? 'is-transitioning' : ''}`}>
@@ -442,10 +356,13 @@ function MapPage() {
                 className="map-viewport-shell__back"
                 onClick={() => transitionToProfile(DEFAULT_WORLD_PROFILE, 96)}
               >
-                <span className="map-viewport-shell__back-arrow" aria-hidden="true">←</span>
+                <span className="map-viewport-shell__back-arrow" aria-hidden="true">
+                  {'<-'}
+                </span>
                 <span>Back to Emerald Vale</span>
               </button>
             ) : null}
+
             <MapViewport>
               <MapCanvas
                 onActivateFocusRegion={ui.showShapeEditor ? undefined : handleActivateFocusRegion}
@@ -458,94 +375,21 @@ function MapPage() {
                 }}
               />
             </MapViewport>
+
             <div className="map-viewport-shell__veil" aria-hidden="true" />
           </div>
 
-          <aside className="map-inspector">
-            <p className="standalone-page__eyebrow">Cell Inspector</p>
-
-            {selectedCell ? (
-              <dl className="map-inspector__stats">
-                <div>
-                  <dt>Cell</dt>
-                  <dd>{selectedCell.id}</dd>
-                </div>
-                <div>
-                  <dt>Terrain</dt>
-                  <dd>{selectedCell.terrain}</dd>
-                </div>
-                <div>
-                  <dt>Water</dt>
-                  <dd>{selectedCell.isWater ? 'Yes' : 'No'}</dd>
-                </div>
-                <div>
-                  <dt>Elevation</dt>
-                  <dd>{selectedCell.elevation}</dd>
-                </div>
-                <div>
-                  <dt>Moisture</dt>
-                  <dd>{selectedCell.moisture}</dd>
-                </div>
-                <div>
-                  <dt>Neighbors</dt>
-                  <dd>{selectedCell.neighbors.length}</dd>
-                </div>
-                <div>
-                  <dt>Biome</dt>
-                  <dd>{selectedCell.biome}</dd>
-                </div>
-                <div>
-                  <dt>Coastal</dt>
-                  <dd>{selectedCell.isCoastal ? 'Yes' : 'No'}</dd>
-                </div>
-                <div>
-                  <dt>Center</dt>
-                  <dd>
-                    {Math.round(selectedCell.center.x)}, {Math.round(selectedCell.center.y)}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Shape Weight</dt>
-                  <dd>{selectedCell.shapeStrength}</dd>
-                </div>
-              </dl>
-            ) : (
-              <p className="map-inspector__empty">
-                Click a cell to inspect the generated topology and terrain data.
-              </p>
-            )}
-
-            <dl className="map-inspector__stats map-inspector__stats--summary">
-              <div>
-                <dt>Total Cells</dt>
-                <dd>{cells.length}</dd>
-              </div>
-              <div>
-                <dt>Land Cells</dt>
-                <dd>{landCells}</dd>
-              </div>
-              <div>
-                <dt>Water Cells</dt>
-                <dd>{waterCells}</dd>
-              </div>
-              <div>
-                <dt>Coast Segments</dt>
-                <dd>{coastline.length}</dd>
-              </div>
-              <div>
-                <dt>World Profile</dt>
-                <dd>{activeProfileLabel}</dd>
-              </div>
-              <div>
-                <dt>Detail Band</dt>
-                <dd>{activeBand?.label ?? detailBandId}</dd>
-              </div>
-              <div>
-                <dt>Zoom</dt>
-                <dd>{camera.zoom.toFixed(2)}x</dd>
-              </div>
-            </dl>
-          </aside>
+          <MapInspector
+            activeBand={activeBand}
+            activeProfileLabel={activeProfileLabel}
+            camera={camera}
+            cells={cells}
+            coastline={coastline}
+            detailBandId={detailBandId}
+            landCells={landCells}
+            selectedCell={selectedCell}
+            waterCells={waterCells}
+          />
         </div>
       </section>
     </main>

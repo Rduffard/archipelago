@@ -35,7 +35,7 @@ export function signIn(credentials) {
 }
 
 export function getCurrentUser(token) {
-  return request('/auth/users/me', {
+  return request('/users/me', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -50,6 +50,14 @@ export function getCharacters(token) {
   })
 }
 
+export function getCharacterById(token, characterId) {
+  return request(`/archipelago/characters/${characterId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
+
 export function createCharacter(token, character) {
   return request('/archipelago/characters', {
     method: 'POST',
@@ -57,5 +65,14 @@ export function createCharacter(token, character) {
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(character),
+  })
+}
+
+export function deleteCharacter(token, characterId) {
+  return request(`/archipelago/characters/${characterId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   })
 }

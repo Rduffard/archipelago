@@ -1,0 +1,248 @@
+.map-layer__cell {
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  transition: fill 140ms ease, stroke 140ms ease, opacity 140ms ease;
+}
+
+.map-layer__cell:hover {
+  stroke: rgba(255, 247, 233, 0.84);
+  opacity: 0.92;
+}
+
+.map-layer__cell.is-selected {
+  stroke: #f3eadb;
+  stroke-width: 2;
+}
+
+.map-layer__shape-mask {
+  pointer-events: none;
+}
+
+.map-layer__island-hit {
+  fill: rgba(255, 255, 255, 0.001);
+  stroke: transparent;
+  stroke-width: 18;
+  pointer-events: all;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-layer__cell.is-focus-active {
+  stroke-width: 3.2;
+  filter: drop-shadow(0 0 6px rgba(255, 226, 164, 0.42));
+}
+
+.map-layer__coastline {
+  stroke: rgba(252, 245, 231, 0.98);
+  stroke-width: 2.15;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.map-layer__shelf {
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.map-layer__shelf--outer {
+  stroke: rgba(229, 240, 255, 0.22);
+  stroke-width: 18;
+  opacity: 0.95;
+}
+
+.map-layer__shelf--mid {
+  stroke: rgba(236, 245, 255, 0.28);
+  stroke-width: 11;
+  opacity: 0.9;
+}
+
+.map-layer__shelf--inner {
+  stroke: rgba(248, 251, 255, 0.34);
+  stroke-width: 6;
+  opacity: 0.88;
+}
+
+.map-layer__point {
+  fill: #f1c68a;
+  stroke: rgba(8, 20, 28, 0.92);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-layer__authored-shape {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.map-layer__authored-shape.is-selected {
+  opacity: 1;
+}
+
+.map-layer__authored-shape-outline {
+  fill: rgba(255, 208, 120, 0.08);
+  stroke: rgba(255, 208, 120, 0.88);
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-layer__authored-shape-point {
+  fill: rgba(255, 240, 206, 0.96);
+  stroke: rgba(101, 61, 29, 0.82);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-layer__authored-shape-label {
+  fill: rgba(255, 233, 188, 0.95);
+  font-size: 16px;
+  font-weight: 700;
+  font-family: Georgia, "Times New Roman", serif;
+  paint-order: stroke;
+  stroke: rgba(24, 14, 10, 0.82);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.map-layer__shape-editor-hit {
+  fill: rgba(255, 255, 255, 0.001);
+}
+
+.map-layer__shape-editor-polygon {
+  fill: rgba(255, 209, 122, 0.18);
+  stroke: rgba(255, 223, 168, 0.84);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-layer__shape-editor-line {
+  fill: none;
+  stroke: rgba(255, 244, 219, 0.92);
+  stroke-width: 2;
+  stroke-dasharray: 10 7;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-layer__shape-editor-segment-hit {
+  stroke: rgba(255, 255, 255, 0.001);
+  stroke-width: 18;
+  cursor: copy;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-layer__shape-editor-midpoint {
+  fill: rgba(255, 218, 146, 0.96);
+  stroke: rgba(113, 68, 33, 0.9);
+  stroke-width: 1.8;
+  cursor: copy;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-layer__shape-editor-point {
+  fill: rgba(255, 244, 219, 0.98);
+  stroke: rgba(125, 77, 38, 0.92);
+  stroke-width: 2;
+  cursor: move;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-layer__shape-editor-point[data-selected='true'] {
+  fill: rgba(255, 226, 163, 1);
+  stroke: rgba(255, 248, 232, 0.98);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 8px rgba(255, 218, 145, 0.45));
+}
+
+.map-layer__world-frame {
+  pointer-events: none;
+  stroke: rgba(242, 229, 200, 0.58);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-layer__world-shadow {
+  pointer-events: none;
+}
+
+.map-layer__world-wash {
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.map-layer__world-wash--center {
+  opacity: 0.8;
+}
+
+.map-layer__world-frame--outer {
+  stroke: rgba(231, 215, 183, 0.34);
+  stroke-width: 1.25;
+}
+
+.map-layer__world-frame--inner {
+  stroke: rgba(53, 37, 26, 0.32);
+  stroke-width: 1;
+}
+
+.map-layer__world-ornaments {
+  pointer-events: none;
+  stroke: rgba(239, 224, 193, 0.44);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-layer__world-ornaments path:last-child {
+  stroke: rgba(78, 54, 37, 0.34);
+  stroke-width: 1;
+}
+
+.map-layer__world-grid {
+  pointer-events: none;
+  stroke: rgba(241, 226, 196, 0.34);
+  stroke-width: 1.15;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-layer__compass {
+  pointer-events: none;
+}
+
+.map-layer__compass circle:first-child {
+  stroke: rgba(239, 224, 193, 0.14);
+  stroke-width: 1;
+}
+
+.map-layer__compass circle:nth-child(2) {
+  stroke: rgba(239, 224, 193, 0.46);
+  stroke-width: 1.2;
+}
+
+.map-layer__compass text {
+  fill: rgba(239, 224, 193, 0.76);
+  font-size: 16px;
+  font-weight: 700;
+  font-family: Georgia, "Times New Roman", serif;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  letter-spacing: 0.18em;
+}
+
+.map-layer__map-label {
+  pointer-events: none;
+}
+
+.map-layer__map-label text {
+  fill: rgba(244, 237, 223, 0.9);
+  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-style: italic;
+  font-weight: 700;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: rgba(30, 45, 60, 0.18);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+  text-shadow: 0 1px 8px rgba(18, 28, 38, 0.14);
+}

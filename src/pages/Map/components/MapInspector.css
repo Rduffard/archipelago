@@ -1,0 +1,38 @@
+.map-inspector {
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(214, 190, 152, 0.12);
+  background: rgba(255, 248, 237, 0.04);
+}
+
+.map-inspector__empty {
+  color: #cabca8;
+}
+
+.map-inspector__stats {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1rem 0 0;
+}
+
+.map-inspector__stats--summary {
+  margin-top: 1.4rem;
+}
+
+.map-inspector__stats div {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(214, 190, 152, 0.08);
+}
+
+.map-inspector__stats dt {
+  margin-bottom: 0.2rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #d1b38f;
+}
+
+.map-inspector__stats dd {
+  margin: 0;
+  color: #f3eadb;
+}

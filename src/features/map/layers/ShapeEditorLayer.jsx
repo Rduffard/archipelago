@@ -95,10 +95,16 @@ function ShapeEditorLayer({
       return
     }
 
-    onChange([
-      ...normalizePoints(resolvedPoints),
-      ...normalizePoints([[nextPoint.x, nextPoint.y]]),
-    ])
+    const nextPoints = [...resolvedPoints]
+    const insertionIndex = selectedPointIndex !== null
+      && selectedPointIndex >= 0
+      && selectedPointIndex < resolvedPoints.length
+      ? selectedPointIndex + 1
+      : resolvedPoints.length
+
+    nextPoints.splice(insertionIndex, 0, [nextPoint.x, nextPoint.y])
+    onChange(normalizePoints(nextPoints))
+    onSelectPoint?.(insertionIndex)
   }
 
   function handleInsertPoint(segmentIndex) {
@@ -110,12 +116,15 @@ function ShapeEditorLayer({
     }
 
     const nextPoints = [...resolvedPoints]
-    nextPoints.splice(segmentIndex + 1, 0, [
+    const insertionIndex = segmentIndex + 1
+
+    nextPoints.splice(insertionIndex, 0, [
       Number((((startPoint[0] + endPoint[0]) * 0.5)).toFixed(2)),
       Number((((startPoint[1] + endPoint[1]) * 0.5)).toFixed(2)),
     ])
 
     onChange(normalizePoints(nextPoints))
+    onSelectPoint?.(insertionIndex)
   }
 
   const segments = resolvedPoints.map((point, index) => {

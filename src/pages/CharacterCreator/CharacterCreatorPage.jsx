@@ -4,6 +4,7 @@ import PageHeader from '../../components/layout/PageHeader'
 import CharacterCreator from './CharacterCreator'
 import { createCharacter } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
+import '../shared/PageShell.css'
 
 function CharacterCreatorPage() {
   const navigate = useNavigate()
@@ -28,7 +29,7 @@ function CharacterCreatorPage() {
   }
 
   return (
-    <main className="standalone-page">
+    <main className="page-shell">
       <PageHeader
         eyebrow="New Character"
         title="Forge a New Sheet"
@@ -37,7 +38,7 @@ function CharacterCreatorPage() {
         backLabel="Return to dashboard"
       />
 
-      {saveError ? <p className="dashboard-card__error standalone-page__error">{saveError}</p> : null}
+      {saveError ? <p className="dashboard-card__error page-shell__error">{saveError}</p> : null}
 
       <CharacterCreator
         onCreateCharacter={handleCreateCharacter}

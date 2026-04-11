@@ -1,9 +1,31 @@
 import { callings, originPaths, origins } from '../../data/gameData'
+import {
+  formatReputationScore,
+  getActiveReputationEntries,
+  getOriginStartingReputation,
+  getReputationTier,
+  getReputationTrack,
+} from '../../data/reputationData'
+
+function DetailPill({ children, detail, tone = 'default' }) {
+  return (
+    <span
+      className={`choice-pill choice-pill--${tone} ${detail ? 'has-detail' : ''}`}
+      tabIndex={detail ? 0 : undefined}
+    >
+      {children}
+      {detail ? <span className="choice-pill__detail">{detail}</span> : null}
+    </span>
+  )
+}
 
 function WorldPathStep({ identity, onIdentityChange }) {
   const selectedPath = originPaths.find((path) => path.id === identity.path)
   const islandOrigins = origins.filter((origin) => origin.path === 'archipelago')
   const selectedOrigin = origins.find((origin) => origin.id === identity.originId)
+  const selectedOriginReputation = selectedOrigin
+    ? getActiveReputationEntries(getOriginStartingReputation(selectedOrigin.id)).slice(0, 4)
+    : []
   const isArchipelagoExpanded = identity.path === 'archipelago'
   const orderedPaths = [
     originPaths.find((path) => path.id === 'yuma'),
@@ -118,26 +140,61 @@ function WorldPathStep({ identity, onIdentityChange }) {
               const suggestedCalling = callings.find((calling) =>
                 origin.recommendedCallings.includes(calling.id),
               )?.name
+              const startingReputation = getActiveReputationEntries(
+                getOriginStartingReputation(origin.id),
+              ).slice(0, 3)
 
               return (
                 <button
                   key={origin.id}
                   type="button"
-                  className={`choice-card ${isSelected ? 'is-selected' : ''}`}
+                  className={`choice-card choice-card--origin ${isSelected ? 'is-selected' : ''}`}
                   onClick={() => onIdentityChange('originId', origin.id)}
                 >
-                  <div className="choice-card__topline">
-                    <span className="choice-card__label">{origin.name}</span>
-                    {suggestedCalling ? (
-                      <span className="choice-card__pill">Nuanced origin</span>
-                    ) : null}
+                  <div className="choice-card__section choice-card__section--header">
+                    <div className="choice-card__topline">
+                      <span className="choice-card__label">{origin.name}</span>
+                      {origin.identityTag ? (
+                        <DetailPill tone="default" detail={origin.identityTagDetail}>
+                          {origin.identityTag}
+                        </DetailPill>
+                      ) : suggestedCalling ? (
+                        <span className="choice-card__pill">Island-born</span>
+                      ) : null}
+                    </div>
+                    <span className="choice-card__meta">{origin.summary}</span>
                   </div>
-                  <span className="choice-card__meta">{origin.summary}</span>
-                  <p>{origin.lore}</p>
-                  <div className="choice-card__stats">
-                    <span>{origin.bonus}</span>
-                    <span>{origin.passive}</span>
-                    <span>{origin.drawback}</span>
+                  <div className="choice-card__section choice-card__section--body">
+                    <p>{origin.lore}</p>
+                  </div>
+                  <div className="choice-card__section choice-card__section--footer">
+                    <div className="choice-card__stats">
+                      <DetailPill
+                        detail={`${origin.summary} This grants ${origin.bonus} to your starting attributes.`}
+                      >
+                        {origin.bonus}
+                      </DetailPill>
+                      <DetailPill detail={origin.passiveRule}>{origin.passive}</DetailPill>
+                      <DetailPill detail={origin.drawbackRule}>{origin.drawback}</DetailPill>
+                    </div>
+                    {startingReputation.length ? (
+                      <div className="creator-reputation-preview">
+                        <span className="creator-highlight__eyebrow">Starting Reputation</span>
+                        <div className="creator-reputation-preview__chips">
+                          {startingReputation.map(([trackKey, score]) => (
+                            <DetailPill
+                              key={trackKey}
+                              tone={score > 0 ? 'positive' : 'negative'}
+                              detail={`${getReputationTier(score).label}. ${
+                                getReputationTier(score).effect
+                              } ${getReputationTrack(trackKey)?.scope ?? ''}`.trim()}
+                            >
+                              {getReputationTrack(trackKey)?.name}: {formatReputationScore(score)}
+                            </DetailPill>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 </button>
               )
@@ -151,24 +208,68 @@ function WorldPathStep({ identity, onIdentityChange }) {
           <span className="creator-highlight__eyebrow">
             {isArchipelagoExpanded ? 'Selected Island Origin' : 'Selected World Path'}
           </span>
-          <h3>{selectedOrigin?.name || selectedPath.name}</h3>
-          <p>{isArchipelagoExpanded ? selectedOrigin?.lore : selectedPath.selectedBio}</p>
+          <h3>{isArchipelagoExpanded ? selectedOrigin?.name || 'Select an island origin' : selectedPath.name}</h3>
+          <p>
+            {isArchipelagoExpanded
+              ? selectedOrigin?.lore ||
+                'The Archipelago is the wider campaign region. Pick a specific island origin to define the character’s local upbringing, politics, and starting reputation.'
+              : selectedPath.selectedBio}
+          </p>
           <div className="choice-card__stats">
             {selectedOrigin ? (
               <>
-                <span>{selectedOrigin.bonus}</span>
-                <span>{selectedOrigin.passive}</span>
-                <span>{selectedOrigin.drawback}</span>
+                <DetailPill
+                  detail={`${selectedOrigin.summary} This grants ${selectedOrigin.bonus} to your starting attributes.`}
+                >
+                  {selectedOrigin.bonus}
+                </DetailPill>
+                <DetailPill detail={selectedOrigin.passiveRule}>{selectedOrigin.passive}</DetailPill>
+                <DetailPill detail={selectedOrigin.drawbackRule}>{selectedOrigin.drawback}</DetailPill>
+              </>
+            ) : isArchipelagoExpanded ? (
+              <>
+                <DetailPill detail="Choose one of the island-born origins above to lock in your local identity.">
+                  Select an island
+                </DetailPill>
+                <DetailPill detail="Your chosen island will determine the stat bonus, passive, drawback, and starting reputation.">
+                  Island defines your roots
+                </DetailPill>
               </>
             ) : (
               <>
-                <span>Empire-born origin auto-assigned</span>
-                <span>
+                <DetailPill detail="Choosing Yuma or Lilin assigns their core homeland origin automatically.">
+                  Empire-born origin auto-assigned
+                </DetailPill>
+                <DetailPill
+                  detail={
+                    selectedPath.id === 'yuma'
+                      ? 'Yuma is the cleanest onboarding path: tech-forward, structured, and grounded in firearms and planning.'
+                      : 'Lilin starts closer to ritual power, spirits, and arcane risk, so it leans more magical from the beginning.'
+                  }
+                >
                   {selectedPath.id === 'yuma' ? 'Recommended for new players' : 'Arcane-first start'}
-                </span>
+                </DetailPill>
               </>
             )}
           </div>
+          {selectedOriginReputation.length ? (
+            <div className="creator-reputation-preview">
+              <span className="creator-highlight__eyebrow">Starting Reputation</span>
+              <div className="creator-reputation-preview__chips">
+                {selectedOriginReputation.map(([trackKey, score]) => (
+                  <DetailPill
+                    key={trackKey}
+                    tone={score > 0 ? 'positive' : 'negative'}
+                    detail={`${getReputationTier(score).label}. ${
+                      getReputationTier(score).effect
+                    } ${getReputationTrack(trackKey)?.scope ?? ''}`.trim()}
+                  >
+                    {getReputationTrack(trackKey)?.name}: {formatReputationScore(score)}
+                  </DetailPill>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </section>
       ) : null}
     </section>
@@ -199,15 +300,28 @@ function CallingStep({ identity, onIdentityChange }) {
               <button
                 key={calling.id}
                 type="button"
-                className={`choice-card ${isSelected ? 'is-selected' : ''}`}
+                className={`choice-card choice-card--calling ${isSelected ? 'is-selected' : ''}`}
                 onClick={() => onIdentityChange('callingId', calling.id)}
               >
-                <span className="choice-card__label">{calling.name}</span>
-                <span className="choice-card__meta">{calling.focus}</span>
-                <p>{calling.description}</p>
-                <div className="choice-card__tags">
-                  <span>{calling.primaryStats.join(' / ')}</span>
-                  <span>{calling.passive}</span>
+                <div className="choice-card__section choice-card__section--header">
+                  <span className="choice-card__label">{calling.name}</span>
+                  <span className="choice-card__meta">{calling.focus}</span>
+                </div>
+                <div className="choice-card__section choice-card__section--body">
+                  <p>{calling.description}</p>
+                </div>
+                <div className="choice-card__section choice-card__section--footer">
+                  <div className="choice-card__tags">
+                    <DetailPill detail={`${calling.name} leans on ${calling.primaryStats.join(' and ')} most heavily.`}>
+                      {calling.primaryStats.join(' / ')}
+                    </DetailPill>
+                    <DetailPill detail={calling.passiveRule}>
+                      Passive: {calling.passive}
+                    </DetailPill>
+                    <DetailPill detail={`${calling.starterAbilityType}. ${calling.starterAbilityRule}`}>
+                      {calling.starterAbility}
+                    </DetailPill>
+                  </div>
                 </div>
               </button>
             )
@@ -221,8 +335,15 @@ function CallingStep({ identity, onIdentityChange }) {
           <h3>{selectedCalling.name}</h3>
           <p>{selectedCalling.description}</p>
           <div className="choice-card__stats">
-            <span>{selectedCalling.passive}</span>
-            <span>{selectedCalling.starterAbility}</span>
+            <DetailPill detail={`${selectedCalling.name} leans on ${selectedCalling.primaryStats.join(' and ')} most heavily.`}>
+              {selectedCalling.primaryStats.join(' / ')}
+            </DetailPill>
+            <DetailPill detail={selectedCalling.passiveRule}>
+              Passive: {selectedCalling.passive}
+            </DetailPill>
+            <DetailPill detail={`${selectedCalling.starterAbilityType}. ${selectedCalling.starterAbilityRule}`}>
+              {selectedCalling.starterAbility}
+            </DetailPill>
           </div>
         </section>
       ) : null}

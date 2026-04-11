@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
+import './PageHeader.css'
 
 function PageHeader({ eyebrow, title, description, backTo, backLabel = 'Back' }) {
   return (
     <>
       {backTo ? (
         <Link className="page-header__back" to={backTo}>
-          ← {backLabel}
+          {'<-'} {backLabel}
         </Link>
       ) : null}
 

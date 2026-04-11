@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import './AppNavbar.css'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },

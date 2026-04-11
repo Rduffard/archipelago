@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom'
 import CharacterRoster from '../../components/characters/CharacterRoster'
+import '../../components/dashboard/Dashboard.css'
 import PageHeader from '../../components/layout/PageHeader'
 import { useAuth } from '../../hooks/useAuth'
+import '../shared/PageShell.css'
+import './CharactersPage.css'
 
 function CharactersPage() {
   const { characters } = useAuth()
 
   return (
-    <main className="standalone-page">
+    <main className="page-shell">
       <PageHeader
         eyebrow="Characters"
         title="Your Roster"

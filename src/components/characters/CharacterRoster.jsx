@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import '../dashboard/Dashboard.css'
+import './CharacterRoster.css'
 
 function CharacterRoster({ characters, limit }) {
   const visibleCharacters = typeof limit === 'number' ? characters.slice(0, limit) : characters
@@ -16,7 +18,7 @@ function CharacterRoster({ characters, limit }) {
   return (
     <div className="roster-list">
       {visibleCharacters.map((character) => (
-        <article key={character._id} className="roster-item">
+        <Link key={character._id} className="roster-item" to={`/characters/${character._id}`}>
           <div>
             <h3>{character.name}</h3>
             <p>
@@ -28,7 +30,7 @@ function CharacterRoster({ characters, limit }) {
             <span>Guard {character.derivedStats.guard}</span>
             <span>Focus {character.derivedStats.focus}</span>
           </div>
-        </article>
+        </Link>
       ))}
 
       {hiddenCount ? (

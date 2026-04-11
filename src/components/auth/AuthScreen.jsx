@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import './AuthScreen.css'
 
 function AuthScreen({ onSubmit, isLoading, errorMessage }) {
   const [mode, setMode] = useState('signin')
@@ -77,7 +78,7 @@ function AuthScreen({ onSubmit, isLoading, errorMessage }) {
               type="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="••••••••"
+              placeholder="........"
               required
             />
           </label>

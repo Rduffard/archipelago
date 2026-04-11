@@ -1,5 +1,8 @@
 import { Link, useLocation } from 'react-router-dom'
+import '../../components/dashboard/Dashboard.css'
 import PageHeader from '../../components/layout/PageHeader'
+import '../shared/PageShell.css'
+import './PlaceholderPage.css'
 
 const pageContent = {
   '/campaigns/new': {
@@ -29,7 +32,7 @@ function PlaceholderPage() {
   const page = pageContent[location.pathname]
 
   return (
-    <main className="standalone-page">
+    <main className="page-shell">
       <PageHeader
         eyebrow={page.eyebrow}
         title={page.title}

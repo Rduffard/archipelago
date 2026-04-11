@@ -3,7 +3,15 @@ import AttributesStep from '../../components/creator/AttributesStep'
 import { CallingStep, WorldPathStep } from '../../components/creator/IdentityStep'
 import ReviewStep from '../../components/creator/ReviewStep'
 import { ATTRIBUTE_POINTS, callings, origins, originPaths } from '../../data/gameData'
-import { calculateDerivedStats, createEmptyAttributes, getRemainingPoints } from '../../lib/character'
+import { getOriginStartingReputation } from '../../data/reputationData'
+import {
+  applyAttributeBonus,
+  calculateDerivedStats,
+  calculatePairingStats,
+  calculateSocialStats,
+  createEmptyAttributes,
+  getRemainingPoints,
+} from '../../lib/character'
 import './CharacterCreator.css'
 
 const initialIdentity = {
@@ -48,11 +56,21 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
   const [saveMessage, setSaveMessage] = useState('')
   const [currentStep, setCurrentStep] = useState(0)
 
-  const derivedStats = calculateDerivedStats(attributeValues)
-  const remainingPoints = getRemainingPoints(attributeValues)
   const selectedCalling = callings.find((entry) => entry.id === identity.callingId)
   const selectedOrigin = origins.find((entry) => entry.id === identity.originId)
   const selectedPath = originPaths.find((entry) => entry.id === identity.path)
+  const finalAttributes = useMemo(
+    () => applyAttributeBonus(attributeValues, selectedOrigin?.bonus),
+    [attributeValues, selectedOrigin?.bonus],
+  )
+  const startingReputation = useMemo(
+    () => getOriginStartingReputation(identity.originId),
+    [identity.originId],
+  )
+  const derivedStats = useMemo(() => calculateDerivedStats(finalAttributes), [finalAttributes])
+  const socialStats = useMemo(() => calculateSocialStats(finalAttributes), [finalAttributes])
+  const pairingStats = useMemo(() => calculatePairingStats(finalAttributes), [finalAttributes])
+  const remainingPoints = getRemainingPoints(attributeValues)
   const trimmedName = identity.name.trim()
   const hasValidName = trimmedName.length >= 2
 
@@ -120,10 +138,26 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
       calling: identity.callingId,
       origin: identity.originId,
       rank: 1,
-      attributes: attributeValues,
-      passives: [],
+      attributes: finalAttributes,
+      derivedStats,
+      socialStats,
+      pairingStats,
+      reputation: startingReputation,
+      passives: [
+        selectedCalling ? `${selectedCalling.passive}: ${selectedCalling.passiveRule}` : null,
+        selectedOrigin ? `${selectedOrigin.passive}: ${selectedOrigin.passiveRule}` : null,
+        selectedOrigin ? `Drawback - ${selectedOrigin.drawback}: ${selectedOrigin.drawbackRule}` : null,
+      ].filter(Boolean),
       wounds: [],
-      abilities: [],
+      abilities: selectedCalling
+        ? [
+            {
+              name: selectedCalling.starterAbility,
+              description: `${selectedCalling.starterAbilityType}. ${selectedCalling.starterAbilityRule}`,
+              source: 'calling',
+            },
+          ]
+        : [],
       inventory: [],
       relics: [],
       notes: '',
@@ -187,6 +221,8 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
         identity={identity}
         attributeValues={attributeValues}
         derivedStats={derivedStats}
+        socialStats={socialStats}
+        reputation={startingReputation}
       />
     )
   }
@@ -225,7 +261,7 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
           <h1>Character Creator</h1>
           <p className="hero-banner__copy">
             A guided first pass for your tabletop app, grounded in world paths, callings,
-            island origins, and thematic attributes.
+            island origins, thematic attributes, and the politics waiting for you offshore.
           </p>
         </section>
       ) : null}
@@ -259,10 +295,20 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
       <section className="creator-summary">
         <p className="creator-summary__label">Current Build</p>
         <div className="creator-summary__chips">
-          <span>{selectedPath?.name || 'No world path yet'}</span>
-          <span>{selectedOrigin?.name || (identity.path === 'archipelago' ? 'No island origin yet' : 'Origin pending')}</span>
-          <span>{selectedCalling?.name || 'No calling yet'}</span>
-          <span>{remainingPoints} point{remainingPoints === 1 ? '' : 's'} left</span>
+          <span>
+            <strong>World Path:</strong> {selectedPath?.name || 'Not chosen'}
+          </span>
+          <span>
+            <strong>Origin:</strong>{' '}
+            {selectedOrigin?.name ||
+              (identity.path === 'archipelago' ? 'Select an island' : 'Pending from world path')}
+          </span>
+          <span>
+            <strong>Calling:</strong> {selectedCalling?.name || 'Not chosen'}
+          </span>
+          <span>
+            <strong>Points Left:</strong> {remainingPoints}
+          </span>
         </div>
       </section>
 
@@ -272,7 +318,7 @@ function CharacterCreator({ onCreateCharacter, isSaving = false, showIntro = tru
         <div>
           <p>
             {currentStepMeta.id === 'review'
-              ? 'This final pass is where the sheet stops being an idea and becomes something you can save.'
+              ? 'One last breath, and this name is no longer a rumor. Save the sheet, and let the sea decide what survives it.'
               : 'The flow is staged so new players can stay simple while island-born builds open deeper nuance.'}
           </p>
           {saveMessage ? <strong>{saveMessage}</strong> : null}

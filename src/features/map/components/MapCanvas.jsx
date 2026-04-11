@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
+import './MapCanvas.css'
 import buildCells from '../engine/build/buildCells'
 import assignBiomes from '../engine/derive/assignBiomes'
 import deriveCellFeatures from '../engine/derive/deriveCellFeatures'
@@ -19,6 +20,7 @@ export const MAP_WORLD_HEIGHT = 1000
 const MAP_SURFACE_RADIUS = 44
 const MAP_OUTER_BORDER_OFFSET = 10
 const worldCache = new Map()
+const EMPTY_SHAPE_OVERRIDES = {}
 
 function MapLabelLayer({ label, profile }) {
   if (!profile.mapLabel) {
@@ -84,7 +86,10 @@ function MapCanvas({
   const setWorld = useMapStore((state) => state.setWorld)
   const updateShapeOverride = useMapStore((state) => state.updateShapeOverride)
   const setShapeEditorSelectedPoint = useMapStore((state) => state.setShapeEditorSelectedPoint)
-  const shapeOverrides = overridesByProfile[profileId] ?? {}
+  const shapeOverrides = useMemo(
+    () => overridesByProfile[profileId] ?? EMPTY_SHAPE_OVERRIDES,
+    [overridesByProfile, profileId],
+  )
 
   useEffect(() => {
     const profile = getWorldProfile(profileId, shapeOverrides)

@@ -1,18 +1,128 @@
 import { callings, origins, originPaths } from '../../data/gameData'
+import {
+  formatReputationScore,
+  getActiveReputationEntries,
+  getOriginStartingReputation,
+  getReputationTier,
+  getReputationTrack,
+} from '../../data/reputationData'
+import {
+  applyAttributeBonus,
+  getRollModifier,
+  getAttributeLabel,
+  getStatLabel,
+  parseAttributeBonus,
+} from '../../lib/character'
 
-function ReviewStep({ identity, attributeValues, derivedStats }) {
+const DERIVED_STAT_DETAILS = {
+  vitality: {
+    formula: '10 + Might + Resolve',
+    description: 'Your health pool and ability to stay standing through punishment.',
+  },
+  guard: {
+    formula: '10 + Agility',
+    description: 'Your baseline defense against direct attacks and incoming pressure.',
+  },
+  initiative: {
+    formula: '10 + Agility + Instinct',
+    description: 'How quickly you react, reposition, and act when the action starts.',
+  },
+  focus: {
+    formula: '10 + Spirit + Resolve',
+    description: 'Mental stability, magical control, and resistance against strain.',
+  },
+}
+
+const SOCIAL_STAT_DETAILS = {
+  grace: {
+    formula: '10 + Spirit + Resolve',
+    description: 'Charm, diplomacy, poise, and the ability to win trust without force.',
+  },
+  guile: {
+    formula: '10 + Wit + Spirit',
+    description: 'Lies, misdirection, concealment, and reading the hidden angle in a conversation.',
+  },
+  pressure: {
+    formula: '10 + Might + Resolve',
+    description: 'Threat, command presence, hard bargaining, and forcing someone to fold.',
+  },
+}
+
+function ReviewDataRow({ detail, label, value }) {
+  return (
+    <div className={`review-card__row ${detail ? 'has-detail' : ''}`} tabIndex={detail ? 0 : undefined}>
+      <dt>{label}</dt>
+      <dd>
+        {value}
+        {detail ? <span className="review-card__detail">{detail}</span> : null}
+      </dd>
+    </div>
+  )
+}
+
+function ReviewStep({ identity, attributeValues, derivedStats, socialStats, reputation }) {
   const calling = callings.find((entry) => entry.id === identity.callingId)
   const origin = origins.find((entry) => entry.id === identity.originId)
   const path = originPaths.find((entry) => entry.id === identity.path)
+  const parsedOriginBonus = parseAttributeBonus(origin?.bonus)
+  const finalAttributes = applyAttributeBonus(attributeValues, origin?.bonus)
+  const activeReputation = getActiveReputationEntries(
+    reputation ?? getOriginStartingReputation(identity.originId),
+  )
+  const gains = [
+    path ? { label: 'World Path', value: path.name, detail: path.description } : null,
+    calling?.primaryStats?.length
+      ? {
+          label: 'Calling Focus',
+          value: calling.primaryStats.join(' / '),
+          detail: `${calling.name} leans on these attributes most heavily in play.`,
+        }
+      : null,
+    calling?.passive
+      ? {
+          label: 'Calling Passive',
+          value: calling.passive,
+          detail: calling.passiveRule,
+        }
+      : null,
+    calling?.starterAbility
+      ? {
+          label: 'Starter Ability',
+          value: calling.starterAbility,
+          detail: `${calling.starterAbilityType}. ${calling.starterAbilityRule}`,
+        }
+      : null,
+    origin?.bonus
+      ? {
+          label: 'Origin Bonus',
+          value: origin.bonus,
+          detail: `${origin.summary} Final ${parsedOriginBonus?.label ?? 'attribute'} gains ${parsedOriginBonus?.amount ?? 0}.`,
+        }
+      : null,
+    origin?.passive
+      ? {
+          label: 'Origin Passive',
+          value: origin.passive,
+          detail: origin.passiveRule,
+        }
+      : null,
+    origin?.drawback
+      ? {
+          label: 'Origin Drawback',
+          value: origin.drawback,
+          detail: origin.drawbackRule,
+        }
+      : null,
+  ].filter(Boolean)
 
   return (
     <section className="creator-panel">
       <div className="creator-panel__header">
         <p className="creator-panel__kicker">Step 4</p>
-        <h2>Review the character frame</h2>
+        <h2>Read the shape of your legend</h2>
         <p>
-          This is still early, but it now reflects the order your world actually cares about:
-          path, calling, origin, and then the numbers.
+          Before the Vale learns your name, it reads your roots, your calling, your island,
+          and only then the numbers that follow you into the storm.
         </p>
       </div>
 
@@ -20,37 +130,28 @@ function ReviewStep({ identity, attributeValues, derivedStats }) {
         <article className="review-card">
           <h3>Identity</h3>
           <dl>
-            <div>
-              <dt>Name</dt>
-              <dd>{identity.name || 'Unnamed'}</dd>
-            </div>
-            <div>
-              <dt>Pronouns</dt>
-              <dd>{identity.pronouns || 'Unspecified'}</dd>
-            </div>
-            <div>
-              <dt>World Path</dt>
-              <dd>{path?.name || 'Choose one'}</dd>
-            </div>
-            <div>
-              <dt>Calling</dt>
-              <dd>{calling?.name || 'Choose one'}</dd>
-            </div>
-            <div>
-              <dt>Origin</dt>
-              <dd>{origin?.name || 'Choose one'}</dd>
-            </div>
+            <ReviewDataRow label="Name" value={identity.name || 'Unnamed'} />
+            <ReviewDataRow label="Pronouns" value={identity.pronouns || 'Unspecified'} />
+            <ReviewDataRow label="World Path" value={path?.name || 'Choose one'} detail={path?.description} />
+            <ReviewDataRow label="Calling" value={calling?.name || 'Choose one'} detail={calling?.description} />
+            <ReviewDataRow label="Origin" value={origin?.name || 'Choose one'} detail={origin?.summary} />
           </dl>
         </article>
 
         <article className="review-card">
           <h3>Attributes</h3>
           <dl>
-            {Object.entries(attributeValues).map(([key, value]) => (
-              <div key={key}>
-                <dt>{key}</dt>
-                <dd>{value}</dd>
-              </div>
+            {Object.entries(finalAttributes).map(([key, value]) => (
+              <ReviewDataRow
+                key={key}
+                label={getAttributeLabel(key)}
+                value={value}
+                detail={
+                  parsedOriginBonus?.key === key
+                    ? `Allocated: ${attributeValues[key] ?? 0}\nOrigin Bonus: +${parsedOriginBonus.amount}`
+                    : undefined
+                }
+              />
             ))}
           </dl>
         </article>
@@ -59,12 +160,66 @@ function ReviewStep({ identity, attributeValues, derivedStats }) {
           <h3>Derived Stats</h3>
           <dl>
             {Object.entries(derivedStats).map(([key, value]) => (
-              <div key={key}>
-                <dt>{key}</dt>
-                <dd>{value}</dd>
-              </div>
+              <ReviewDataRow
+                key={key}
+                label={getStatLabel(key)}
+                value={value}
+                detail={`${DERIVED_STAT_DETAILS[key]?.description}\n\nFormula: ${
+                  DERIVED_STAT_DETAILS[key]?.formula
+                }\nRoll Modifier: ${getRollModifier(value)}`}
+              />
             ))}
           </dl>
+        </article>
+
+        <article className="review-card">
+          <h3>Social Stats</h3>
+          <dl>
+            {Object.entries(socialStats ?? {}).map(([key, value]) => (
+              <ReviewDataRow
+                key={key}
+                label={getStatLabel(key)}
+                value={value}
+                detail={`${SOCIAL_STAT_DETAILS[key]?.description}\n\nFormula: ${
+                  SOCIAL_STAT_DETAILS[key]?.formula
+                }\nRoll Modifier: ${getRollModifier(value)}`}
+              />
+            ))}
+          </dl>
+        </article>
+
+        <article className="review-card">
+          <h3>Choice Gains</h3>
+          <dl>
+            {gains.map((gain) => (
+              <ReviewDataRow key={gain.label} label={gain.label} value={gain.value} detail={gain.detail} />
+            ))}
+          </dl>
+        </article>
+
+        <article className="review-card">
+          <h3>Starting Reputation</h3>
+          {activeReputation.length ? (
+            <dl>
+              {activeReputation.map(([trackKey, score]) => {
+                const track = getReputationTrack(trackKey)
+                const tier = getReputationTier(score)
+
+                return (
+                  <ReviewDataRow
+                    key={trackKey}
+                    label={track?.name ?? trackKey}
+                    value={formatReputationScore(score)}
+                    detail={`${tier.label}. ${tier.effect} ${track?.scope ?? ''}`.trim()}
+                  />
+                )
+              })}
+            </dl>
+          ) : (
+            <p className="review-card__empty">
+              This origin starts politically neutral until campaign choices reshape it.
+            </p>
+          )}
         </article>
       </div>
     </section>

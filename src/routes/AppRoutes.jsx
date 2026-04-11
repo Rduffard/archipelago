@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from '../components/ProtectedRoute/ProtectedRoute'
 import AppLayout from '../components/layout/AppLayout'
 import CharacterCreatorPage from '../pages/CharacterCreator/CharacterCreatorPage'
+import CharacterSheetPage from '../pages/CharacterSheet/CharacterSheetPage'
 import CharactersPage from '../pages/Characters/CharactersPage'
 import DashboardPage from '../pages/Dashboard/DashboardPage'
 import LoginPage from '../pages/Login/LoginPage'
@@ -20,6 +21,7 @@ function AppRoutes() {
           <Route path="/map" element={<MapPage />} />
           <Route path="/characters" element={<CharactersPage />} />
           <Route path="/characters/new" element={<CharacterCreatorPage />} />
+          <Route path="/characters/:characterId" element={<CharacterSheetPage />} />
           <Route path="/campaigns/new" element={<PlaceholderPage />} />
           <Route path="/campaigns/open" element={<PlaceholderPage />} />
           <Route path="/achievements" element={<PlaceholderPage />} />
