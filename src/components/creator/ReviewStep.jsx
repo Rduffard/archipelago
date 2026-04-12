@@ -13,40 +13,7 @@ import {
   getStatLabel,
   parseAttributeBonus,
 } from '../../lib/character'
-
-const DERIVED_STAT_DETAILS = {
-  vitality: {
-    formula: '10 + Might + Resolve',
-    description: 'Your health pool and ability to stay standing through punishment.',
-  },
-  guard: {
-    formula: '10 + Agility',
-    description: 'Your baseline defense against direct attacks and incoming pressure.',
-  },
-  initiative: {
-    formula: '10 + Agility + Instinct',
-    description: 'How quickly you react, reposition, and act when the action starts.',
-  },
-  focus: {
-    formula: '10 + Spirit + Resolve',
-    description: 'Mental stability, magical control, and resistance against strain.',
-  },
-}
-
-const SOCIAL_STAT_DETAILS = {
-  grace: {
-    formula: '10 + Spirit + Resolve',
-    description: 'Charm, diplomacy, poise, and the ability to win trust without force.',
-  },
-  guile: {
-    formula: '10 + Wit + Spirit',
-    description: 'Lies, misdirection, concealment, and reading the hidden angle in a conversation.',
-  },
-  pressure: {
-    formula: '10 + Might + Resolve',
-    description: 'Threat, command presence, hard bargaining, and forcing someone to fold.',
-  },
-}
+import { DERIVED_STAT_DETAILS, SOCIAL_STAT_DETAILS } from '../../data/characterSheetData'
 
 function ReviewDataRow({ detail, label, value }) {
   return (

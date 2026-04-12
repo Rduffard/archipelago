@@ -6,18 +6,7 @@ import {
   getReputationTier,
   getReputationTrack,
 } from '../../data/reputationData'
-
-function DetailPill({ children, detail, tone = 'default' }) {
-  return (
-    <span
-      className={`choice-pill choice-pill--${tone} ${detail ? 'has-detail' : ''}`}
-      tabIndex={detail ? 0 : undefined}
-    >
-      {children}
-      {detail ? <span className="choice-pill__detail">{detail}</span> : null}
-    </span>
-  )
-}
+import DetailPill from '../ui/DetailPill'
 
 function WorldPathStep({ identity, onIdentityChange }) {
   const selectedPath = originPaths.find((path) => path.id === identity.path)

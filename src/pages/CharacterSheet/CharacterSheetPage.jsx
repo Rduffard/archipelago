@@ -2,7 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import '../../components/dashboard/Dashboard.css'
 import PageHeader from '../../components/layout/PageHeader'
-import { attributePairings, coreSheetPairings } from '../../data/pairingData'
+import DetailPill from '../../components/ui/DetailPill'
+import { attributePairings } from '../../data/pairingData'
+import {
+  ATTRIBUTE_DETAILS,
+  DERIVED_STAT_DETAILS,
+  PAIRING_CATEGORY_DETAILS,
+  SOCIAL_STAT_DETAILS,
+} from '../../data/characterSheetData'
+import { callings, origins } from '../../data/gameData'
 import {
   formatReputationScore,
   getActiveReputationEntries,
@@ -11,32 +19,19 @@ import {
   getReputationTrack,
 } from '../../data/reputationData'
 import { deleteCharacter, getCharacterById } from '../../lib/api'
-import { calculatePairingStats, getRollModifier } from '../../lib/character'
+import {
+  calculatePairingStats,
+  getAttributeLabel,
+  getRollModifier,
+  getStatLabel,
+  parseAttributeBonus,
+} from '../../lib/character'
 import { useAuth } from '../../hooks/useAuth'
 import '../shared/PageShell.css'
 import './CharacterSheetPage.css'
 
-const ATTRIBUTE_LABELS = {
-  might: 'Might',
-  agility: 'Agility',
-  wit: 'Wit',
-  spirit: 'Spirit',
-  resolve: 'Resolve',
-  instinct: 'Instinct',
-}
-
-const STAT_LABELS = {
-  vitality: 'Vitality',
-  guard: 'Guard',
-  initiative: 'Initiative',
-  focus: 'Focus',
-}
-
-const SOCIAL_STAT_LABELS = {
-  grace: 'Grace',
-  guile: 'Guile',
-  pressure: 'Pressure',
-}
+const ATTRIBUTE_KEYS = ['might', 'agility', 'wit', 'spirit', 'resolve', 'instinct']
+const PAIRING_CATEGORY_ORDER = ['combat', 'social', 'exploration', 'utility', 'arcane']
 
 function titleCase(value = '') {
   return value
@@ -78,13 +73,235 @@ function getCharacterPairingStats(character) {
   return calculatePairingStats(character?.attributes ?? {})
 }
 
+function getTraitEntries(character, calling, origin) {
+  const structuredTraits = [
+    calling?.passive
+      ? {
+          label: calling.passive,
+          source: 'Calling Passive',
+          detail: calling.passiveRule,
+          tone: 'default',
+        }
+      : null,
+    origin?.passive
+      ? {
+          label: origin.passive,
+          source: 'Origin Passive',
+          detail: origin.passiveRule,
+          tone: 'default',
+        }
+      : null,
+    origin?.drawback
+      ? {
+          label: origin.drawback,
+          source: 'Origin Drawback',
+          detail: origin.drawbackRule,
+          tone: 'negative',
+        }
+      : null,
+  ].filter(Boolean)
+
+  if (structuredTraits.length) {
+    return structuredTraits
+  }
+
+  return (character.passives ?? []).map((entry) => {
+    const parsed = parseLabeledRule(entry)
+    const isDrawback = parsed.label.toLowerCase().includes('drawback')
+
+    return {
+      label: parsed.label,
+      source: isDrawback ? 'Drawback' : 'Passive',
+      detail: parsed.detail || 'No rule text recorded yet.',
+      tone: isDrawback ? 'negative' : 'default',
+    }
+  })
+}
+
+function getAbilityEntries(character, calling) {
+  if (character.abilities?.length) {
+    return character.abilities.map((ability) => ({
+      label: ability.name,
+      source: titleCase(ability.source),
+      detail: ability.description || 'No ability description yet.',
+    }))
+  }
+
+  if (!calling?.starterAbility) {
+    return []
+  }
+
+  return [
+    {
+      label: calling.starterAbility,
+      source: 'Calling',
+      detail: `${calling.starterAbilityType}. ${calling.starterAbilityRule}`,
+    },
+  ]
+}
+
+function getCatalogGroups(character) {
+  return [
+    {
+      key: 'inventory',
+      title: 'Inventory',
+      empty: 'No inventory recorded yet.',
+      entries: (character.inventory ?? []).map((item) => ({
+        label: item.name,
+        meta: `x${item.quantity}`,
+        detail: item.description || 'No inventory notes yet.',
+      })),
+    },
+    {
+      key: 'relics',
+      title: 'Relics',
+      empty: 'No relics recorded yet.',
+      entries: (character.relics ?? []).map((relic) => ({
+        label: relic.name,
+        meta: relic.bonded ? 'Bonded' : 'Unbonded',
+        detail: relic.description || 'No relic notes yet.',
+      })),
+    },
+    {
+      key: 'wounds',
+      title: 'Wounds',
+      empty: 'No wounds recorded yet.',
+      entries: (character.wounds ?? []).map((wound) => ({
+        label: wound.name,
+        meta: titleCase(wound.severity),
+        detail: `${wound.description || 'No wound description yet.'}${
+          wound.statPenalty ? ` Penalty: ${titleCase(wound.statPenalty)}.` : ''
+        }`,
+        tone: 'negative',
+      })),
+    },
+  ]
+}
+
+function CompactInfoCard({ className = '', detail, eyebrow, title, value }) {
+  return (
+    <article
+      className={`character-sheet__hover-card ${detail ? 'has-detail' : ''} ${className}`.trim()}
+      tabIndex={detail ? 0 : undefined}
+    >
+      <div className="character-sheet__hover-card-face">
+        {eyebrow ? <span className="character-sheet__eyebrow">{eyebrow}</span> : null}
+        <strong>{value}</strong>
+        <span className="character-sheet__hover-card-title">{title}</span>
+      </div>
+      {detail ? <div className="character-sheet__hover-card-detail">{detail}</div> : null}
+    </article>
+  )
+}
+
+function CompactTextCard({ className = '', detail, eyebrow, meta, title, tone = 'default' }) {
+  return (
+    <article
+      className={`character-sheet__hover-card character-sheet__hover-card--text character-sheet__hover-card--${tone} ${
+        detail ? 'has-detail' : ''
+      } ${className}`.trim()}
+      tabIndex={detail ? 0 : undefined}
+    >
+      <div className="character-sheet__hover-card-face">
+        {eyebrow ? <span className="character-sheet__eyebrow">{eyebrow}</span> : null}
+        <h3>{title}</h3>
+        {meta ? <span className="character-sheet__hover-card-meta">{meta}</span> : null}
+      </div>
+      {detail ? <div className="character-sheet__hover-card-detail">{detail}</div> : null}
+    </article>
+  )
+}
+
+function ReferenceList({ entries, variant = 'default' }) {
+  return (
+    <div className={`character-sheet__reference-list character-sheet__reference-list--${variant}`}>
+      {entries.map((entry) => (
+        <article
+          key={entry.key}
+          className={`character-sheet__reference-row ${entry.detail ? 'has-detail' : ''} ${
+            !entry.value && !entry.modifier ? 'is-text-only' : ''
+          }`}
+          tabIndex={entry.detail ? 0 : undefined}
+        >
+          <div className="character-sheet__reference-main">
+            <div className="character-sheet__reference-copy">
+              <strong>{entry.label}</strong>
+              {entry.meta ? <span>{entry.meta}</span> : null}
+            </div>
+            {entry.value || entry.modifier ? (
+              <div className="character-sheet__reference-values">
+                {entry.value ? <span className="character-sheet__reference-score">{entry.value}</span> : null}
+                {entry.modifier ? <span className="character-sheet__reference-modifier">{entry.modifier}</span> : null}
+              </div>
+            ) : null}
+          </div>
+          {entry.detail ? <div className="character-sheet__reference-detail">{entry.detail}</div> : null}
+        </article>
+      ))}
+    </div>
+  )
+}
+
+function toReferenceEntries(items, config = {}) {
+  return items.map((item, index) => ({
+    key: item.key ?? `${config.prefix ?? 'entry'}-${index}`,
+    label: item.label,
+    meta: item.meta,
+    value: item.value ?? item.source ?? item.score ?? '',
+    modifier: item.modifier,
+    detail: item.detail,
+  }))
+}
+
+function getTrackerValue(resource, fallbackCurrent, fallbackMax) {
+  if (typeof resource === 'number') {
+    return {
+      current: resource,
+      max: fallbackMax,
+    }
+  }
+
+  return {
+    current: resource?.current ?? fallbackCurrent,
+    max: resource?.max ?? fallbackMax,
+  }
+}
+
+function TrackerCard({ current, detail, label, max, tone = 'default' }) {
+  const pipCount = Math.max(max ?? 0, current ?? 0)
+  const safeCurrent = Math.max(0, Math.min(current ?? 0, pipCount))
+
+  return (
+    <article
+      className={`character-sheet__tracker-card ${detail ? 'has-detail' : ''} character-sheet__tracker-card--${tone}`}
+      tabIndex={detail ? 0 : undefined}
+    >
+      <div className="character-sheet__tracker-head">
+        <strong>{label}</strong>
+        <span>
+          {current}/{max}
+        </span>
+      </div>
+      <div className="character-sheet__tracker-pips" aria-hidden="true">
+        {Array.from({ length: pipCount }).map((_, index) => (
+          <span
+            key={`${label}-${index}`}
+            className={index < safeCurrent ? 'is-filled' : ''}
+          />
+        ))}
+      </div>
+      {detail ? <div className="character-sheet__tracker-detail">{detail}</div> : null}
+    </article>
+  )
+}
+
 function CharacterSheetPage() {
   const navigate = useNavigate()
   const { characterId } = useParams()
   const { token, characters, setCharacters } = useAuth()
   const rosterCharacter = useMemo(
     () => characters.find((character) => character._id === characterId) ?? null,
-    [characterId, characters]
+    [characterId, characters],
   )
   const [character, setCharacter] = useState(rosterCharacter)
   const [isLoading, setIsLoading] = useState(!rosterCharacter)
@@ -198,52 +415,153 @@ function CharacterSheetPage() {
     )
   }
 
+  const calling = callings.find((entry) => entry.id === character.calling) ?? null
+  const origin = origins.find((entry) => entry.id === character.origin) ?? null
   const activeReputation = getActiveReputationEntries(getCharacterReputation(character))
-  const pairingGlossary = attributePairings.filter(
-    (pairing) => !coreSheetPairings.includes(pairing.key),
-  )
   const pairingStats = getCharacterPairingStats(character)
+  const originBonus = parseAttributeBonus(origin?.bonus)
+  const traits = getTraitEntries(character, calling, origin)
+  const abilities = getAbilityEntries(character, calling)
+  const vitality = character.derivedStats?.vitality ?? 0
+  const health = getTrackerValue(character.health, vitality, vitality)
+  const spellSlots = getTrackerValue(
+    character.spellSlots,
+    character.spellSlots?.max ?? 0,
+    character.spellSlots?.max ?? 0,
+  )
+  const corruption = getTrackerValue(character.corruption, 0, character.corruption?.max ?? 6)
+  const woundTrack = {
+    current: character.wounds?.length ?? 0,
+    max: character.woundCapacity ?? 3,
+  }
+  const catalogGroups = getCatalogGroups(character)
+  const visibleCatalogGroups = catalogGroups.filter(
+    (group) => group.entries.length || (group.key === 'notes' && character.notes),
+  )
+  const referenceGroups = PAIRING_CATEGORY_ORDER.map((categoryKey) => {
+    const categoryPairings = attributePairings.filter((pairing) => pairing.category === categoryKey)
+    const entries = []
+
+    if (categoryKey === 'combat') {
+      entries.push(
+        {
+          key: 'vitality',
+          label: 'Vitality',
+          value: character.derivedStats?.vitality ?? 0,
+          modifier: getRollModifier(character.derivedStats?.vitality ?? 0),
+          detail: `${DERIVED_STAT_DETAILS.vitality.description}\n\nFormula: ${
+            DERIVED_STAT_DETAILS.vitality.formula
+          }\nRoll Modifier: ${getRollModifier(character.derivedStats?.vitality ?? 0)}`,
+        },
+        {
+          key: 'guard',
+          label: 'Guard',
+          value: character.derivedStats?.guard ?? 0,
+          modifier: getRollModifier(character.derivedStats?.guard ?? 0),
+          detail: `${DERIVED_STAT_DETAILS.guard.description}\n\nFormula: ${
+            DERIVED_STAT_DETAILS.guard.formula
+          }\nRoll Modifier: ${getRollModifier(character.derivedStats?.guard ?? 0)}`,
+        },
+        {
+          key: 'initiative',
+          label: 'Initiative',
+          value: character.derivedStats?.initiative ?? 0,
+          modifier: getRollModifier(character.derivedStats?.initiative ?? 0),
+          detail: `${DERIVED_STAT_DETAILS.initiative.description}\n\nFormula: ${
+            DERIVED_STAT_DETAILS.initiative.formula
+          }\nRoll Modifier: ${getRollModifier(character.derivedStats?.initiative ?? 0)}`,
+        },
+      )
+    }
+
+    if (categoryKey === 'social') {
+      entries.push(
+        ...['grace', 'guile', 'pressure'].map((key) => ({
+          key,
+          label: getStatLabel(key),
+          value: character.socialStats?.[key] ?? pairingStats[key] ?? 0,
+          modifier: getRollModifier(character.socialStats?.[key] ?? pairingStats[key] ?? 0),
+          detail: `${SOCIAL_STAT_DETAILS[key]?.description}\n\nFormula: ${
+            SOCIAL_STAT_DETAILS[key]?.formula
+          }\nRoll Modifier: ${getRollModifier(character.socialStats?.[key] ?? pairingStats[key] ?? 0)}`,
+        })),
+      )
+    }
+
+    if (categoryKey === 'arcane') {
+      entries.push({
+        key: 'focus',
+        label: 'Focus',
+        value: character.derivedStats?.focus ?? 0,
+        modifier: getRollModifier(character.derivedStats?.focus ?? 0),
+        detail: `${DERIVED_STAT_DETAILS.focus.description}\n\nFormula: ${
+          DERIVED_STAT_DETAILS.focus.formula
+        }\nRoll Modifier: ${getRollModifier(character.derivedStats?.focus ?? 0)}`,
+      })
+    }
+
+    entries.push(
+      ...categoryPairings.map((pairing) => {
+        if (categoryKey === 'social' && ['grace', 'guile', 'pressure'].includes(pairing.key)) {
+          return null
+        }
+
+        const score = pairingStats[pairing.key] ?? 10
+
+        return {
+          key: pairing.key,
+          label: pairing.name,
+          value: score,
+          modifier: getRollModifier(score),
+          detail: `${pairing.summary}\n\nFormula: ${pairing.formulaLabel}\nRoll Modifier: ${getRollModifier(
+            score,
+          )}\nExamples: ${pairing.examples.join(', ')}`,
+        }
+      }).filter(Boolean),
+    )
+
+    return {
+      key: categoryKey,
+      ...PAIRING_CATEGORY_DETAILS[categoryKey],
+      entries,
+    }
+  }).filter((group) => group.entries.length)
 
   return (
     <main className="page-shell">
-      <PageHeader
-        eyebrow="Character Sheet"
-        title={character.name}
-        description={`${titleCase(character.calling)} from ${titleCase(character.origin)}. This is the first-pass single page version of the sheet.`}
-        backTo="/characters"
-        backLabel="Back to roster"
-      />
-
       <section className="character-sheet">
-        <article className="dashboard-card character-sheet__hero">
-          <div className="character-sheet__identity">
-            <div>
-              <p className="page-shell__eyebrow">Identity</p>
-              <h2>{character.name}</h2>
-              <p className="character-sheet__subtitle">
-                {titleCase(character.calling)} | {titleCase(character.origin)}
-              </p>
-              <p className="character-sheet__meta">
-                Rank {character.rank} {character.pronouns ? `| ${character.pronouns}` : ''}
+        <Link className="character-sheet__back" to="/characters">
+          {'<-'} Back to roster
+        </Link>
+
+        <article className="dashboard-card character-sheet__toolbar">
+          <div className="character-sheet__toolbar-main">
+            <div className="character-sheet__toolbar-copy">
+              <h1>{character.name}</h1>
+              <p>
+                {titleCase(character.calling)} | {titleCase(character.origin)} | Rank {character.rank}
+                {character.pronouns ? ` | ${character.pronouns}` : ''}
               </p>
             </div>
 
-            {character.portraitUrl ? (
-              <img
-                className="character-sheet__portrait"
-                src={character.portraitUrl}
-                alt={`${character.name} portrait`}
-              />
-            ) : (
-              <div className="character-sheet__portrait character-sheet__portrait--placeholder">
-                <span>{character.name.slice(0, 1).toUpperCase()}</span>
-              </div>
-            )}
+            <div className="character-sheet__hero-pills">
+              {calling?.primaryStats?.length ? (
+                <DetailPill detail={`${calling.name} leans on ${calling.primaryStats.join(' and ')} most heavily.`}>
+                  {calling.primaryStats.join(' / ')}
+                </DetailPill>
+              ) : null}
+              {origin?.bonus ? (
+                <DetailPill detail={`${origin.summary} This grants ${origin.bonus} to your starting attributes.`}>
+                  {origin.bonus}
+                </DetailPill>
+              ) : null}
+              {character.notes ? <DetailPill detail={character.notes}>Notes</DetailPill> : null}
+            </div>
           </div>
 
           <div className="character-sheet__actions">
             <Link className="character-sheet__action-link" to="/characters/new">
-              Create Another Character
+              New
             </Link>
             <button
               className="character-sheet__delete"
@@ -251,259 +569,233 @@ function CharacterSheetPage() {
               onClick={handleDeleteCharacter}
               disabled={isDeleting}
             >
-              {isDeleting ? 'Deleting...' : 'Delete Character'}
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
           </div>
 
           {deleteError ? <p className="dashboard-card__error">{deleteError}</p> : null}
         </article>
 
-        <section className="character-sheet__grid">
-          <article className="dashboard-card">
-            <div className="dashboard-card__header">
-              <h2>Attributes</h2>
-              <p>Core scores that feed the rest of the sheet.</p>
+        <section className="character-sheet__layout">
+          <section className="character-sheet__overview-shell">
+            <div className="character-sheet__overview-grid">
+          <article className="dashboard-card character-sheet__panel character-sheet__panel--compact">
+            <div className="dashboard-card__header character-sheet__panel-header">
+              <div>
+                <h2>Sheet Core</h2>
+              </div>
             </div>
 
-            <div className="character-sheet__stat-grid">
-              {Object.entries(ATTRIBUTE_LABELS).map(([key, label]) => (
-                <div key={key} className="character-sheet__stat-card">
-                  <span>{label}</span>
-                  <strong>{character.attributes?.[key] ?? 0}</strong>
+            <div className="character-sheet__stat-board">
+              <section className="character-sheet__stat-section">
+                <header>
+                  <h3>Attributes</h3>
+                </header>
+                <ReferenceList
+                  entries={ATTRIBUTE_KEYS.map((key) => ({
+                    key,
+                    label: getAttributeLabel(key),
+                    meta: originBonus?.key === key ? `+${originBonus.amount}` : '',
+                    value: character.attributes?.[key] ?? 0,
+                    modifier: getRollModifier(character.attributes?.[key] ?? 0),
+                    detail: `${ATTRIBUTE_DETAILS[key]}\n\nModifier: ${getRollModifier(character.attributes?.[key] ?? 0)}${
+                      originBonus?.key === key ? `\nOrigin Bonus: +${originBonus.amount}` : ''
+                    }`,
+                  }))}
+                />
+              </section>
+            </div>
+          </article>
+
+          <div className="character-sheet__middle-stack">
+            <article className="dashboard-card character-sheet__panel character-sheet__panel--stacked">
+              <div className="dashboard-card__header character-sheet__panel-header">
+                <div>
+                  <h2>Abilities</h2>
                 </div>
+              </div>
+
+              {abilities.length ? (
+                <ReferenceList
+                  entries={toReferenceEntries(
+                    abilities.map((ability) => ({
+                      key: `${ability.source}-${ability.label}`,
+                      label: ability.label,
+                      meta: ability.source,
+                      detail: ability.detail,
+                    })),
+                    { prefix: 'ability' },
+                  )}
+                  variant="tight"
+                />
+              ) : (
+                <p className="dashboard-card__empty">No abilities recorded yet.</p>
+              )}
+            </article>
+
+            <article className="dashboard-card character-sheet__panel character-sheet__panel--stacked">
+              <div className="dashboard-card__header character-sheet__panel-header">
+                <div>
+                  <h2>Trackers</h2>
+                </div>
+              </div>
+
+              <div className="character-sheet__tracker-grid">
+                <TrackerCard
+                  label="Health"
+                  current={health.current}
+                  max={health.max}
+                  detail={`Current: ${health.current}\nMax: ${health.max}\nDerived from Vitality unless a separate health track is saved.`}
+                  tone="health"
+                />
+                <TrackerCard
+                  label="Spell Slots"
+                  current={spellSlots.current}
+                  max={spellSlots.max}
+                  detail={`Current: ${spellSlots.current}\nMax: ${spellSlots.max}\nUses saved spell slot data when present.`}
+                  tone="arcane"
+                />
+                <TrackerCard
+                  label="Wounds"
+                  current={woundTrack.current}
+                  max={woundTrack.max}
+                  detail={`Current wounds: ${woundTrack.current}\nCapacity: ${woundTrack.max}\nTracks active wound entries on the sheet.`}
+                  tone="danger"
+                />
+                <TrackerCard
+                  label="Corruption"
+                  current={corruption.current}
+                  max={corruption.max}
+                  detail={`Current: ${corruption.current}\nMax: ${corruption.max}\nDefaults to an empty track unless corruption data is saved.`}
+                  tone="corruption"
+                />
+              </div>
+            </article>
+          </div>
+
+          <div className="character-sheet__top-stack">
+            <article className="dashboard-card character-sheet__panel character-sheet__panel--stacked">
+              <div className="dashboard-card__header character-sheet__panel-header">
+                <div>
+                  <h2>Traits</h2>
+                </div>
+              </div>
+
+              {traits.length ? (
+                <ReferenceList
+                  entries={toReferenceEntries(
+                    traits.map((trait) => ({
+                      key: `${trait.source}-${trait.label}`,
+                      label: trait.label,
+                      meta: trait.source,
+                      detail: trait.detail,
+                    })),
+                    { prefix: 'trait' },
+                  )}
+                  variant="tight"
+                />
+              ) : (
+                <p className="dashboard-card__empty">No traits recorded yet.</p>
+              )}
+            </article>
+
+            <article className="dashboard-card character-sheet__panel character-sheet__panel--stacked">
+              <div className="dashboard-card__header character-sheet__panel-header">
+                <div>
+                  <h2>Reputation</h2>
+                </div>
+              </div>
+
+              {activeReputation.length ? (
+                <ReferenceList
+                  entries={activeReputation.map(([trackKey, score]) => {
+                    const track = getReputationTrack(trackKey)
+                    const tier = getReputationTier(score)
+
+                    return {
+                      key: trackKey,
+                      label: track?.name ?? trackKey,
+                      meta: score > 0 ? 'Trusted' : 'Distrusted',
+                      value: formatReputationScore(score),
+                      detail: `${tier.label}. ${tier.effect}\n\n${track?.scope ?? 'No scope notes yet.'}`,
+                    }
+                  })}
+                  variant="reputation"
+                />
+              ) : (
+                <p className="dashboard-card__empty">No reputation pressure recorded yet.</p>
+              )}
+            </article>
+          </div>
+            </div>
+          </section>
+
+          <article className="dashboard-card character-sheet__panel character-sheet__panel--wide">
+            <div className="dashboard-card__header character-sheet__panel-header">
+              <div>
+                <h2>Skill Chart</h2>
+              </div>
+            </div>
+
+            <div className="character-sheet__skill-groups">
+              {referenceGroups.map((group) => (
+                <section key={group.key} className="character-sheet__skill-group">
+                  <header className="character-sheet__skill-group-header">
+                    <div>
+                      <h3>{group.label}</h3>
+                    </div>
+                  </header>
+
+                  <ReferenceList entries={group.entries} variant="skill-chart" />
+                </section>
               ))}
             </div>
           </article>
 
-          <article className="dashboard-card">
-            <div className="dashboard-card__header">
-              <h2>Derived Stats</h2>
-              <p>Auto-calculated from the current build.</p>
+          <article className="dashboard-card character-sheet__panel character-sheet__panel--wide">
+            <div className="dashboard-card__header character-sheet__panel-header">
+              <div>
+                <h2>Field Notes</h2>
+              </div>
             </div>
 
-            <div className="character-sheet__stat-grid">
-              {Object.entries(STAT_LABELS).map(([key, label]) => (
-                <div key={key} className="character-sheet__stat-card">
-                  <span>{label}</span>
-                  <strong>{character.derivedStats?.[key] ?? 0}</strong>
-                </div>
+            <div className="character-sheet__resource-groups">
+              {visibleCatalogGroups.map((group) => (
+                <section key={group.key} className="character-sheet__resource-group">
+                  <header className="character-sheet__resource-header">
+                    <h3>{group.title}</h3>
+                  </header>
+
+                  {group.entries.length ? (
+                    <ReferenceList
+                      entries={toReferenceEntries(
+                        group.entries.map((entry) => ({
+                          key: `${group.key}-${entry.label}-${entry.meta ?? 'base'}`,
+                          label: entry.label,
+                          meta: entry.meta ?? group.title,
+                          detail: entry.detail,
+                        })),
+                        { prefix: group.key },
+                      )}
+                      variant="tight"
+                    />
+                  ) : (
+                    <p className="dashboard-card__empty">{group.empty}</p>
+                  )}
+                </section>
               ))}
+
+              {character.notes ? (
+                <section className="character-sheet__resource-group">
+                  <header className="character-sheet__resource-header">
+                    <h3>Notes</h3>
+                  </header>
+                  <div className="character-sheet__notes-panel">
+                    <p className="character-sheet__notes-copy">{character.notes}</p>
+                  </div>
+                </section>
+              ) : null}
             </div>
-          </article>
-
-          <article className="dashboard-card">
-            <div className="dashboard-card__header">
-              <h2>Social Stats</h2>
-              <p>How this character bends rooms, masks intent, or applies pressure.</p>
-            </div>
-
-            <div className="character-sheet__stat-grid">
-              {Object.entries(SOCIAL_STAT_LABELS).map(([key, label]) => (
-                <div key={key} className="character-sheet__stat-card">
-                  <span>{label}</span>
-                  <strong>{character.socialStats?.[key] ?? 0}</strong>
-                </div>
-              ))}
-            </div>
-          </article>
-
-          <article className="dashboard-card">
-            <div className="dashboard-card__header">
-              <h2>Passives</h2>
-              <p>Ongoing perks and traits tied to the build.</p>
-            </div>
-
-            {character.passives?.length ? (
-              <div className="character-sheet__stack">
-                {character.passives.map((passive) => {
-                  const parsedPassive = parseLabeledRule(passive)
-
-                  return (
-                    <section key={passive} className="character-sheet__detail-card">
-                      <header>
-                        <h3>{parsedPassive.label}</h3>
-                      </header>
-                      <p>{parsedPassive.detail || 'No passive rule yet.'}</p>
-                    </section>
-                  )
-                })}
-              </div>
-            ) : (
-              <p className="dashboard-card__empty">No passives recorded yet.</p>
-            )}
-          </article>
-
-          <article className="dashboard-card">
-            <div className="dashboard-card__header">
-              <h2>Abilities</h2>
-              <p>Active tools and notable moves.</p>
-            </div>
-
-            {character.abilities?.length ? (
-              <div className="character-sheet__stack">
-                {character.abilities.map((ability) => (
-                  <section key={`${ability.name}-${ability.source}`} className="character-sheet__detail-card">
-                    <header>
-                      <h3>{ability.name}</h3>
-                      <span>{titleCase(ability.source)}</span>
-                    </header>
-                    <p>{ability.description || 'No ability description yet.'}</p>
-                  </section>
-                ))}
-              </div>
-            ) : (
-              <p className="dashboard-card__empty">No abilities recorded yet.</p>
-            )}
-          </article>
-
-          <article className="dashboard-card">
-            <div className="dashboard-card__header">
-              <h2>Reputation</h2>
-              <p>How the wider Vale is predisposed to read this character.</p>
-            </div>
-
-            {activeReputation.length ? (
-              <div className="character-sheet__stack">
-                {activeReputation.map(([trackKey, score]) => {
-                  const track = getReputationTrack(trackKey)
-                  const tier = getReputationTier(score)
-
-                  return (
-                    <section key={trackKey} className="character-sheet__detail-card">
-                      <header>
-                        <h3>{track?.name ?? trackKey}</h3>
-                        <span
-                          className={`character-sheet__reputation-score ${
-                            score > 0 ? 'is-positive' : 'is-negative'
-                          }`}
-                        >
-                          {formatReputationScore(score)}
-                        </span>
-                      </header>
-                      <p>{tier.label}. {tier.effect}</p>
-                      <p className="character-sheet__detail-meta">{track?.scope}</p>
-                    </section>
-                  )
-                })}
-              </div>
-            ) : (
-              <p className="dashboard-card__empty">No reputation pressure recorded yet.</p>
-            )}
-          </article>
-
-          <article className="dashboard-card">
-            <div className="dashboard-card__header">
-              <h2>Inventory</h2>
-              <p>Gear, supplies, and carried story hooks.</p>
-            </div>
-
-            {character.inventory?.length ? (
-              <div className="character-sheet__stack">
-                {character.inventory.map((item) => (
-                  <section key={`${item.name}-${item.quantity}`} className="character-sheet__detail-card">
-                    <header>
-                      <h3>{item.name}</h3>
-                      <span>x{item.quantity}</span>
-                    </header>
-                    <p>{item.description || 'No inventory notes yet.'}</p>
-                  </section>
-                ))}
-              </div>
-            ) : (
-              <p className="dashboard-card__empty">No inventory recorded yet.</p>
-            )}
-          </article>
-
-          <article className="dashboard-card">
-            <div className="dashboard-card__header">
-              <h2>Relics</h2>
-              <p>Bound artifacts and notable objects of power.</p>
-            </div>
-
-            {character.relics?.length ? (
-              <div className="character-sheet__stack">
-                {character.relics.map((relic) => (
-                  <section key={relic.name} className="character-sheet__detail-card">
-                    <header>
-                      <h3>{relic.name}</h3>
-                      <span>{relic.bonded ? 'Bonded' : 'Unbonded'}</span>
-                    </header>
-                    <p>{relic.description || 'No relic notes yet.'}</p>
-                  </section>
-                ))}
-              </div>
-            ) : (
-              <p className="dashboard-card__empty">No relics recorded yet.</p>
-            )}
-          </article>
-
-          <article className="dashboard-card">
-            <div className="dashboard-card__header">
-              <h2>Wounds</h2>
-              <p>Tracked injuries and their penalties.</p>
-            </div>
-
-            {character.wounds?.length ? (
-              <div className="character-sheet__stack">
-                {character.wounds.map((wound) => (
-                  <section key={`${wound.name}-${wound.severity}`} className="character-sheet__detail-card">
-                    <header>
-                      <h3>{wound.name}</h3>
-                      <span>{titleCase(wound.severity)}</span>
-                    </header>
-                    <p>{wound.description || 'No wound description yet.'}</p>
-                    {wound.statPenalty ? (
-                      <p className="character-sheet__detail-meta">Penalty: {titleCase(wound.statPenalty)}</p>
-                    ) : null}
-                  </section>
-                ))}
-              </div>
-            ) : (
-              <p className="dashboard-card__empty">No wounds recorded yet.</p>
-            )}
-          </article>
-
-          <article className="dashboard-card character-sheet__notes">
-            <div className="dashboard-card__header">
-              <h2>Pairing Glossary</h2>
-              <p>The wider Archipelago language of two-attribute actions beyond your default social trio.</p>
-            </div>
-
-            <details className="character-sheet__accordion">
-              <summary>
-                <span>Show Full Pairing Matrix</span>
-                <span>{pairingGlossary.length} pairings</span>
-              </summary>
-
-              <div className="character-sheet__glossary-grid">
-                {pairingGlossary.map((pairing) => (
-                  <section key={pairing.key} className="character-sheet__detail-card">
-                    <header>
-                      <h3>{pairing.name}</h3>
-                      <span>{pairing.category}</span>
-                    </header>
-                    <p>{pairing.summary}</p>
-                    <p className="character-sheet__detail-meta">
-                      Score: {pairingStats[pairing.key] ?? 10} | Modifier:{' '}
-                      {getRollModifier(pairingStats[pairing.key] ?? 10)}
-                    </p>
-                    <p className="character-sheet__detail-meta">Formula: {pairing.formulaLabel}</p>
-                    <p className="character-sheet__detail-meta">
-                      Examples: {pairing.examples.join(', ')}
-                    </p>
-                  </section>
-                ))}
-              </div>
-            </details>
-          </article>
-
-          <article className="dashboard-card character-sheet__notes">
-            <div className="dashboard-card__header">
-              <h2>Notes</h2>
-              <p>Campaign hooks, personality beats, and reminders.</p>
-            </div>
-
-            <p className="character-sheet__notes-copy">{character.notes || 'No notes saved yet.'}</p>
           </article>
         </section>
       </section>
