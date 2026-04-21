@@ -1,8 +1,14 @@
-import { ATTRIBUTE_CAP, attributes } from '../../data/gameData'
+import {
+  ATTRIBUTE_CAP,
+  getBlueprintAttributes,
+} from '../../data/archipelagoSystemBlueprint'
+import { useSystem } from '../../hooks/useSystem'
 import { getRemainingPoints } from '../../lib/character'
 
 function AttributesStep({ attributeValues, onAttributeChange }) {
+  const { blueprint } = useSystem()
   const remainingPoints = getRemainingPoints(attributeValues)
+  const attributes = getBlueprintAttributes(blueprint)
 
   return (
     <section className="creator-panel">

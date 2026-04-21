@@ -3,21 +3,25 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import '../../components/dashboard/Dashboard.css'
 import PageHeader from '../../components/layout/PageHeader'
 import DetailPill from '../../components/ui/DetailPill'
-import { attributePairings } from '../../data/pairingData'
 import {
-  ATTRIBUTE_DETAILS,
-  DERIVED_STAT_DETAILS,
-  PAIRING_CATEGORY_DETAILS,
-  SOCIAL_STAT_DETAILS,
+  getAttributeDetails,
+  getDerivedStatDetails,
+  getPairingCategoryDetails,
+  getSocialStatDetails,
 } from '../../data/characterSheetData'
-import { callings, origins } from '../../data/gameData'
 import {
-  formatReputationScore,
-  getActiveReputationEntries,
-  getOriginStartingReputation,
-  getReputationTier,
-  getReputationTrack,
-} from '../../data/reputationData'
+  formatSystemReputationScore,
+  getActiveSystemReputationEntries,
+  getRankedSystemSpecializations,
+  getSystemCallings,
+  getSystemOrigins,
+  getSystemPairings,
+  getSystemOriginStartingReputation,
+  getSystemReputationTier,
+  getSystemReputationTrack,
+  getSystemSpecialization,
+  getSystemSpecializationNode,
+} from '../../data/archipelagoSystemSelectors'
 import { deleteCharacter, getCharacterById } from '../../lib/api'
 import {
   calculatePairingStats,
@@ -27,6 +31,7 @@ import {
   parseAttributeBonus,
 } from '../../lib/character'
 import { useAuth } from '../../hooks/useAuth'
+import { useSystem } from '../../hooks/useSystem'
 import '../shared/PageShell.css'
 import './CharacterSheetPage.css'
 
@@ -41,39 +46,26 @@ function titleCase(value = '') {
     .join(' ')
 }
 
-function parseLabeledRule(entry = '') {
-  const separatorIndex = entry.indexOf(':')
-
-  if (separatorIndex === -1) {
-    return {
-      label: entry,
-      detail: '',
-    }
-  }
-
-  return {
-    label: entry.slice(0, separatorIndex).trim(),
-    detail: entry.slice(separatorIndex + 1).trim(),
-  }
-}
-
 function getCharacterReputation(character) {
-  if (character?.reputation) {
-    return character.reputation
-  }
-
-  return getOriginStartingReputation(character?.origin)
+  return character?.reputation
 }
 
-function getCharacterPairingStats(character) {
+function getCharacterPairingStats(character, pairings) {
   if (character?.pairingStats) {
     return character.pairingStats
   }
 
-  return calculatePairingStats(character?.attributes ?? {})
+  return calculatePairingStats(character?.attributes ?? {}, pairings)
 }
 
 function getTraitEntries(character, calling, origin) {
+  const savedTraits = (character.identity?.tags ?? []).map((trait) => ({
+    label: trait.label,
+    source: titleCase(trait.type || 'tag'),
+    detail: trait.mechanicalImpact || 'No mechanical notes recorded yet.',
+    tone: trait.type === 'scar' ? 'negative' : 'default',
+  }))
+
   const structuredTraits = [
     calling?.passive
       ? {
@@ -101,21 +93,126 @@ function getTraitEntries(character, calling, origin) {
       : null,
   ].filter(Boolean)
 
-  if (structuredTraits.length) {
-    return structuredTraits
-  }
+  return [...savedTraits, ...structuredTraits]
+}
 
-  return (character.passives ?? []).map((entry) => {
-    const parsed = parseLabeledRule(entry)
-    const isDrawback = parsed.label.toLowerCase().includes('drawback')
+function getIdentityEntries(character) {
+  const background = character.identity?.background ?? {}
 
-    return {
-      label: parsed.label,
-      source: isDrawback ? 'Drawback' : 'Passive',
-      detail: parsed.detail || 'No rule text recorded yet.',
-      tone: isDrawback ? 'negative' : 'default',
-    }
-  })
+  return [
+    background.origin
+      ? {
+          key: 'background-origin',
+          label: 'Origin',
+          meta: 'Background',
+          detail: background.origin,
+        }
+      : null,
+    background.pastRole
+      ? {
+          key: 'background-past-role',
+          label: 'Past Role',
+          meta: 'Background',
+          detail: background.pastRole,
+        }
+      : null,
+    background.definingEvent
+      ? {
+          key: 'background-defining-event',
+          label: 'Defining Event',
+          meta: 'Background',
+          detail: background.definingEvent,
+        }
+      : null,
+    ...(character.identity?.tags ?? []).map((tag) => ({
+      key: `identity-tag-${tag.key}`,
+      label: tag.label,
+      meta: titleCase(tag.type || 'tag'),
+      detail: tag.mechanicalImpact || 'No identity effect recorded yet.',
+    })),
+  ].filter(Boolean)
+}
+
+function getProgressionEntries(character, blueprint) {
+  const progression = character.progression ?? {}
+  const rankedSpecializations = getRankedSystemSpecializations(character.calling, character.skills ?? {}, blueprint)
+  const specialization =
+    rankedSpecializations.find((entry) => entry.id === progression.specializationPath) ??
+    getSystemSpecialization(progression.specializationPath, blueprint)
+  const recommendedSpecializations = rankedSpecializations.filter((entry) => entry.recommendationScore > 0)
+  const advancementSpent =
+    specialization?.nodes
+      ?.filter((node) => progression.unlockedNodes?.includes(node.id))
+      .reduce((total, node) => total + (node.cost ?? 0), 0) ?? 0
+
+  return [
+    {
+      key: 'progression-rank',
+      label: 'Rank',
+      meta: 'Progression',
+      value: progression.rank ?? 1,
+      detail: 'The character tier that gates advancement, durability, and long-term system growth.',
+    },
+    {
+      key: 'progression-skill-points',
+      label: 'Skill Points',
+      meta: 'Banked',
+      value: progression.skillPoints ?? 0,
+      detail: 'Unspent points available for verb-skill growth.',
+    },
+    {
+      key: 'progression-advancement-points',
+      label: 'Advancement Points',
+      meta: 'Banked',
+      value: progression.advancementPoints ?? 0,
+      detail: 'Campaign-earned advancement currency waiting to be invested.',
+    },
+    {
+      key: 'progression-advancement-invested',
+      label: 'Advancement Invested',
+      meta: 'Spent',
+      value: advancementSpent,
+      detail: 'Total advancement already committed into the active specialization path.',
+    },
+    {
+      key: 'progression-specialization',
+      label: 'Specialization Path',
+      meta: 'Path',
+      value: specialization?.name || progression.specializationPath || 'Unchosen',
+      detail:
+        [
+          specialization ? specialization.summary : null,
+          specialization?.recommendationReasons?.length
+            ? `Why it fits: ${specialization.recommendationReasons.join(', ')}`
+            : null,
+          !specialization && recommendedSpecializations.length
+            ? `Suggested paths: ${recommendedSpecializations.map((entry) => entry.name).join(', ')}`
+            : null,
+          !specialization && !recommendedSpecializations.length && progression.specializationPath
+            ? `Current path: ${progression.specializationPath}`
+            : null,
+          !specialization && !recommendedSpecializations.length && !progression.specializationPath
+            ? 'No specialization path recorded yet.'
+            : null,
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+    },
+    {
+      key: 'progression-unlocked-nodes',
+      label: 'Unlocked Nodes',
+      meta: 'Progression',
+      value: progression.unlockedNodes?.length ?? 0,
+      detail: progression.unlockedNodes?.length
+        ? progression.unlockedNodes
+            .map((nodeId) => {
+              const node = getSystemSpecializationNode(progression.specializationPath, nodeId, blueprint)
+              return node ? `${node.name}\n${node.effect}` : nodeId
+            })
+            .join('\n\n')
+        : 'No unlocked nodes recorded yet.',
+    },
+  ]
 }
 
 function getAbilityEntries(character, calling) {
@@ -123,7 +220,20 @@ function getAbilityEntries(character, calling) {
     return character.abilities.map((ability) => ({
       label: ability.name,
       source: titleCase(ability.source),
-      detail: ability.description || 'No ability description yet.',
+      detail:
+        [
+          ability.type ? `Type: ${titleCase(ability.type)}` : null,
+          ability.cost?.resource
+            ? `Cost: ${ability.cost.amount ?? 0} ${titleCase(ability.cost.resource)}`
+            : null,
+          ability.scaling?.skill || ability.scaling?.attribute
+            ? `Scaling: ${[ability.scaling?.attribute, ability.scaling?.skill].filter(Boolean).map(titleCase).join(' + ')}`
+            : null,
+          ability.tags?.length ? `Tags: ${ability.tags.map(titleCase).join(', ')}` : null,
+          ability.effect || ability.description || 'No ability description yet.',
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
     }))
   }
 
@@ -140,8 +250,104 @@ function getAbilityEntries(character, calling) {
   ]
 }
 
+function getSkillCatalogMap(expandedSkillList = {}) {
+  return Object.values(expandedSkillList).reduce((catalog, categorySkills) => {
+    categorySkills.forEach((skill) => {
+      catalog[skill.id] = skill
+    })
+
+    return catalog
+  }, {})
+}
+
+function getVerbSkillGroups(character, expandedSkillList = {}) {
+  const skillCatalog = getSkillCatalogMap(expandedSkillList)
+
+  return Object.entries(expandedSkillList)
+    .map(([categoryKey, categorySkills]) => {
+      const savedSkills = character.skills?.[categoryKey] ?? []
+
+      if (!savedSkills.length) {
+        return null
+      }
+
+      return {
+        key: categoryKey,
+        label: titleCase(categoryKey),
+        entries: savedSkills.map((savedSkill) => {
+          const blueprintSkill = skillCatalog[savedSkill.id] ?? categorySkills.find((entry) => entry.id === savedSkill.id)
+          const score = savedSkill.rank ?? 0
+
+          return {
+            key: `${categoryKey}-${savedSkill.id}`,
+            label: blueprintSkill?.name ?? titleCase(savedSkill.id),
+            value: score,
+            modifier: `Rank ${score}`,
+            detail: [
+              blueprintSkill?.verb ?? 'No system description loaded yet.',
+              blueprintSkill?.linkedAttributes?.length
+                ? `Linked Attributes: ${blueprintSkill.linkedAttributes.map(titleCase).join(' + ')}`
+                : null,
+              savedSkill.specialty
+                ? `Granted Focus: ${savedSkill.specialty}\nThis is a system- or progression-granted edge inside the verb, not a separate stat players assign freely.`
+                : null,
+            ]
+              .filter(Boolean)
+              .join('\n\n'),
+          }
+        }),
+      }
+    })
+    .filter(Boolean)
+}
+
 function getCatalogGroups(character) {
+  const woundEntries = character.resources?.wounds?.active ?? []
+  const equipmentGroups = [
+    {
+      key: 'weapons',
+      title: 'Weapons',
+      empty: 'No weapons recorded yet.',
+      entries: (character.equipment?.weapons ?? []).map((item) => ({
+        label: item.name,
+        meta: 'Weapon',
+        detail: item.description || 'No weapon notes yet.',
+      })),
+    },
+    {
+      key: 'armor',
+      title: 'Armor',
+      empty: 'No armor recorded yet.',
+      entries: (character.equipment?.armor ?? []).map((item) => ({
+        label: item.name,
+        meta: 'Armor',
+        detail: item.description || 'No armor notes yet.',
+      })),
+    },
+    {
+      key: 'techRelics',
+      title: 'Tech / Relics',
+      empty: 'No tech or relic gear recorded yet.',
+      entries: (character.equipment?.techRelics ?? []).map((item) => ({
+        label: item.name,
+        meta: 'Gear',
+        detail: item.description || 'No tech or relic notes yet.',
+      })),
+    },
+    {
+      key: 'cargo',
+      title: 'Cargo',
+      empty: 'No cargo recorded yet.',
+      entries: (character.equipment?.cargo ?? []).map((item) => ({
+        label: item.name,
+        meta: 'Cargo',
+        detail: item.description || 'No cargo notes yet.',
+      })),
+    },
+  ]
+
   return [
+    ...equipmentGroups,
     {
       key: 'inventory',
       title: 'Inventory',
@@ -166,7 +372,7 @@ function getCatalogGroups(character) {
       key: 'wounds',
       title: 'Wounds',
       empty: 'No wounds recorded yet.',
-      entries: (character.wounds ?? []).map((wound) => ({
+      entries: woundEntries.map((wound) => ({
         label: wound.name,
         meta: titleCase(wound.severity),
         detail: `${wound.description || 'No wound description yet.'}${
@@ -299,6 +505,7 @@ function CharacterSheetPage() {
   const navigate = useNavigate()
   const { characterId } = useParams()
   const { token, characters, setCharacters } = useAuth()
+  const { blueprint, isBlueprintLoading, blueprintError } = useSystem()
   const rosterCharacter = useMemo(
     () => characters.find((character) => character._id === characterId) ?? null,
     [characterId, characters],
@@ -387,6 +594,34 @@ function CharacterSheetPage() {
     return <Navigate to="/login" replace />
   }
 
+  if (isBlueprintLoading && !blueprint) {
+    return (
+      <main className="page-shell">
+        <PageHeader
+          eyebrow="Character Sheet"
+          title="Loading System Blueprint"
+          description="Pulling the shared creator and sheet catalogs before rendering the sheet."
+          backTo="/characters"
+          backLabel="Back to roster"
+        />
+      </main>
+    )
+  }
+
+  if (blueprintError || !blueprint) {
+    return (
+      <main className="page-shell">
+        <PageHeader
+          eyebrow="Character Sheet"
+          title="System Blueprint Unavailable"
+          description={blueprintError || 'The shared system blueprint could not be loaded.'}
+          backTo="/characters"
+          backLabel="Back to roster"
+        />
+      </main>
+    )
+  }
+
   if (isLoading) {
     return (
       <main className="page-shell">
@@ -415,31 +650,59 @@ function CharacterSheetPage() {
     )
   }
 
+  const callings = getSystemCallings(blueprint)
+  const origins = getSystemOrigins(blueprint)
+  const pairings = getSystemPairings(blueprint)
+  const attributeDetails = getAttributeDetails(blueprint)
+  const derivedStatDetails = getDerivedStatDetails(blueprint)
+  const pairingCategoryDetails = getPairingCategoryDetails(blueprint)
+  const socialStatDetails = getSocialStatDetails(blueprint)
   const calling = callings.find((entry) => entry.id === character.calling) ?? null
   const origin = origins.find((entry) => entry.id === character.origin) ?? null
-  const activeReputation = getActiveReputationEntries(getCharacterReputation(character))
-  const pairingStats = getCharacterPairingStats(character)
+  const characterRank = character.progression?.rank ?? 1
+  const activeReputation = getActiveSystemReputationEntries(
+    getCharacterReputation(character) ?? getSystemOriginStartingReputation(character?.origin, blueprint),
+    blueprint,
+  )
+  const pairingStats = getCharacterPairingStats(character, pairings)
   const originBonus = parseAttributeBonus(origin?.bonus)
   const traits = getTraitEntries(character, calling, origin)
+  const identityEntries = getIdentityEntries(character)
+  const progressionEntries = getProgressionEntries(character, blueprint)
   const abilities = getAbilityEntries(character, calling)
   const vitality = character.derivedStats?.vitality ?? 0
-  const health = getTrackerValue(character.health, vitality, vitality)
-  const spellSlots = getTrackerValue(
-    character.spellSlots,
-    character.spellSlots?.max ?? 0,
-    character.spellSlots?.max ?? 0,
+  const health = getTrackerValue(
+    character.resources?.health ?? character.health,
+    vitality,
+    character.resources?.health?.max ?? vitality,
   )
-  const corruption = getTrackerValue(character.corruption, 0, character.corruption?.max ?? 6)
-  const woundTrack = {
-    current: character.wounds?.length ?? 0,
-    max: character.woundCapacity ?? 3,
-  }
+  const stamina = getTrackerValue(character.resources?.stamina, 0, character.resources?.stamina?.max ?? 0)
+  const focus = getTrackerValue(
+    character.resources?.focus ?? character.spellSlots,
+    character.derivedStats?.focus ?? 0,
+    character.resources?.focus?.max ?? character.derivedStats?.focus ?? 0,
+  )
+  const corruption = getTrackerValue(
+    character.resources?.corruption ?? character.corruption,
+    0,
+    character.resources?.corruption?.max ?? character.corruption?.max ?? 6,
+  )
+  const woundTrack = character.resources?.wounds
+    ? {
+        current: character.resources.wounds.current ?? character.resources.wounds.active?.length ?? 0,
+        max: character.resources.wounds.max ?? 3,
+      }
+    : {
+        current: 0,
+        max: character.woundCapacity ?? 3,
+      }
   const catalogGroups = getCatalogGroups(character)
   const visibleCatalogGroups = catalogGroups.filter(
     (group) => group.entries.length || (group.key === 'notes' && character.notes),
   )
+  const verbSkillGroups = getVerbSkillGroups(character, blueprint?.expandedSkillList ?? {})
   const referenceGroups = PAIRING_CATEGORY_ORDER.map((categoryKey) => {
-    const categoryPairings = attributePairings.filter((pairing) => pairing.category === categoryKey)
+    const categoryPairings = pairings.filter((pairing) => pairing.category === categoryKey)
     const entries = []
 
     if (categoryKey === 'combat') {
@@ -449,8 +712,8 @@ function CharacterSheetPage() {
           label: 'Vitality',
           value: character.derivedStats?.vitality ?? 0,
           modifier: getRollModifier(character.derivedStats?.vitality ?? 0),
-          detail: `${DERIVED_STAT_DETAILS.vitality.description}\n\nFormula: ${
-            DERIVED_STAT_DETAILS.vitality.formula
+          detail: `${derivedStatDetails.vitality.description}\n\nFormula: ${
+            derivedStatDetails.vitality.formula
           }\nRoll Modifier: ${getRollModifier(character.derivedStats?.vitality ?? 0)}`,
         },
         {
@@ -458,8 +721,8 @@ function CharacterSheetPage() {
           label: 'Guard',
           value: character.derivedStats?.guard ?? 0,
           modifier: getRollModifier(character.derivedStats?.guard ?? 0),
-          detail: `${DERIVED_STAT_DETAILS.guard.description}\n\nFormula: ${
-            DERIVED_STAT_DETAILS.guard.formula
+          detail: `${derivedStatDetails.guard.description}\n\nFormula: ${
+            derivedStatDetails.guard.formula
           }\nRoll Modifier: ${getRollModifier(character.derivedStats?.guard ?? 0)}`,
         },
         {
@@ -467,8 +730,8 @@ function CharacterSheetPage() {
           label: 'Initiative',
           value: character.derivedStats?.initiative ?? 0,
           modifier: getRollModifier(character.derivedStats?.initiative ?? 0),
-          detail: `${DERIVED_STAT_DETAILS.initiative.description}\n\nFormula: ${
-            DERIVED_STAT_DETAILS.initiative.formula
+          detail: `${derivedStatDetails.initiative.description}\n\nFormula: ${
+            derivedStatDetails.initiative.formula
           }\nRoll Modifier: ${getRollModifier(character.derivedStats?.initiative ?? 0)}`,
         },
       )
@@ -481,8 +744,8 @@ function CharacterSheetPage() {
           label: getStatLabel(key),
           value: character.socialStats?.[key] ?? pairingStats[key] ?? 0,
           modifier: getRollModifier(character.socialStats?.[key] ?? pairingStats[key] ?? 0),
-          detail: `${SOCIAL_STAT_DETAILS[key]?.description}\n\nFormula: ${
-            SOCIAL_STAT_DETAILS[key]?.formula
+          detail: `${socialStatDetails[key]?.description}\n\nFormula: ${
+            socialStatDetails[key]?.formula
           }\nRoll Modifier: ${getRollModifier(character.socialStats?.[key] ?? pairingStats[key] ?? 0)}`,
         })),
       )
@@ -494,8 +757,8 @@ function CharacterSheetPage() {
         label: 'Focus',
         value: character.derivedStats?.focus ?? 0,
         modifier: getRollModifier(character.derivedStats?.focus ?? 0),
-        detail: `${DERIVED_STAT_DETAILS.focus.description}\n\nFormula: ${
-          DERIVED_STAT_DETAILS.focus.formula
+        detail: `${derivedStatDetails.focus.description}\n\nFormula: ${
+          derivedStatDetails.focus.formula
         }\nRoll Modifier: ${getRollModifier(character.derivedStats?.focus ?? 0)}`,
       })
     }
@@ -522,7 +785,7 @@ function CharacterSheetPage() {
 
     return {
       key: categoryKey,
-      ...PAIRING_CATEGORY_DETAILS[categoryKey],
+      ...pairingCategoryDetails[categoryKey],
       entries,
     }
   }).filter((group) => group.entries.length)
@@ -536,13 +799,13 @@ function CharacterSheetPage() {
 
         <article className="dashboard-card character-sheet__toolbar">
           <div className="character-sheet__toolbar-main">
-            <div className="character-sheet__toolbar-copy">
-              <h1>{character.name}</h1>
-              <p>
-                {titleCase(character.calling)} | {titleCase(character.origin)} | Rank {character.rank}
+                <div className="character-sheet__toolbar-copy">
+                  <h1>{character.name}</h1>
+                  <p>
+                {titleCase(character.calling)} | {titleCase(character.origin)} | Rank {characterRank}
                 {character.pronouns ? ` | ${character.pronouns}` : ''}
-              </p>
-            </div>
+                  </p>
+                </div>
 
             <div className="character-sheet__hero-pills">
               {calling?.primaryStats?.length ? (
@@ -560,6 +823,9 @@ function CharacterSheetPage() {
           </div>
 
           <div className="character-sheet__actions">
+            <Link className="character-sheet__action-link" to={`/characters/${character._id}/edit`}>
+              Edit
+            </Link>
             <Link className="character-sheet__action-link" to="/characters/new">
               New
             </Link>
@@ -598,7 +864,7 @@ function CharacterSheetPage() {
                     meta: originBonus?.key === key ? `+${originBonus.amount}` : '',
                     value: character.attributes?.[key] ?? 0,
                     modifier: getRollModifier(character.attributes?.[key] ?? 0),
-                    detail: `${ATTRIBUTE_DETAILS[key]}\n\nModifier: ${getRollModifier(character.attributes?.[key] ?? 0)}${
+                    detail: `${attributeDetails[key]}\n\nModifier: ${getRollModifier(character.attributes?.[key] ?? 0)}${
                       originBonus?.key === key ? `\nOrigin Bonus: +${originBonus.amount}` : ''
                     }`,
                   }))}
@@ -645,14 +911,21 @@ function CharacterSheetPage() {
                   label="Health"
                   current={health.current}
                   max={health.max}
-                  detail={`Current: ${health.current}\nMax: ${health.max}\nDerived from Vitality unless a separate health track is saved.`}
+                  detail={`Current: ${health.current}\nMax: ${health.max}\nPulled from the saved resource track and defaults to Vitality when absent.`}
                   tone="health"
                 />
                 <TrackerCard
-                  label="Spell Slots"
-                  current={spellSlots.current}
-                  max={spellSlots.max}
-                  detail={`Current: ${spellSlots.current}\nMax: ${spellSlots.max}\nUses saved spell slot data when present.`}
+                  label="Stamina"
+                  current={stamina.current}
+                  max={stamina.max}
+                  detail={`Current: ${stamina.current}\nMax: ${stamina.max}\nTracks physical exertion, movement bursts, and martial ability costs.`}
+                  tone="default"
+                />
+                <TrackerCard
+                  label="Focus"
+                  current={focus.current}
+                  max={focus.max}
+                  detail={`Current: ${focus.current}\nMax: ${focus.max}\nUses the canonical mental and arcane resource track.`}
                   tone="arcane"
                 />
                 <TrackerCard
@@ -677,7 +950,31 @@ function CharacterSheetPage() {
             <article className="dashboard-card character-sheet__panel character-sheet__panel--stacked">
               <div className="dashboard-card__header character-sheet__panel-header">
                 <div>
-                  <h2>Traits</h2>
+                  <h2>Identity</h2>
+                </div>
+              </div>
+
+              {identityEntries.length ? (
+                <ReferenceList entries={identityEntries} variant="tight" />
+              ) : (
+                <p className="dashboard-card__empty">No background details recorded yet.</p>
+              )}
+            </article>
+
+            <article className="dashboard-card character-sheet__panel character-sheet__panel--stacked">
+              <div className="dashboard-card__header character-sheet__panel-header">
+                <div>
+                  <h2>Progression</h2>
+                </div>
+              </div>
+
+              <ReferenceList entries={progressionEntries} variant="tight" />
+            </article>
+
+            <article className="dashboard-card character-sheet__panel character-sheet__panel--stacked">
+              <div className="dashboard-card__header character-sheet__panel-header">
+                <div>
+                  <h2>Identity Tags</h2>
                 </div>
               </div>
 
@@ -695,7 +992,7 @@ function CharacterSheetPage() {
                   variant="tight"
                 />
               ) : (
-                <p className="dashboard-card__empty">No traits recorded yet.</p>
+                <p className="dashboard-card__empty">No identity tags recorded yet.</p>
               )}
             </article>
 
@@ -709,14 +1006,14 @@ function CharacterSheetPage() {
               {activeReputation.length ? (
                 <ReferenceList
                   entries={activeReputation.map(([trackKey, score]) => {
-                    const track = getReputationTrack(trackKey)
-                    const tier = getReputationTier(score)
+                    const track = getSystemReputationTrack(trackKey, blueprint)
+                    const tier = getSystemReputationTier(score, blueprint)
 
                     return {
                       key: trackKey,
                       label: track?.name ?? trackKey,
                       meta: score > 0 ? 'Trusted' : 'Distrusted',
-                      value: formatReputationScore(score),
+                      value: formatSystemReputationScore(score),
                       detail: `${tier.label}. ${tier.effect}\n\n${track?.scope ?? 'No scope notes yet.'}`,
                     }
                   })}
@@ -729,6 +1026,35 @@ function CharacterSheetPage() {
           </div>
             </div>
           </section>
+
+          <article className="dashboard-card character-sheet__panel character-sheet__panel--wide">
+            <div className="dashboard-card__header character-sheet__panel-header">
+              <div>
+                <h2>Verb Skills</h2>
+                <p>Loaded from the shared system blueprint.</p>
+              </div>
+            </div>
+
+            {verbSkillGroups.length ? (
+              <div className="character-sheet__skill-groups">
+                {verbSkillGroups.map((group) => (
+                  <section key={group.key} className="character-sheet__skill-group">
+                    <header className="character-sheet__skill-group-header">
+                      <div>
+                        <h3>{group.label}</h3>
+                      </div>
+                    </header>
+
+                    <ReferenceList entries={group.entries} variant="skill-chart" />
+                  </section>
+                ))}
+              </div>
+            ) : (
+              <p className="dashboard-card__empty">
+                No verb skills recorded on this character yet.
+              </p>
+            )}
+          </article>
 
           <article className="dashboard-card character-sheet__panel character-sheet__panel--wide">
             <div className="dashboard-card__header character-sheet__panel-header">
@@ -755,7 +1081,7 @@ function CharacterSheetPage() {
           <article className="dashboard-card character-sheet__panel character-sheet__panel--wide">
             <div className="dashboard-card__header character-sheet__panel-header">
               <div>
-                <h2>Field Notes</h2>
+                <h2>Loadout & Notes</h2>
               </div>
             </div>
 

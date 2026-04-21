@@ -1,19 +1,26 @@
-import { callings, originPaths, origins } from '../../data/gameData'
 import {
-  formatReputationScore,
-  getActiveReputationEntries,
-  getOriginStartingReputation,
-  getReputationTier,
-  getReputationTrack,
-} from '../../data/reputationData'
+  formatSystemReputationScore,
+  getActiveSystemReputationEntries,
+  getSystemCallings,
+  getSystemOriginPaths,
+  getSystemOrigins,
+  getSystemOriginStartingReputation,
+  getSystemReputationTier,
+  getSystemReputationTrack,
+} from '../../data/archipelagoSystemSelectors'
+import { useSystem } from '../../hooks/useSystem'
 import DetailPill from '../ui/DetailPill'
 
 function WorldPathStep({ identity, onIdentityChange }) {
+  const { blueprint } = useSystem()
+  const callings = getSystemCallings(blueprint)
+  const originPaths = getSystemOriginPaths(blueprint)
+  const origins = getSystemOrigins(blueprint)
   const selectedPath = originPaths.find((path) => path.id === identity.path)
   const islandOrigins = origins.filter((origin) => origin.path === 'archipelago')
   const selectedOrigin = origins.find((origin) => origin.id === identity.originId)
   const selectedOriginReputation = selectedOrigin
-    ? getActiveReputationEntries(getOriginStartingReputation(selectedOrigin.id)).slice(0, 4)
+    ? getActiveSystemReputationEntries(getSystemOriginStartingReputation(selectedOrigin.id, blueprint), blueprint).slice(0, 4)
     : []
   const isArchipelagoExpanded = identity.path === 'archipelago'
   const orderedPaths = [
@@ -129,8 +136,9 @@ function WorldPathStep({ identity, onIdentityChange }) {
               const suggestedCalling = callings.find((calling) =>
                 origin.recommendedCallings.includes(calling.id),
               )?.name
-              const startingReputation = getActiveReputationEntries(
-                getOriginStartingReputation(origin.id),
+              const startingReputation = getActiveSystemReputationEntries(
+                getSystemOriginStartingReputation(origin.id, blueprint),
+                blueprint,
               ).slice(0, 3)
 
               return (
@@ -174,11 +182,12 @@ function WorldPathStep({ identity, onIdentityChange }) {
                             <DetailPill
                               key={trackKey}
                               tone={score > 0 ? 'positive' : 'negative'}
-                              detail={`${getReputationTier(score).label}. ${
-                                getReputationTier(score).effect
-                              } ${getReputationTrack(trackKey)?.scope ?? ''}`.trim()}
+                              detail={`${getSystemReputationTier(score, blueprint).label}. ${
+                                getSystemReputationTier(score, blueprint).effect
+                              } ${getSystemReputationTrack(trackKey, blueprint)?.scope ?? ''}`.trim()}
                             >
-                              {getReputationTrack(trackKey)?.name}: {formatReputationScore(score)}
+                              {getSystemReputationTrack(trackKey, blueprint)?.name}:{' '}
+                              {formatSystemReputationScore(score)}
                             </DetailPill>
                           ))}
                         </div>
@@ -247,15 +256,16 @@ function WorldPathStep({ identity, onIdentityChange }) {
               <div className="creator-reputation-preview__chips">
                 {selectedOriginReputation.map(([trackKey, score]) => (
                   <DetailPill
-                    key={trackKey}
-                    tone={score > 0 ? 'positive' : 'negative'}
-                    detail={`${getReputationTier(score).label}. ${
-                      getReputationTier(score).effect
-                    } ${getReputationTrack(trackKey)?.scope ?? ''}`.trim()}
-                  >
-                    {getReputationTrack(trackKey)?.name}: {formatReputationScore(score)}
-                  </DetailPill>
-                ))}
+                  key={trackKey}
+                  tone={score > 0 ? 'positive' : 'negative'}
+                  detail={`${getSystemReputationTier(score, blueprint).label}. ${
+                    getSystemReputationTier(score, blueprint).effect
+                  } ${getSystemReputationTrack(trackKey, blueprint)?.scope ?? ''}`.trim()}
+                >
+                  {getSystemReputationTrack(trackKey, blueprint)?.name}:{' '}
+                  {formatSystemReputationScore(score)}
+                </DetailPill>
+              ))}
               </div>
             </div>
           ) : null}
@@ -266,6 +276,8 @@ function WorldPathStep({ identity, onIdentityChange }) {
 }
 
 function CallingStep({ identity, onIdentityChange }) {
+  const { blueprint } = useSystem()
+  const callings = getSystemCallings(blueprint)
   const selectedCalling = callings.find((calling) => calling.id === identity.callingId)
 
   return (
