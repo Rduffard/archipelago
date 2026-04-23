@@ -1,0 +1,17 @@
+.creator-loadout-hint {
+  margin: 0.65rem 0 0.85rem;
+  color: #cabca8;
+  font-size: 0.9rem;
+}
+
+.creator-loadout-textarea {
+  width: 100%;
+  min-height: 10rem;
+  resize: vertical;
+  border: 1px solid rgba(214, 190, 152, 0.2);
+  border-radius: 14px;
+  background: rgba(255, 248, 237, 0.06);
+  color: #f3eadb;
+  padding: 0.9rem 1rem;
+  font: inherit;
+}

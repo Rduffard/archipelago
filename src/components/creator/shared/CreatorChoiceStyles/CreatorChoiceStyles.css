@@ -1,0 +1,166 @@
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.choice-grid--paths {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.choice-grid--paths.is-archipelago-open {
+  align-items: stretch;
+}
+
+.choice-card {
+  border: 1px solid rgba(214, 190, 152, 0.16);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 248, 237, 0.05), rgba(255, 248, 237, 0.02));
+  color: inherit;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.choice-card p {
+  color: #cabca8;
+}
+
+.choice-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(214, 190, 152, 0.34);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.18);
+}
+
+.choice-card.is-selected {
+  border-color: #d1b38f;
+  box-shadow: 0 0 0 1px rgba(209, 179, 143, 0.18);
+}
+
+.choice-card__label {
+  display: block;
+  font-size: 1.08rem;
+  font-weight: 600;
+}
+
+.choice-card__meta {
+  display: inline-block;
+  margin: 0.35rem 0 0.7rem;
+  color: #d1b38f;
+  font-size: 0.92rem;
+}
+
+.choice-card__tags,
+.choice-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.95rem;
+}
+
+.choice-card__pill,
+.choice-pill {
+  border-radius: 999px;
+  padding: 0.42rem 0.78rem;
+  background: rgba(209, 179, 143, 0.12);
+  color: #e6ccb0;
+  font-size: 0.8rem;
+  line-height: 1.1;
+}
+
+.choice-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  max-width: 100%;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.choice-pill.has-detail {
+  cursor: help;
+}
+
+.choice-pill.has-detail:focus-visible {
+  outline: 1px solid rgba(214, 190, 152, 0.42);
+  outline-offset: 2px;
+}
+
+.choice-pill__detail {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: calc(100% + 0.55rem);
+  min-width: 14rem;
+  max-width: 18rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(214, 190, 152, 0.16);
+  border-radius: 12px;
+  background: rgba(28, 35, 44, 0.96);
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
+  color: #cabca8;
+  line-height: 1.45;
+  text-transform: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-0.3rem);
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    visibility 180ms ease;
+}
+
+.choice-pill.has-detail:hover .choice-pill__detail,
+.choice-pill.has-detail:focus-visible .choice-pill__detail {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.choice-pill--positive {
+  background: rgba(113, 171, 136, 0.18);
+  color: #c7efcf;
+}
+
+.choice-pill--negative {
+  background: rgba(181, 102, 102, 0.18);
+  color: #ffd1cb;
+}
+
+.choice-card__topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.choice-card__section {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.choice-card__section--header {
+  min-height: 4.85rem;
+}
+
+.choice-card__section--body {
+  min-height: 5.85rem;
+}
+
+.choice-card__section--footer {
+  margin-top: auto;
+}
+
+@media (max-width: 960px) {
+  .choice-grid,
+  .choice-grid--paths {
+    grid-template-columns: 1fr;
+  }
+}

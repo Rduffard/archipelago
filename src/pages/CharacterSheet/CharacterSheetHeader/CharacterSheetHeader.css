@@ -1,0 +1,86 @@
+.character-sheet__toolbar {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(214, 190, 152, 0.18);
+  background: rgba(14, 18, 25, 0.78);
+  border-radius: 22px;
+  backdrop-filter: blur(10px);
+  overflow: visible;
+}
+
+.character-sheet__toolbar-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex: 1 1 auto;
+}
+
+.character-sheet__toolbar-copy h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  line-height: 0.95;
+}
+
+.character-sheet__toolbar-copy p {
+  margin: 0.2rem 0 0;
+  color: #cabca8;
+}
+
+.character-sheet__hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.character-sheet__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.character-sheet__action-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  background: #d1b38f;
+  color: #1b130c;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.character-sheet__delete {
+  border: 1px solid rgba(255, 155, 138, 0.36);
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  background: rgba(255, 155, 138, 0.1);
+  color: #ffd0c7;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.character-sheet__delete:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.character-sheet__toolbar:hover,
+.character-sheet__toolbar:focus-within {
+  z-index: 30;
+}
+
+@media (max-width: 840px) {
+  .character-sheet__toolbar,
+  .character-sheet__toolbar-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

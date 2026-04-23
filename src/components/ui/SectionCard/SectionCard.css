@@ -1,0 +1,12 @@
+.section-card {
+  position: relative;
+  overflow: visible;
+}
+
+.section-card__header h2 {
+  margin: 0;
+}
+
+.section-card__empty {
+  margin: 0;
+}

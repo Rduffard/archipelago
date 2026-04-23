@@ -1,25 +1,20 @@
+import { useSystem } from '../../../hooks/useSystem'
 import {
-  formatSystemReputationScore,
-  getActiveSystemReputationEntries,
-  getRankedSystemSpecializations,
-  getSystemCallings,
-  getSystemOrigins,
-  getSystemOriginPaths,
-  getSystemOriginStartingReputation,
-  getSystemReputationTier,
-  getSystemReputationTrack,
-  getSystemSpecialization,
-  getSystemSpecializationNode,
-} from '../../data/archipelagoSystemSelectors'
-import { useSystem } from '../../hooks/useSystem'
-import {
-  applyAttributeBonus,
   getRollModifier,
   getAttributeLabel,
   getStatLabel,
-  parseAttributeBonus,
-} from '../../lib/character'
-import { getDerivedStatDetails, getSocialStatDetails } from '../../data/characterSheetData'
+} from '../../../lib/character'
+import { getDerivedStatDetails, getSocialStatDetails } from '../../../data/characterSheetData'
+import '../shared/CreatorSurfaceStyles/CreatorSurfaceStyles.css'
+import './ReviewStep.css'
+import {
+  getLoadoutItemCount,
+  getReputationEntries,
+  getReviewContext,
+  getStartingFeatures,
+  getUnlockedNodeDetail,
+} from './reviewHelpers'
+import CreatorStepFrame from '../shared/CreatorStepFrame/CreatorStepFrame'
 
 function ReviewDataRow({ detail, label, value }) {
   return (
@@ -48,91 +43,36 @@ function ReviewStep({
   progression,
 }) {
   const { blueprint } = useSystem()
-  const callings = getSystemCallings(blueprint)
-  const origins = getSystemOrigins(blueprint)
-  const originPaths = getSystemOriginPaths(blueprint)
-  const calling = callings.find((entry) => entry.id === identity.callingId)
-  const origin = origins.find((entry) => entry.id === identity.originId)
-  const path = originPaths.find((entry) => entry.id === identity.path)
-  const rankedSpecializations = getRankedSystemSpecializations(identity.callingId, skills, blueprint)
-  const specialization =
-    rankedSpecializations.find((entry) => entry.id === progression?.specializationPath) ??
-    getSystemSpecialization(progression?.specializationPath, blueprint)
-  const recommendedSpecializations = rankedSpecializations.filter((entry) => entry.recommendationScore > 0)
-  const advancementSpent =
-    specialization?.nodes
-      ?.filter((node) => progression?.unlockedNodes?.includes(node.id))
-      .reduce((total, node) => total + (node.cost ?? 0), 0) ?? 0
+  const {
+    activeReputation,
+    advancementSpent,
+    calling,
+    finalAttributes,
+    origin,
+    parsedOriginBonus,
+    path,
+    recommendedSpecializations,
+    savedSkills,
+    specialization,
+  } = getReviewContext({
+    attributeValues,
+    blueprint,
+    identity,
+    progression,
+    reputation,
+    skills,
+  })
   const derivedStatDetails = getDerivedStatDetails(blueprint)
   const socialStatDetails = getSocialStatDetails(blueprint)
-  const parsedOriginBonus = parseAttributeBonus(origin?.bonus)
-  const finalAttributes = applyAttributeBonus(attributeValues, origin?.bonus)
-  const activeReputation = getActiveSystemReputationEntries(
-    reputation ?? getSystemOriginStartingReputation(identity.originId, blueprint),
-    blueprint,
-  )
-  const savedSkills = Object.entries(skills ?? {}).flatMap(([categoryKey, entries]) =>
-    (entries ?? []).map((skill) => ({
-      ...skill,
-      categoryKey,
-    })),
-  )
-  const gains = [
-    path ? { label: 'World Path', value: path.name, detail: path.description } : null,
-    calling?.primaryStats?.length
-      ? {
-          label: 'Calling Focus',
-          value: calling.primaryStats.join(' / '),
-          detail: `${calling.name} leans on these attributes most heavily in play.`,
-        }
-      : null,
-    calling?.passive
-      ? {
-          label: 'Calling Passive',
-          value: calling.passive,
-          detail: calling.passiveRule,
-        }
-      : null,
-    calling?.starterAbility
-      ? {
-          label: 'Starter Ability',
-          value: calling.starterAbility,
-          detail: `${calling.starterAbilityType}. ${calling.starterAbilityRule}`,
-        }
-      : null,
-    origin?.bonus
-      ? {
-          label: 'Origin Bonus',
-          value: origin.bonus,
-          detail: `${origin.summary} Final ${parsedOriginBonus?.label ?? 'attribute'} gains ${parsedOriginBonus?.amount ?? 0}.`,
-        }
-      : null,
-    origin?.passive
-      ? {
-          label: 'Origin Passive',
-          value: origin.passive,
-          detail: origin.passiveRule,
-        }
-      : null,
-    origin?.drawback
-      ? {
-          label: 'Origin Drawback',
-          value: origin.drawback,
-          detail: origin.drawbackRule,
-        }
-      : null,
-  ].filter(Boolean)
+  const startingFeatures = getStartingFeatures({ calling, origin, parsedOriginBonus, path })
+  const reputationEntries = getReputationEntries(activeReputation, blueprint)
 
   return (
-    <section className="creator-panel">
-      <div className="creator-panel__header">
-        <p className="creator-panel__kicker">Step 8</p>
-        <h2>Read the shape of your legend</h2>
-        <p>
-          Before the Vale learns your name, it reads your roots, your calling, your island,
-          and only then the numbers that follow you into the storm.
-        </p>
-      </div>
+    <CreatorStepFrame
+      step="Step 8"
+      title="Read the shape of your legend"
+      description="Before the Vale learns your name, it reads your roots, your calling, your island, and only then the numbers that follow you into the storm."
+    >
 
       <section className="review-strip">
         <div className="review-strip__item">
@@ -153,12 +93,7 @@ function ReviewStep({
         </div>
         <div className="review-strip__item">
           <span>Loadout</span>
-          <strong>
-            {(loadout?.weaponsText?.split('\n').filter(Boolean).length ?? 0) +
-              (loadout?.armorText?.split('\n').filter(Boolean).length ?? 0) +
-              (loadout?.techRelicsText?.split('\n').filter(Boolean).length ?? 0)}
-            {' '}items
-          </strong>
+          <strong>{getLoadoutItemCount(loadout)} items</strong>
         </div>
         <div className="review-strip__item">
           <span>Progression</span>
@@ -178,7 +113,8 @@ function ReviewStep({
             <ReviewDataRow label="Past Role" value={details?.pastRole || calling?.name || 'Unwritten'} />
             <ReviewDataRow
               label="Defining Event"
-              value={details?.definingEvent || path?.summary || origin?.summary || 'Unwritten'}
+              value={details?.definingEvent ? 'Recorded' : 'Unwritten'}
+              detail={details?.definingEvent || undefined}
             />
           </dl>
         </article>
@@ -234,16 +170,16 @@ function ReviewStep({
         </article>
 
         <article className="review-card">
-          <h3>Choice Gains</h3>
+          <h3>Starting Features</h3>
           <dl>
-            {gains.map((gain) => (
-              <ReviewDataRow key={gain.label} label={gain.label} value={gain.value} detail={gain.detail} />
+            {startingFeatures.map((feature) => (
+              <ReviewDataRow key={feature.label} label={feature.label} value={feature.value} detail={feature.detail} />
             ))}
           </dl>
         </article>
 
         <article className="review-card">
-          <h3>Verb Skills</h3>
+          <h3>Skills</h3>
           <dl>
             {savedSkills.length ? (
               savedSkills.map((skill) => (
@@ -270,21 +206,11 @@ function ReviewStep({
 
         <article className="review-card">
           <h3>Starting Reputation</h3>
-          {activeReputation.length ? (
+          {reputationEntries.length ? (
             <dl>
-              {activeReputation.map(([trackKey, score]) => {
-                const track = getSystemReputationTrack(trackKey, blueprint)
-                const tier = getSystemReputationTier(score, blueprint)
-
-                return (
-                  <ReviewDataRow
-                    key={trackKey}
-                    label={track?.name ?? trackKey}
-                    value={formatSystemReputationScore(score)}
-                    detail={`${tier.label}. ${tier.effect} ${track?.scope ?? ''}`.trim()}
-                  />
-                )
-              })}
+              {reputationEntries.map((entry) => (
+                <ReviewDataRow key={entry.key} label={entry.label} value={entry.value} detail={entry.detail} />
+              ))}
             </dl>
           ) : (
             <p className="review-card__empty">
@@ -454,21 +380,12 @@ function ReviewStep({
                   ? `${progression.unlockedNodes.length} recorded`
                   : 'None'
               }
-              detail={
-                progression?.unlockedNodes?.length
-                  ? progression.unlockedNodes
-                      .map((nodeId) => {
-                        const node = getSystemSpecializationNode(progression?.specializationPath, nodeId, blueprint)
-                        return node ? `${node.name}\n${node.effect}` : nodeId
-                      })
-                      .join('\n\n')
-                  : undefined
-              }
+              detail={getUnlockedNodeDetail(progression?.unlockedNodes, progression, blueprint)}
             />
           </dl>
         </article>
       </div>
-    </section>
+    </CreatorStepFrame>
   )
 }
 

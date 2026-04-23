@@ -1,0 +1,128 @@
+.creator-summary__label {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #a99072;
+}
+
+.creator-panel__callout {
+  margin: 1.25rem 0 0;
+  padding: 0.95rem 1rem;
+  border: 1px solid rgba(214, 190, 152, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 248, 237, 0.04);
+}
+
+.creator-panel__callout strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #f0dfc8;
+}
+
+.creator-panel__callout p {
+  margin: 0;
+  color: #cabca8;
+}
+
+.points-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  background: rgba(109, 51, 33, 0.3);
+  border: 1px solid rgba(214, 190, 152, 0.14);
+}
+
+.points-banner strong {
+  font-size: 1.8rem;
+}
+
+.attribute-list {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.attribute-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(214, 190, 152, 0.12);
+  background: rgba(255, 248, 237, 0.03);
+}
+
+.attribute-row h3,
+.review-card h3 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.attribute-row p,
+.review-card dt {
+  color: #cabca8;
+}
+
+.attribute-row__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.attribute-row__controls button {
+  width: 2.4rem;
+  height: 2.4rem;
+  border: none;
+  border-radius: 999px;
+  background: #d1b38f;
+  color: #1b130c;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.attribute-row__controls button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.attribute-row__controls span {
+  min-width: 1.5rem;
+  text-align: center;
+  font-size: 1.15rem;
+}
+
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.review-card {
+  padding: 1rem;
+  border: 1px solid rgba(214, 190, 152, 0.18);
+  background: rgba(14, 18, 25, 0.78);
+  border-radius: 22px;
+  backdrop-filter: blur(10px);
+}
+
+.review-card dl {
+  margin: 0.8rem 0 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.review-card__empty {
+  margin: 1rem 0 0;
+  color: #cabca8;
+}
+
+@media (max-width: 960px) {
+  .attribute-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

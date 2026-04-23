@@ -1,3 +1,7 @@
+import CreatorStepFrame from '../shared/CreatorStepFrame/CreatorStepFrame'
+import '../shared/CreatorSurfaceStyles/CreatorSurfaceStyles.css'
+import './SkillsStep.css'
+
 function SkillsStep({
   skillGroups,
   skills,
@@ -22,15 +26,11 @@ function SkillsStep({
   }
 
   return (
-    <section className="creator-panel">
-      <div className="creator-panel__header">
-        <p className="creator-panel__kicker">Step 4</p>
-        <h2>Train the verb skills</h2>
-        <p>
-          Spend your starting training on the verbs this character can already do under pressure.
-        </p>
-      </div>
-
+    <CreatorStepFrame
+      step="Step 4"
+      title="Train the skills"
+      description="Spend your starting training on the skills this character can already bring to bear under pressure."
+    >
       <div className="points-banner">
         <div>
           <span className="creator-summary__label">Skill Training</span>
@@ -41,16 +41,7 @@ function SkillsStep({
         </strong>
       </div>
 
-      <div className="creator-panel__callout">
-        <strong>Skill scope</strong>
-        <p>
-          Players only set verb skill ranks here. Narrow focuses or specialties can still exist
-          later, but those should come from progression, equipment, or GM-facing rules instead of
-          open text on the sheet.
-        </p>
-      </div>
-
-      <div className="creator-stack creator-stack--skill-groups">
+      <div className="creator-skill-columns">
         {skillGroups.map((group) => (
           <section key={group.key} className="choice-group choice-group--skill-category">
             <div className="choice-group__header">
@@ -112,7 +103,7 @@ function SkillsStep({
           </section>
         ))}
       </div>
-    </section>
+    </CreatorStepFrame>
   )
 }
 

@@ -1,0 +1,48 @@
+.character-sheet__skill-groups {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.character-sheet__skill-group {
+  position: relative;
+  padding: 0.55rem 0.7rem;
+  border-radius: 14px;
+  border: 1px solid rgba(214, 190, 152, 0.12);
+  background: rgba(255, 248, 237, 0.03);
+  overflow: visible;
+}
+
+.character-sheet__skill-group:hover,
+.character-sheet__skill-group:focus-within {
+  z-index: 30;
+}
+
+.character-sheet__skill-group-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 0.25rem;
+}
+
+.character-sheet__skill-group-header h3 {
+  margin: 0;
+}
+
+@media (max-width: 1180px) {
+  .character-sheet__skill-groups {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 840px) {
+  .character-sheet__skill-group-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .character-sheet__skill-groups {
+    grid-template-columns: 1fr;
+  }
+}

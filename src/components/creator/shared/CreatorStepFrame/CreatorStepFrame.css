@@ -1,0 +1,28 @@
+.creator-panel {
+  padding: 1.5rem;
+  border: 1px solid rgba(214, 190, 152, 0.18);
+  background: rgba(14, 18, 25, 0.78);
+  border-radius: 22px;
+  backdrop-filter: blur(10px);
+}
+
+.creator-panel__header {
+  margin-bottom: 1.5rem;
+}
+
+.creator-panel__kicker {
+  margin: 0 0 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.72rem;
+  color: #d1b38f;
+}
+
+.creator-panel h2 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.creator-panel__header p {
+  color: #cabca8;
+}
