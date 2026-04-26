@@ -1,12 +1,52 @@
+:root {
+  --cw-accent: #d1b38f;
+  --cw-bg: #0f1a24;
+  --cw-surface: rgba(14, 18, 25, 0.78);
+  --cw-surface-elevated: rgba(28, 35, 47, 0.88);
+  --cw-text: #f3eadb;
+  --cw-muted: #cabca8;
+  --cw-border: rgba(214, 190, 152, 0.18);
+  color-scheme: dark;
+}
+
+:root[data-theme='dark'] {
+  --cw-bg: #0f1a24;
+  --cw-surface: rgba(14, 18, 25, 0.78);
+  --cw-surface-elevated: rgba(28, 35, 47, 0.88);
+  --cw-text: #f3eadb;
+  --cw-muted: #cabca8;
+  --cw-border: rgba(214, 190, 152, 0.18);
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --cw-bg: #eef1f4;
+  --cw-surface: rgba(255, 250, 244, 0.92);
+  --cw-surface-elevated: rgba(255, 255, 255, 0.97);
+  --cw-text: #1d2732;
+  --cw-muted: #556271;
+  --cw-border: rgba(117, 93, 65, 0.18);
+  color-scheme: light;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
   font-family: Georgia, 'Times New Roman', serif;
   background:
-    radial-gradient(circle at top, rgba(167, 107, 63, 0.25), transparent 28%),
-    linear-gradient(180deg, #0f1a24 0%, #1b2833 40%, #100f10 100%);
-  color: #f3eadb;
+    radial-gradient(
+      circle at top,
+      color-mix(in srgb, var(--cw-accent) 18%, transparent),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--cw-bg) 96%, var(--cw-surface) 4%) 0%,
+      color-mix(in srgb, var(--cw-bg) 82%, var(--cw-surface-elevated) 18%) 40%,
+      color-mix(in srgb, var(--cw-bg) 88%, black 12%) 100%
+    );
+  color: var(--cw-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -20,6 +60,13 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  color: inherit;
 }
 
 #root {

@@ -8,13 +8,13 @@ import { CREATOR_STEPS } from './logic/config/creatorConfig'
 import useCreatorController from './logic/controller/useCreatorController'
 import './CharacterCreator.css'
 
-function CharacterCreator({
+function CharacterCreatorSession({
+  blueprint,
+  initialCharacter,
+  isSaving,
   onSaveCharacter,
-  initialCharacter = null,
-  isSaving = false,
-  showIntro = true,
+  showIntro,
 }) {
-  const { blueprint, isBlueprintLoading, blueprintError } = useSystem()
   const {
     actionHint,
     canGoNext,
@@ -39,36 +39,6 @@ function CharacterCreator({
     initialCharacter,
     onSaveCharacter,
   })
-
-  if (isBlueprintLoading && !blueprint) {
-    return (
-      <section className="creator-page creator-page--embedded">
-        {showIntro ? (
-          <Hero copy="Pulling the shared system blueprint so this creator uses the canonical world paths, callings, origins, and sheet math." />
-        ) : null}
-
-        <StatusPanel
-          title="Loading creator blueprint"
-          description="The creator is waiting for the backend system package before it unlocks choices."
-        />
-      </section>
-    )
-  }
-
-  if (blueprintError || !blueprint) {
-    return (
-      <section className="creator-page creator-page--embedded">
-        {showIntro ? (
-          <Hero copy="This flow is now driven by the shared system blueprint instead of local fallback data." />
-        ) : null}
-
-        <StatusPanel
-          title="Blueprint unavailable"
-          description={blueprintError || 'The shared system blueprint could not be loaded.'}
-        />
-      </section>
-    )
-  }
 
   return (
     <section className="creator-page creator-page--embedded">
@@ -107,6 +77,56 @@ function CharacterCreator({
         saveMessage={saveMessage}
       />
     </section>
+  )
+}
+
+function CharacterCreator({
+  onSaveCharacter,
+  initialCharacter = null,
+  isSaving = false,
+  showIntro = true,
+}) {
+  const { blueprint, isBlueprintLoading, blueprintError } = useSystem()
+
+  if (isBlueprintLoading && !blueprint) {
+    return (
+      <section className="creator-page creator-page--embedded">
+        {showIntro ? (
+          <Hero copy="Pulling the shared system blueprint so this creator uses the canonical world paths, callings, origins, and sheet math." />
+        ) : null}
+
+        <StatusPanel
+          title="Loading creator blueprint"
+          description="The creator is waiting for the backend system package before it unlocks choices."
+        />
+      </section>
+    )
+  }
+
+  if (blueprintError || !blueprint) {
+    return (
+      <section className="creator-page creator-page--embedded">
+        {showIntro ? (
+          <Hero copy="This flow is now driven by the shared system blueprint instead of local fallback data." />
+        ) : null}
+
+        <StatusPanel
+          title="Blueprint unavailable"
+          description={blueprintError || 'The shared system blueprint could not be loaded.'}
+        />
+      </section>
+    )
+  }
+
+  return (
+    <CharacterCreatorSession
+      key={`${initialCharacter?._id ?? 'new'}-${blueprint?.updatedAt ?? 'blueprint'}`}
+      blueprint={blueprint}
+      initialCharacter={initialCharacter}
+      isSaving={isSaving}
+      onSaveCharacter={onSaveCharacter}
+      showIntro={showIntro}
+    />
   )
 }
 

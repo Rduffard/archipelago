@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   getRankedSystemSpecializations,
   getSystemCallings,
@@ -50,20 +50,34 @@ function useCreatorController({
   const origins = getSystemOrigins(blueprint)
   const originPaths = getSystemOriginPaths(blueprint)
   const specializations = getSystemSpecializations(blueprint)
+  const hydratedState = useMemo(() => {
+    if (!initialCharacter?._id || !blueprint) {
+      return null
+    }
 
-  const [identity, setIdentity] = useState(INITIAL_IDENTITY)
-  const [attributeValues, setAttributeValues] = useState(createEmptyAttributes)
-  const [details, setDetails] = useState(createEmptyDetails)
-  const [loadout, setLoadout] = useState(createEmptyLoadout)
-  const [skills, setSkills] = useState(createEmptySkills)
-  const [resourceValues, setResourceValues] = useState(createEmptyResourceValues)
-  const [wounds, setWounds] = useState([])
+    return hydrateCreatorState({
+      blueprint,
+      initialCharacter,
+      origins,
+    })
+  }, [blueprint, initialCharacter, origins])
+
+  const [identity, setIdentity] = useState(() => hydratedState?.identity ?? INITIAL_IDENTITY)
+  const [attributeValues, setAttributeValues] = useState(
+    () => hydratedState?.attributeValues ?? createEmptyAttributes(),
+  )
+  const [details, setDetails] = useState(() => hydratedState?.details ?? createEmptyDetails())
+  const [loadout, setLoadout] = useState(() => hydratedState?.loadout ?? createEmptyLoadout())
+  const [skills, setSkills] = useState(() => hydratedState?.skills ?? createEmptySkills())
+  const [resourceValues, setResourceValues] = useState(
+    () => hydratedState?.resourceValues ?? createEmptyResourceValues(),
+  )
+  const [wounds, setWounds] = useState(() => hydratedState?.wounds ?? [])
   const [progressionValues, setProgressionValues] = useState(() =>
-    normalizeProgression(createProgression()),
+    hydratedState?.progressionValues ?? normalizeProgression(createProgression()),
   )
   const [saveMessage, setSaveMessage] = useState('')
   const [currentStep, setCurrentStep] = useState(0)
-  const [hydratedCharacterId, setHydratedCharacterId] = useState(null)
 
   const isEditing = Boolean(initialCharacter?._id)
   const selectedCalling = callings.find((entry) => entry.id === identity.callingId)
@@ -148,28 +162,6 @@ function useCreatorController({
       }),
     [identity, isIdentityComplete, progressionValues, remainingPoints, remainingSkillPoints],
   )
-
-  useEffect(() => {
-    if (!initialCharacter?._id || !blueprint || hydratedCharacterId === initialCharacter._id) {
-      return
-    }
-
-    const hydratedState = hydrateCreatorState({
-      blueprint,
-      initialCharacter,
-      origins,
-    })
-
-    setIdentity(hydratedState.identity)
-    setAttributeValues(hydratedState.attributeValues)
-    setSkills(hydratedState.skills)
-    setLoadout(hydratedState.loadout)
-    setDetails(hydratedState.details)
-    setResourceValues(hydratedState.resourceValues)
-    setWounds(hydratedState.wounds)
-    setProgressionValues(hydratedState.progressionValues)
-    setHydratedCharacterId(initialCharacter._id)
-  }, [blueprint, hydratedCharacterId, initialCharacter, origins])
 
   const {
     handleAddCustomAbility,

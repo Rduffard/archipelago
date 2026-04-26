@@ -42,6 +42,24 @@ export function getCurrentUser(token) {
   })
 }
 
+export function getUserSettings(token) {
+  return request('/auth/users/me/settings', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
+
+export function updateUserSettings(token, settings) {
+  return request('/auth/users/me/settings', {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(settings),
+  })
+}
+
 export function getCharacters(token) {
   return request('/archipelago/characters', {
     headers: {

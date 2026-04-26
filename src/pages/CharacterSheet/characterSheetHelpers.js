@@ -389,7 +389,6 @@ export function getTrackerValue(resource, fallbackCurrent, fallbackMax) {
 }
 
 export function buildReferenceGroups({
-  blueprint,
   character,
   derivedStatDetails,
   pairingCategoryDetails,

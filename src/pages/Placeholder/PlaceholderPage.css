@@ -1,16 +1,16 @@
 .placeholder-card {
   padding: 1.5rem;
   border-radius: 24px;
-  border: 1px solid rgba(214, 190, 152, 0.18);
-  background: rgba(14, 18, 25, 0.78);
+  border: 1px solid var(--cw-border);
+  background: color-mix(in srgb, var(--cw-surface) 96%, transparent);
 }
 
 .placeholder-card p {
   margin: 0.9rem 0 0;
-  color: #cabca8;
+  color: var(--cw-muted);
 }
 
 .placeholder-card a {
   text-decoration: none;
-  color: #d1b38f;
+  color: color-mix(in srgb, var(--cw-accent) 74%, var(--cw-text) 26%);
 }

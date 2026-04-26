@@ -7,8 +7,8 @@
   justify-content: space-between;
   gap: 1rem;
   border-radius: 22px;
-  border: 1px solid rgba(214, 190, 152, 0.18);
-  background: rgba(14, 18, 25, 0.82);
+  border: 1px solid var(--cw-border);
+  background: color-mix(in srgb, var(--cw-surface) 96%, transparent);
   backdrop-filter: blur(10px);
 }
 
@@ -27,7 +27,7 @@
   text-transform: uppercase;
   letter-spacing: 0.18em;
   font-size: 0.68rem;
-  color: #d1b38f;
+  color: color-mix(in srgb, var(--cw-accent) 72%, var(--cw-text) 28%);
 }
 
 .app-navbar__links {
@@ -45,20 +45,20 @@
 .app-navbar__link {
   padding: 0.55rem 0.9rem;
   border-radius: 999px;
-  color: #cabca8;
+  color: var(--cw-muted);
 }
 
 .app-navbar__link.is-active {
-  background: rgba(209, 179, 143, 0.14);
-  color: #f3eadb;
+  background: color-mix(in srgb, var(--cw-accent) 16%, transparent);
+  color: var(--cw-text);
 }
 
 .app-navbar__signout {
   border: none;
   border-radius: 999px;
   padding: 0.75rem 1rem;
-  background: #d1b38f;
-  color: #1b130c;
+  background: color-mix(in srgb, var(--cw-accent) 84%, white 16%);
+  color: color-mix(in srgb, var(--cw-bg) 84%, black 16%);
   font-weight: 700;
   cursor: pointer;
 }

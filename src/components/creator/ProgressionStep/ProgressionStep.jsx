@@ -75,7 +75,6 @@ function ProgressionFields({ onProgressionChange, progression, specializations, 
 }
 
 function SpecializationNodeRow({
-  advancementSpent,
   node,
   onNodeToggle,
   progression,
@@ -154,7 +153,6 @@ function ActiveSpecializationPanel({
         {activeSpecialization.nodes.map((node) => (
           <SpecializationNodeRow
             key={node.id}
-            advancementSpent={advancementSpent}
             node={node}
             onNodeToggle={onNodeToggle}
             progression={progression}
