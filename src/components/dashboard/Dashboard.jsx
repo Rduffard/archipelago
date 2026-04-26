@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import CharacterRoster from '../characters/CharacterRoster'
 import PageHeader from '../layout/PageHeader'
+import { SectionCard, SectionCardHeader } from '../ui/SectionCard/SectionCard'
 import './Dashboard.css'
 
 const dashboardActions = [
@@ -61,11 +62,11 @@ function Dashboard({ user, characters }) {
       </section>
 
       <section className="dashboard-grid">
-        <article className="dashboard-card">
-          <div className="dashboard-card__header">
-            <h2>Command Deck</h2>
-            <p>The normal dashboard stuff lives here now. The creator has its own route.</p>
-          </div>
+        <SectionCard>
+          <SectionCardHeader
+            title="Command Deck"
+            description="The normal dashboard stuff lives here now. The creator has its own route."
+          />
 
           <div className="dashboard-action-grid">
             {dashboardActions.map((action) => (
@@ -76,16 +77,16 @@ function Dashboard({ user, characters }) {
               </Link>
             ))}
           </div>
-        </article>
+        </SectionCard>
 
-        <article className="dashboard-card">
-          <div className="dashboard-card__header">
-            <h2>Character Roster</h2>
-            <p>Your saved sheets, ready for campaign assignment later.</p>
-          </div>
+        <SectionCard>
+          <SectionCardHeader
+            title="Character Roster"
+            description="Your saved sheets, ready for campaign assignment later."
+          />
 
           <CharacterRoster characters={characters} limit={5} />
-        </article>
+        </SectionCard>
       </section>
     </main>
   )

@@ -1,9 +1,30 @@
-import { attributes, ATTRIBUTE_POINTS } from '../data/gameData'
-import { attributePairings } from '../data/pairingData'
+import {
+  ATTRIBUTE_KEYS,
+  ATTRIBUTE_POINTS,
+  FALLBACK_ATTRIBUTES,
+} from '../data/archipelagoSystemBlueprint'
+
+const DEFAULT_PAIRING_FORMULAS = [
+  { key: 'skirmish', attributes: ['might', 'agility'] },
+  { key: 'leverage', attributes: ['might', 'wit'] },
+  { key: 'conviction', attributes: ['might', 'spirit'] },
+  { key: 'pressure', attributes: ['might', 'resolve'] },
+  { key: 'pursuit', attributes: ['might', 'instinct'] },
+  { key: 'precision', attributes: ['agility', 'wit'] },
+  { key: 'flourish', attributes: ['agility', 'spirit'] },
+  { key: 'balance', attributes: ['agility', 'resolve'] },
+  { key: 'reflex', attributes: ['agility', 'instinct'] },
+  { key: 'guile', attributes: ['wit', 'spirit'] },
+  { key: 'tactics', attributes: ['wit', 'resolve'] },
+  { key: 'sense', attributes: ['wit', 'instinct'] },
+  { key: 'grace', attributes: ['spirit', 'resolve'] },
+  { key: 'attunement', attributes: ['spirit', 'instinct'] },
+  { key: 'nerve', attributes: ['resolve', 'instinct'] },
+]
 
 export function createEmptyAttributes() {
-  return attributes.reduce((accumulator, attribute) => {
-    accumulator[attribute.key] = 0
+  return ATTRIBUTE_KEYS.reduce((accumulator, key) => {
+    accumulator[key] = 0
     return accumulator
   }, {})
 }
@@ -33,8 +54,8 @@ export function calculateSocialStats(attributeValues) {
   }
 }
 
-export function calculatePairingStats(attributeValues) {
-  return attributePairings.reduce((pairingStats, pairing) => {
+export function calculatePairingStats(attributeValues, pairings = DEFAULT_PAIRING_FORMULAS) {
+  return pairings.reduce((pairingStats, pairing) => {
     const [leftAttribute, rightAttribute] = pairing.attributes
     pairingStats[pairing.key] = 10 + (attributeValues[leftAttribute] ?? 0) + (attributeValues[rightAttribute] ?? 0)
     return pairingStats
@@ -47,7 +68,7 @@ export function getRollModifier(score) {
 }
 
 export function getAttributeLabel(attributeKey) {
-  return attributes.find((attribute) => attribute.key === attributeKey)?.name ?? attributeKey
+  return FALLBACK_ATTRIBUTES.find((attribute) => attribute.key === attributeKey)?.name ?? attributeKey
 }
 
 export function getStatLabel(statKey) {
@@ -67,7 +88,7 @@ export function parseAttributeBonus(bonusText = '') {
 
   const amount = Number(match[1])
   const label = match[2].trim()
-  const attribute = attributes.find((entry) => entry.name.toLowerCase() === label.toLowerCase())
+  const attribute = FALLBACK_ATTRIBUTES.find((entry) => entry.name.toLowerCase() === label.toLowerCase())
 
   if (!attribute || Number.isNaN(amount)) {
     return null

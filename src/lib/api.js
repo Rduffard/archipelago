@@ -42,8 +42,34 @@ export function getCurrentUser(token) {
   })
 }
 
+export function getUserSettings(token) {
+  return request('/auth/users/me/settings', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
+
+export function updateUserSettings(token, settings) {
+  return request('/auth/users/me/settings', {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(settings),
+  })
+}
+
 export function getCharacters(token) {
   return request('/archipelago/characters', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
+
+export function getArchipelagoSystemBlueprint(token) {
+  return request('/archipelago/system/blueprint', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -61,6 +87,16 @@ export function getCharacterById(token, characterId) {
 export function createCharacter(token, character) {
   return request('/archipelago/characters', {
     method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(character),
+  })
+}
+
+export function updateCharacter(token, characterId, character) {
+  return request(`/archipelago/characters/${characterId}`, {
+    method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
     },

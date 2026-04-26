@@ -1,18 +1,23 @@
-import { ATTRIBUTE_CAP, attributes } from '../../data/gameData'
-import { getRemainingPoints } from '../../lib/character'
+import {
+  ATTRIBUTE_CAP,
+  getBlueprintAttributes,
+} from '../../../data/archipelagoSystemBlueprint'
+import { useSystem } from '../../../hooks/useSystem'
+import { getRemainingPoints } from '../../../lib/character'
+import CreatorStepFrame from '../shared/CreatorStepFrame/CreatorStepFrame'
+import '../shared/CreatorSurfaceStyles/CreatorSurfaceStyles.css'
 
 function AttributesStep({ attributeValues, onAttributeChange }) {
+  const { blueprint } = useSystem()
   const remainingPoints = getRemainingPoints(attributeValues)
+  const attributes = getBlueprintAttributes(blueprint)
 
   return (
-    <section className="creator-panel">
-      <div className="creator-panel__header">
-        <p className="creator-panel__kicker">Step 3</p>
-        <h2>Spend your attribute points</h2>
-        <p>
-          Keep it readable and thematic: 12 points total, up to {ATTRIBUTE_CAP} in any one attribute.
-        </p>
-      </div>
+    <CreatorStepFrame
+      step="Step 3"
+      title="Spend your attribute points"
+      description={`Keep it readable and thematic: 12 points total, up to ${ATTRIBUTE_CAP} in any one attribute.`}
+    >
 
       <div className="points-banner">
         <span>Points remaining</span>
@@ -51,7 +56,7 @@ function AttributesStep({ attributeValues, onAttributeChange }) {
           )
         })}
       </div>
-    </section>
+    </CreatorStepFrame>
   )
 }
 

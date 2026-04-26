@@ -1,0 +1,324 @@
+.character-sheet__reference-list {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.character-sheet__reference-list--tight,
+.character-sheet__reference-list--skill-chart {
+  gap: 0;
+}
+
+.character-sheet__reference-row {
+  position: relative;
+  padding: 0.34rem 0;
+  border-bottom: 1px solid rgba(214, 190, 152, 0.1);
+  transition: border-color 160ms ease;
+}
+
+.character-sheet__reference-row:first-child {
+  padding-top: 0.1rem;
+}
+
+.character-sheet__reference-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0.1rem;
+}
+
+.character-sheet__reference-row.has-detail {
+  cursor: help;
+}
+
+.character-sheet__reference-row.has-detail:hover,
+.character-sheet__reference-row.has-detail:focus-visible {
+  border-bottom-color: rgba(214, 190, 152, 0.24);
+  z-index: 20;
+}
+
+.character-sheet__reference-row:focus-visible {
+  outline: none;
+}
+
+.character-sheet__reference-main,
+.character-sheet__reference-values {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.character-sheet__reference-copy {
+  display: flex;
+  gap: 0.45rem;
+  align-items: baseline;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.character-sheet__reference-copy strong,
+.character-sheet__reference-score {
+  color: #f3eadb;
+  font-size: 0.92rem;
+}
+
+.character-sheet__reference-copy strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.character-sheet__reference-copy span,
+.character-sheet__reference-modifier {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #d1b38f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.character-sheet__reference-values {
+  flex: 0 0 auto;
+  min-width: 4.25rem;
+  justify-content: flex-end;
+}
+
+.character-sheet__reference-score {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.character-sheet__reference-detail {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  right: auto;
+  max-width: min(18rem, calc(100vw - 4rem));
+  min-width: 12rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(214, 190, 152, 0.16);
+  border-radius: 12px;
+  background: rgba(22, 28, 37, 0.97);
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
+  color: #cabca8;
+  line-height: 1.5;
+  white-space: pre-line;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-0.3rem);
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    visibility 180ms ease;
+}
+
+.character-sheet__reference-row.has-detail:hover .character-sheet__reference-detail,
+.character-sheet__reference-row.has-detail:focus-visible .character-sheet__reference-detail {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.character-sheet__reference-row.is-text-only .character-sheet__reference-copy {
+  gap: 0.4rem;
+}
+
+.character-sheet__reference-list--tight .character-sheet__reference-row,
+.character-sheet__reference-list--skill-chart .character-sheet__reference-row {
+  padding: 0.22rem 0;
+}
+
+.character-sheet__reference-list--tight .character-sheet__reference-copy strong {
+  font-size: 0.9rem;
+}
+
+.character-sheet__reference-list--skill-chart .character-sheet__reference-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 0.45rem;
+  align-items: center;
+}
+
+.character-sheet__reference-list--skill-chart .character-sheet__reference-copy {
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.character-sheet__reference-list--skill-chart .character-sheet__reference-copy strong {
+  font-size: 0.78rem;
+}
+
+.character-sheet__reference-list--skill-chart .character-sheet__reference-copy span,
+.character-sheet__reference-list--skill-chart .character-sheet__reference-modifier {
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+}
+
+.character-sheet__reference-list--skill-chart .character-sheet__reference-values {
+  min-width: 3.25rem;
+  gap: 0.25rem;
+}
+
+.character-sheet__reference-list--skill-chart .character-sheet__reference-score {
+  font-size: 0.8rem;
+}
+
+.character-sheet__reference-list--skill-chart .character-sheet__reference-copy span {
+  max-width: 7.5rem;
+}
+
+.character-sheet__reference-list--reputation .character-sheet__reference-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 0.5rem;
+  align-items: baseline;
+}
+
+.character-sheet__reference-list--reputation .character-sheet__reference-copy span {
+  max-width: 6.5rem;
+}
+
+.character-sheet__reference-list--reputation .character-sheet__reference-values {
+  min-width: 2.6rem;
+}
+
+.character-sheet__tracker-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.character-sheet__tracker-card {
+  position: relative;
+  border: 1px solid rgba(214, 190, 152, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 248, 237, 0.03);
+  padding: 0.6rem 0.7rem;
+  overflow: visible;
+}
+
+.character-sheet__tracker-card.has-detail {
+  cursor: help;
+}
+
+.character-sheet__tracker-card.has-detail:hover,
+.character-sheet__tracker-card.has-detail:focus-visible {
+  z-index: 25;
+}
+
+.character-sheet__tracker-card:focus-visible {
+  outline: none;
+}
+
+.character-sheet__tracker-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.character-sheet__tracker-head strong,
+.character-sheet__tracker-head span {
+  color: #f3eadb;
+  font-size: 0.9rem;
+}
+
+.character-sheet__tracker-head span {
+  color: #d1b38f;
+}
+
+.character-sheet__tracker-pips {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.28rem;
+  margin-top: 0.55rem;
+}
+
+.character-sheet__tracker-pips span {
+  width: 100%;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 248, 237, 0.08);
+  border: 1px solid rgba(214, 190, 152, 0.1);
+}
+
+.character-sheet__tracker-pips .is-filled {
+  background: rgba(209, 179, 143, 0.72);
+  border-color: rgba(209, 179, 143, 0.72);
+}
+
+.character-sheet__tracker-card--health .is-filled {
+  background: rgba(189, 232, 199, 0.72);
+  border-color: rgba(189, 232, 199, 0.72);
+}
+
+.character-sheet__tracker-card--arcane .is-filled {
+  background: rgba(146, 183, 230, 0.72);
+  border-color: rgba(146, 183, 230, 0.72);
+}
+
+.character-sheet__tracker-card--danger .is-filled,
+.character-sheet__tracker-card--corruption .is-filled {
+  background: rgba(255, 155, 138, 0.72);
+  border-color: rgba(255, 155, 138, 0.72);
+}
+
+.character-sheet__tracker-detail {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  min-width: 12rem;
+  max-width: min(18rem, calc(100vw - 4rem));
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(214, 190, 152, 0.16);
+  border-radius: 12px;
+  background: rgba(22, 28, 37, 0.97);
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
+  color: #cabca8;
+  line-height: 1.5;
+  white-space: pre-line;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-0.3rem);
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    visibility 180ms ease;
+}
+
+.character-sheet__tracker-card.has-detail:hover .character-sheet__tracker-detail,
+.character-sheet__tracker-card.has-detail:focus-visible .character-sheet__tracker-detail {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+@media (max-width: 840px) {
+  .character-sheet__tracker-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .character-sheet__reference-copy {
+    flex-direction: column;
+    gap: 0.05rem;
+    align-items: flex-start;
+  }
+}
+
+@media (hover: none) {
+  .character-sheet__reference-detail {
+    position: static;
+    margin-top: 0.65rem;
+    max-width: none;
+    min-width: 0;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
+    box-shadow: none;
+  }
+}

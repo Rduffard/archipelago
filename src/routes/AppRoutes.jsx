@@ -21,6 +21,7 @@ function AppRoutes() {
           <Route path="/map" element={<MapPage />} />
           <Route path="/characters" element={<CharactersPage />} />
           <Route path="/characters/new" element={<CharacterCreatorPage />} />
+          <Route path="/characters/:characterId/edit" element={<CharacterCreatorPage />} />
           <Route path="/characters/:characterId" element={<CharacterSheetPage />} />
           <Route path="/campaigns/new" element={<PlaceholderPage />} />
           <Route path="/campaigns/open" element={<PlaceholderPage />} />

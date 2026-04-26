@@ -9,10 +9,14 @@
   width: min(100%, 32rem);
   padding: 2rem;
   border-radius: 28px;
-  border: 1px solid rgba(214, 190, 152, 0.18);
+  border: 1px solid var(--cw-border);
   background:
-    linear-gradient(135deg, rgba(73, 33, 23, 0.82), rgba(17, 31, 43, 0.86)),
-    rgba(8, 11, 16, 0.75);
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--cw-accent) 20%, var(--cw-surface-elevated)),
+      color-mix(in srgb, var(--cw-bg) 70%, var(--cw-surface) 30%)
+    ),
+    color-mix(in srgb, var(--cw-surface) 92%, transparent);
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25);
 }
 
@@ -21,7 +25,7 @@
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-size: 0.72rem;
-  color: #d1b38f;
+  color: color-mix(in srgb, var(--cw-accent) 72%, var(--cw-text) 28%);
 }
 
 .auth-panel h1 {
@@ -32,7 +36,7 @@
 
 .auth-panel__copy {
   margin: 1rem 0 0;
-  color: #cabca8;
+  color: var(--cw-muted);
 }
 
 .auth-toggle {
@@ -52,13 +56,13 @@
 
 .auth-toggle button {
   padding: 0.8rem 1rem;
-  background: rgba(255, 248, 237, 0.06);
-  color: #f3eadb;
+  background: color-mix(in srgb, var(--cw-surface-elevated) 64%, transparent);
+  color: var(--cw-text);
 }
 
 .auth-toggle button.is-active {
-  background: #d1b38f;
-  color: #1b130c;
+  background: color-mix(in srgb, var(--cw-accent) 84%, white 16%);
+  color: color-mix(in srgb, var(--cw-bg) 84%, black 16%);
 }
 
 .auth-form {
@@ -75,15 +79,15 @@
   font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  color: #d1b38f;
+  color: color-mix(in srgb, var(--cw-accent) 72%, var(--cw-text) 28%);
 }
 
 .auth-form input {
   width: 100%;
-  border: 1px solid rgba(214, 190, 152, 0.2);
+  border: 1px solid var(--cw-border);
   border-radius: 14px;
-  background: rgba(255, 248, 237, 0.06);
-  color: #f3eadb;
+  background: color-mix(in srgb, var(--cw-surface-elevated) 72%, transparent);
+  color: var(--cw-text);
   padding: 0.9rem 1rem;
 }
 
@@ -94,8 +98,8 @@
 
 .auth-form__submit {
   padding: 0.95rem 1.2rem;
-  background: #d1b38f;
-  color: #1b130c;
+  background: color-mix(in srgb, var(--cw-accent) 84%, white 16%);
+  color: color-mix(in srgb, var(--cw-bg) 84%, black 16%);
   font-weight: 700;
 }
 

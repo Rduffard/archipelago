@@ -1,3 +1,4 @@
 .app-layout {
   min-height: 100vh;
+  color: var(--cw-text);
 }

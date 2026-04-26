@@ -1,0 +1,81 @@
+.creator-submit {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 22px;
+  border: 1px solid rgba(214, 190, 152, 0.18);
+  background: rgba(14, 18, 25, 0.78);
+}
+
+.creator-submit p,
+.creator-submit strong {
+  display: block;
+}
+
+.creator-submit p {
+  color: #cabca8;
+}
+
+.creator-submit strong {
+  margin-top: 0.35rem;
+  color: #d1b38f;
+}
+
+.creator-submit__actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.creator-submit__primary {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: end;
+}
+
+.creator-submit button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.95rem 1.2rem;
+  background: #d1b38f;
+  color: #1b130c;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.creator-submit button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.creator-submit__secondary {
+  background: rgba(255, 248, 237, 0.08) !important;
+  color: #f3eadb !important;
+}
+
+.creator-submit__hint {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #d9c5ab;
+}
+
+@media (max-width: 960px) {
+  .creator-submit {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .creator-submit__actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .creator-submit__primary {
+    width: 100%;
+    justify-items: stretch;
+  }
+}

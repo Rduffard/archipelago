@@ -1,0 +1,127 @@
+.review-grid--dense {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.review-card__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+  align-items: start;
+  gap: 1rem;
+  padding-bottom: 0.38rem;
+  border-bottom: 1px solid rgba(214, 190, 152, 0.08);
+  transition: border-color 180ms ease;
+}
+
+.review-card__row.has-detail {
+  position: relative;
+  cursor: help;
+}
+
+.review-card__row dt {
+  min-width: 0;
+}
+
+.review-card__row.has-detail:hover,
+.review-card__row.has-detail:focus-visible {
+  border-bottom-color: rgba(214, 190, 152, 0.2);
+}
+
+.review-card__row:focus-visible {
+  outline: none;
+}
+
+.review-card dd {
+  margin: 0;
+  position: relative;
+  min-width: 0;
+  text-align: right;
+  text-transform: capitalize;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.review-card__detail {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 0.65rem);
+  right: 0;
+  max-width: 18rem;
+  min-width: 14rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(214, 190, 152, 0.16);
+  border-radius: 12px;
+  background: rgba(18, 24, 31, 0.985);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.3);
+  font-size: 0.82rem;
+  color: #cabca8;
+  text-transform: none;
+  line-height: 1.45;
+  white-space: pre-line;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-0.35rem);
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    visibility 180ms ease;
+}
+
+.review-card {
+  position: relative;
+  overflow: visible;
+  z-index: 0;
+}
+
+.review-card:hover,
+.review-card:focus-within {
+  z-index: 50;
+}
+
+.review-card__row.has-detail:hover,
+.review-card__row.has-detail:focus-visible {
+  z-index: 30;
+}
+
+.review-card__row.has-detail:hover .review-card__detail,
+.review-card__row.has-detail:focus-visible .review-card__detail {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.review-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+}
+
+.review-strip__item {
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(214, 190, 152, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 248, 237, 0.03);
+}
+
+.review-strip__item span {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a99072;
+}
+
+.review-strip__item strong {
+  font-size: 0.98rem;
+  line-height: 1.15;
+}
+
+@media (max-width: 960px) {
+  .review-strip {
+    grid-template-columns: 1fr;
+  }
+}

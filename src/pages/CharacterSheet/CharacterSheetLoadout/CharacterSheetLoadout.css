@@ -1,0 +1,56 @@
+.character-sheet__resource-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.5rem;
+}
+
+.character-sheet__resource-group {
+  position: relative;
+  padding: 0.55rem 0.7rem;
+  border-radius: 14px;
+  border: 1px solid rgba(214, 190, 152, 0.12);
+  background: rgba(255, 248, 237, 0.03);
+  overflow: visible;
+}
+
+.character-sheet__resource-group:hover,
+.character-sheet__resource-group:focus-within {
+  z-index: 30;
+}
+
+.character-sheet__resource-group .dashboard-card__empty,
+.character-sheet__notes-copy {
+  color: #cabca8;
+}
+
+.character-sheet__resource-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 0.25rem;
+}
+
+.character-sheet__resource-header h3 {
+  margin: 0;
+}
+
+.character-sheet__notes-panel {
+  padding: 0.55rem 0.7rem;
+  border-radius: 12px;
+  border: 1px solid rgba(214, 190, 152, 0.12);
+  background: rgba(255, 248, 237, 0.03);
+}
+
+.character-sheet__notes-copy {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 840px) {
+  .character-sheet__resource-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

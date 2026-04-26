@@ -1,11 +1,11 @@
-import { attributes } from './gameData'
+import { FALLBACK_ATTRIBUTES } from './archipelagoSystemBlueprint'
 
-export const ATTRIBUTE_DETAILS = attributes.reduce((detailMap, attribute) => {
+const FALLBACK_ATTRIBUTE_DETAILS = FALLBACK_ATTRIBUTES.reduce((detailMap, attribute) => {
   detailMap[attribute.key] = attribute.description
   return detailMap
 }, {})
 
-export const DERIVED_STAT_DETAILS = {
+const FALLBACK_DERIVED_STAT_DETAILS = {
   vitality: {
     category: 'derived',
     formula: '10 + Might + Resolve',
@@ -28,7 +28,7 @@ export const DERIVED_STAT_DETAILS = {
   },
 }
 
-export const SOCIAL_STAT_DETAILS = {
+const FALLBACK_SOCIAL_STAT_DETAILS = {
   grace: {
     category: 'social',
     formula: '10 + Spirit + Resolve',
@@ -46,7 +46,7 @@ export const SOCIAL_STAT_DETAILS = {
   },
 }
 
-export const PAIRING_CATEGORY_DETAILS = {
+const FALLBACK_PAIRING_CATEGORY_DETAILS = {
   combat: {
     label: 'Combat',
     description: 'Fast reads for direct conflict, tempo, positioning, and execution under pressure.',
@@ -67,4 +67,20 @@ export const PAIRING_CATEGORY_DETAILS = {
     label: 'Arcane',
     description: 'Relic sense, spiritual attunement, omens, and the unseen pulse of a place.',
   },
+}
+
+export function getAttributeDetails(blueprint) {
+  return blueprint?.display?.attributes ?? FALLBACK_ATTRIBUTE_DETAILS
+}
+
+export function getDerivedStatDetails(blueprint) {
+  return blueprint?.display?.derivedStats ?? FALLBACK_DERIVED_STAT_DETAILS
+}
+
+export function getSocialStatDetails(blueprint) {
+  return blueprint?.display?.socialStats ?? FALLBACK_SOCIAL_STAT_DETAILS
+}
+
+export function getPairingCategoryDetails(blueprint) {
+  return blueprint?.display?.pairingCategories ?? FALLBACK_PAIRING_CATEGORY_DETAILS
 }

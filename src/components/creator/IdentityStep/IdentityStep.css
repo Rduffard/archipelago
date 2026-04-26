@@ -1,0 +1,119 @@
+.choice-group--nested {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(214, 190, 152, 0.12);
+}
+
+.choice-card--compact,
+.choice-card--origin,
+.choice-card--calling,
+.choice-card--path {
+  min-height: 100%;
+}
+
+.choice-card--path.is-dimmed {
+  opacity: 0.22;
+  filter: saturate(0.6);
+  transform: scale(0.985);
+}
+
+.choice-card--path.is-dimmed:hover {
+  transform: scale(0.98);
+  box-shadow: none;
+}
+
+.choice-card--path.is-selected {
+  box-shadow:
+    0 0 0 1px rgba(209, 179, 143, 0.22),
+    0 18px 30px rgba(0, 0, 0, 0.2);
+}
+
+.choice-card--origin .choice-card__label {
+  max-width: 15rem;
+}
+
+.choice-card--calling .choice-card__meta {
+  min-height: 2.1rem;
+}
+
+.choice-card--calling p {
+  min-height: 4.9rem;
+}
+
+.choice-card--calling .choice-card__section--footer {
+  padding-top: 0.35rem;
+}
+
+.choice-card--calling .choice-card__tags {
+  align-items: flex-start;
+}
+
+.choice-card--calling .choice-pill:first-child {
+  background: rgba(209, 179, 143, 0.1);
+}
+
+.choice-card--calling .choice-pill:nth-child(2) {
+  background: rgba(82, 118, 148, 0.18);
+  color: #d8ebff;
+}
+
+.choice-card--calling .choice-pill:nth-child(3) {
+  background: rgba(209, 179, 143, 0.16);
+}
+
+.choice-card--origin .choice-card__meta {
+  min-height: 2.6rem;
+}
+
+.choice-card--origin p {
+  min-height: 5.1rem;
+}
+
+.creator-highlight {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 18px;
+  border: 1px solid rgba(214, 190, 152, 0.16);
+  background: rgba(255, 248, 237, 0.03);
+}
+
+.creator-highlight--origin {
+  background:
+    linear-gradient(135deg, rgba(73, 33, 23, 0.28), rgba(17, 31, 43, 0.18)),
+    rgba(255, 248, 237, 0.03);
+}
+
+.creator-highlight__eyebrow {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #d1b38f;
+}
+
+.creator-highlight h3,
+.creator-highlight p {
+  margin: 0;
+}
+
+.creator-highlight p {
+  margin-top: 0.55rem;
+  color: #cabca8;
+}
+
+.creator-reputation-preview {
+  margin-top: 1rem;
+}
+
+.creator-reputation-preview__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.creator-reputation-preview .choice-pill {
+  padding: 0.38rem 0.72rem;
+  font-size: 0.8rem;
+  min-height: auto;
+}

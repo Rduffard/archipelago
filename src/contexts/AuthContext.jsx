@@ -3,13 +3,34 @@ import { getCharacters, getCurrentUser, signIn, signUp } from '../lib/api'
 
 const AuthContext = createContext(null)
 
-const AUTH_KEY = 'cw_archipelago_auth'
+const AUTH_KEY = 'cw_auth'
+const LEGACY_AUTH_KEY = 'cw_archipelago_auth'
 
 function readStoredAuth() {
   const raw = window.localStorage.getItem(AUTH_KEY)
 
   if (!raw) {
-    return { token: null, user: null }
+    const legacyRaw = window.localStorage.getItem(LEGACY_AUTH_KEY)
+
+    if (!legacyRaw) {
+      return { token: null, user: null }
+    }
+
+    try {
+      const parsed = JSON.parse(legacyRaw)
+      const migrated = {
+        token: parsed?.token ?? null,
+        user: parsed?.user ?? null,
+      }
+
+      window.localStorage.setItem(AUTH_KEY, JSON.stringify(migrated))
+      window.localStorage.removeItem(LEGACY_AUTH_KEY)
+
+      return migrated
+    } catch {
+      window.localStorage.removeItem(LEGACY_AUTH_KEY)
+      return { token: null, user: null }
+    }
   }
 
   try {
@@ -26,10 +47,12 @@ function readStoredAuth() {
 
 function writeStoredAuth({ token, user }) {
   window.localStorage.setItem(AUTH_KEY, JSON.stringify({ token, user }))
+  window.localStorage.removeItem(LEGACY_AUTH_KEY)
 }
 
 function clearStoredAuth() {
   window.localStorage.removeItem(AUTH_KEY)
+  window.localStorage.removeItem(LEGACY_AUTH_KEY)
 }
 
 export function AuthProvider({ children }) {
