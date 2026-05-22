@@ -6,6 +6,9 @@
   --cw-text: #f3eadb;
   --cw-muted: #cabca8;
   --cw-border: rgba(214, 190, 152, 0.18);
+  --tooltip-bg: #101820;
+  --tooltip-border: #5c4d39;
+  --tooltip-text: #f3eadb;
   color-scheme: dark;
 }
 
@@ -16,6 +19,9 @@
   --cw-text: #f3eadb;
   --cw-muted: #cabca8;
   --cw-border: rgba(214, 190, 152, 0.18);
+  --tooltip-bg: #101820;
+  --tooltip-border: #5c4d39;
+  --tooltip-text: #f3eadb;
   color-scheme: dark;
 }
 
@@ -26,6 +32,9 @@
   --cw-text: #1d2732;
   --cw-muted: #556271;
   --cw-border: rgba(117, 93, 65, 0.18);
+  --tooltip-bg: #fffaf4;
+  --tooltip-border: #8d7456;
+  --tooltip-text: #1d2732;
   color-scheme: light;
 }
 

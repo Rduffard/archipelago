@@ -1,3 +1,5 @@
+import { normalizeCharacterSkills } from './archipelagoSkills'
+
 export function getSystemCallings(blueprint) {
   return blueprint?.catalogs?.callings ?? []
 }
@@ -10,8 +12,8 @@ export function getSystemOrigins(blueprint) {
   return blueprint?.catalogs?.origins ?? []
 }
 
-export function getSystemPairings(blueprint) {
-  return blueprint?.catalogs?.pairings ?? []
+export function getSystemCheckCatalog(blueprint) {
+  return blueprint?.checks ?? {}
 }
 
 export function getSystemSpecializations(blueprint) {
@@ -92,8 +94,9 @@ function getSpecializationReasons(specialization, callingId, categoryRanks, skil
 }
 
 export function getRankedSystemSpecializations(callingId, skills = {}, blueprint) {
-  const categoryRanks = getSkillCategoryRanks(skills)
-  const skillRanks = getSkillRankMap(skills)
+  const normalizedSkills = normalizeCharacterSkills(skills, blueprint?.expandedSkillList ?? {})
+  const categoryRanks = getSkillCategoryRanks(normalizedSkills)
+  const skillRanks = getSkillRankMap(normalizedSkills)
 
   return getSystemSpecializations(blueprint)
     .map((specialization) => {

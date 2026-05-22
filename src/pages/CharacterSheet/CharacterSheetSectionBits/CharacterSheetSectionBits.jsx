@@ -1,15 +1,18 @@
+import HoverInfo from '../../../components/ui/HoverInfo/HoverInfo'
 import './CharacterSheetSectionBits.css'
 
 export function ReferenceList({ entries, variant = 'default' }) {
   return (
     <div className={`character-sheet__reference-list character-sheet__reference-list--${variant}`}>
       {entries.map((entry) => (
-        <article
+        <HoverInfo
+          as="article"
           key={entry.key}
-          className={`character-sheet__reference-row ${entry.detail ? 'has-detail' : ''} ${
+          className={`character-sheet__reference-row ${
             !entry.value && !entry.modifier ? 'is-text-only' : ''
           }`}
-          tabIndex={entry.detail ? 0 : undefined}
+          content={entry.detail}
+          contentClassName="character-sheet__reference-detail"
         >
           <div className="character-sheet__reference-main">
             <div className="character-sheet__reference-copy">
@@ -23,21 +26,35 @@ export function ReferenceList({ entries, variant = 'default' }) {
               </div>
             ) : null}
           </div>
-          {entry.detail ? <div className="character-sheet__reference-detail">{entry.detail}</div> : null}
-        </article>
+        </HoverInfo>
+      ))}
+    </div>
+  )
+}
+
+export function PipTrack({ current, label, max }) {
+  const pipCount = Math.max(max ?? 0, current ?? 0)
+  const safeCurrent = Math.max(0, Math.min(current ?? 0, pipCount))
+
+  return (
+    <div className="character-sheet__tracker-pips" aria-label={`${label}: ${current} of ${max}`}>
+      {Array.from({ length: pipCount }).map((_, index) => (
+        <span
+          key={`${label}-${index}`}
+          className={index < safeCurrent ? 'is-filled' : ''}
+        />
       ))}
     </div>
   )
 }
 
 export function TrackerCard({ current, detail, label, max, tone = 'default' }) {
-  const pipCount = Math.max(max ?? 0, current ?? 0)
-  const safeCurrent = Math.max(0, Math.min(current ?? 0, pipCount))
-
   return (
-    <article
-      className={`character-sheet__tracker-card ${detail ? 'has-detail' : ''} character-sheet__tracker-card--${tone}`}
-      tabIndex={detail ? 0 : undefined}
+    <HoverInfo
+      as="article"
+      className={`character-sheet__tracker-card character-sheet__tracker-card--${tone}`}
+      content={detail}
+      contentClassName="character-sheet__tracker-detail"
     >
       <div className="character-sheet__tracker-head">
         <strong>{label}</strong>
@@ -45,15 +62,7 @@ export function TrackerCard({ current, detail, label, max, tone = 'default' }) {
           {current}/{max}
         </span>
       </div>
-      <div className="character-sheet__tracker-pips" aria-hidden="true">
-        {Array.from({ length: pipCount }).map((_, index) => (
-          <span
-            key={`${label}-${index}`}
-            className={index < safeCurrent ? 'is-filled' : ''}
-          />
-        ))}
-      </div>
-      {detail ? <div className="character-sheet__tracker-detail">{detail}</div> : null}
-    </article>
+      <PipTrack current={current} label={label} max={max} />
+    </HoverInfo>
   )
 }

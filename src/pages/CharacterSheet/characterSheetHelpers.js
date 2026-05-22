@@ -8,15 +8,14 @@ import {
   getSystemSpecialization,
   getSystemSpecializationNode,
 } from '../../data/archipelagoSystemSelectors'
+import { resolveCharacterSkillGroups } from '../../data/archipelagoSkills'
+import { getCheckGroups, resolveCharacterChecks } from '../../data/archipelagoChecks'
 import {
-  calculatePairingStats,
   getRollModifier,
   parseAttributeBonus,
 } from '../../lib/character'
 
 export const ATTRIBUTE_KEYS = ['might', 'agility', 'wit', 'spirit', 'resolve', 'instinct']
-export const PAIRING_CATEGORY_ORDER = ['combat', 'social', 'exploration', 'utility', 'arcane']
-
 export function titleCase(value = '') {
   return value
     .split(/[\s-]+/)
@@ -27,14 +26,6 @@ export function titleCase(value = '') {
 
 export function getCharacterReputation(character) {
   return character?.reputation
-}
-
-export function getCharacterPairingStats(character, pairings) {
-  if (character?.pairingStats) {
-    return character.pairingStats
-  }
-
-  return calculatePairingStats(character?.attributes ?? {}, pairings)
 }
 
 export function getTraitEntries(character, calling, origin) {
@@ -229,55 +220,16 @@ export function getAbilityEntries(character, calling) {
   ]
 }
 
-function getSkillCatalogMap(expandedSkillList = {}) {
-  return Object.values(expandedSkillList).reduce((catalog, categorySkills) => {
-    categorySkills.forEach((skill) => {
-      catalog[skill.id] = skill
-    })
-
-    return catalog
-  }, {})
+export function getSkillGroups(character, expandedSkillList = {}) {
+  return resolveCharacterSkillGroups({
+    characterSkills: character.skills ?? {},
+    expandedSkillList,
+    includeUntrained: true,
+  })
 }
 
-export function getSkillGroups(character, expandedSkillList = {}) {
-  const skillCatalog = getSkillCatalogMap(expandedSkillList)
-
-  return Object.entries(expandedSkillList)
-    .map(([categoryKey, categorySkills]) => {
-      const savedSkills = character.skills?.[categoryKey] ?? []
-
-      if (!savedSkills.length) {
-        return null
-      }
-
-      return {
-        key: categoryKey,
-        label: titleCase(categoryKey),
-        entries: savedSkills.map((savedSkill) => {
-          const blueprintSkill = skillCatalog[savedSkill.id] ?? categorySkills.find((entry) => entry.id === savedSkill.id)
-          const score = savedSkill.rank ?? 0
-
-          return {
-            key: `${categoryKey}-${savedSkill.id}`,
-            label: blueprintSkill?.name ?? titleCase(savedSkill.id),
-            value: score,
-            modifier: `Rank ${score}`,
-            detail: [
-              blueprintSkill?.verb ?? 'No system description loaded yet.',
-              blueprintSkill?.linkedAttributes?.length
-                ? `Linked Attributes: ${blueprintSkill.linkedAttributes.map(titleCase).join(' + ')}`
-                : null,
-              savedSkill.specialty
-                ? `Granted Focus: ${savedSkill.specialty}\nThis is a system- or progression-granted edge inside the skill, not a separate stat players assign freely.`
-                : null,
-            ]
-              .filter(Boolean)
-              .join('\n\n'),
-          }
-        }),
-      }
-    })
-    .filter(Boolean)
+export function getCharacterCheckStats(character, blueprint) {
+  return resolveCharacterChecks(character, blueprint)
 }
 
 export function getCatalogGroups(character) {
@@ -389,101 +341,43 @@ export function getTrackerValue(resource, fallbackCurrent, fallbackMax) {
 }
 
 export function buildReferenceGroups({
+  blueprint,
   character,
   derivedStatDetails,
   pairingCategoryDetails,
-  pairingStats,
-  pairings,
-  socialStatDetails,
 }) {
-  return PAIRING_CATEGORY_ORDER.map((categoryKey) => {
-    const categoryPairings = pairings.filter((pairing) => pairing.category === categoryKey)
-    const entries = []
+  const checkStats = getCharacterCheckStats(character, blueprint)
+  const legacyDetails = {
+    ...derivedStatDetails,
+  }
 
-    if (categoryKey === 'combat') {
-      entries.push(
-        {
-          key: 'vitality',
-          label: 'Vitality',
-          value: character.derivedStats?.vitality ?? 0,
-          modifier: getRollModifier(character.derivedStats?.vitality ?? 0),
-          detail: `${derivedStatDetails.vitality.description}\n\nFormula: ${
-            derivedStatDetails.vitality.formula
-          }\nRoll Modifier: ${getRollModifier(character.derivedStats?.vitality ?? 0)}`,
-        },
-        {
-          key: 'guard',
-          label: 'Guard',
-          value: character.derivedStats?.guard ?? 0,
-          modifier: getRollModifier(character.derivedStats?.guard ?? 0),
-          detail: `${derivedStatDetails.guard.description}\n\nFormula: ${
-            derivedStatDetails.guard.formula
-          }\nRoll Modifier: ${getRollModifier(character.derivedStats?.guard ?? 0)}`,
-        },
-        {
-          key: 'initiative',
-          label: 'Initiative',
-          value: character.derivedStats?.initiative ?? 0,
-          modifier: getRollModifier(character.derivedStats?.initiative ?? 0),
-          detail: `${derivedStatDetails.initiative.description}\n\nFormula: ${
-            derivedStatDetails.initiative.formula
-          }\nRoll Modifier: ${getRollModifier(character.derivedStats?.initiative ?? 0)}`,
-        },
-      )
-    }
-
-    if (categoryKey === 'social') {
-      entries.push(
-        ...['grace', 'guile', 'pressure'].map((key) => ({
-          key,
-          label: titleCase(key),
-          value: character.socialStats?.[key] ?? pairingStats[key] ?? 0,
-          modifier: getRollModifier(character.socialStats?.[key] ?? pairingStats[key] ?? 0),
-          detail: `${socialStatDetails[key]?.description}\n\nFormula: ${
-            socialStatDetails[key]?.formula
-          }\nRoll Modifier: ${getRollModifier(character.socialStats?.[key] ?? pairingStats[key] ?? 0)}`,
-        })),
-      )
-    }
-
-    if (categoryKey === 'arcane') {
-      entries.push({
-        key: 'focus',
-        label: 'Focus',
-        value: character.derivedStats?.focus ?? 0,
-        modifier: getRollModifier(character.derivedStats?.focus ?? 0),
-        detail: `${derivedStatDetails.focus.description}\n\nFormula: ${
-          derivedStatDetails.focus.formula
-        }\nRoll Modifier: ${getRollModifier(character.derivedStats?.focus ?? 0)}`,
-      })
-    }
-
-    entries.push(
-      ...categoryPairings.map((pairing) => {
-        if (categoryKey === 'social' && ['grace', 'guile', 'pressure'].includes(pairing.key)) {
-          return null
-        }
-
-        const score = pairingStats[pairing.key] ?? 10
+  return getCheckGroups(blueprint)
+    .map((group) => ({
+      key: group.key,
+      ...pairingCategoryDetails[group.key],
+      label: pairingCategoryDetails[group.key]?.label ?? group.label,
+      entries: group.checks.map((check) => {
+        const score = checkStats[check.key] ?? 10
+        const legacyDetail = legacyDetails[check.key]
 
         return {
-          key: pairing.key,
-          label: pairing.name,
+          key: check.key,
+          label: check.name,
           value: score,
           modifier: getRollModifier(score),
-          detail: `${pairing.summary}\n\nFormula: ${pairing.formulaLabel}\nRoll Modifier: ${getRollModifier(
-            score,
-          )}\nExamples: ${pairing.examples.join(', ')}`,
+          detail: [
+            check.summary ?? legacyDetail?.description ?? 'A core gameplay check available to every character.',
+            `Formula: ${check.formulaLabel}`,
+            `Roll Modifier: ${getRollModifier(score)}`,
+            check.examples?.length ? `Examples: ${check.examples.join(', ')}` : null,
+            'Skills do not replace this check; trained skills may modify it when the fiction fits.',
+          ]
+            .filter(Boolean)
+            .join('\n\n'),
         }
-      }).filter(Boolean),
-    )
-
-    return {
-      key: categoryKey,
-      ...pairingCategoryDetails[categoryKey],
-      entries,
-    }
-  }).filter((group) => group.entries.length)
+      }),
+    }))
+    .filter((group) => group.entries.length)
 }
 
 export function buildReputationEntries(character, blueprint) {

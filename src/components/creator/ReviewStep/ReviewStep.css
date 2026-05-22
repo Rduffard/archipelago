@@ -13,11 +13,6 @@
   transition: border-color 180ms ease;
 }
 
-.review-card__row.has-detail {
-  position: relative;
-  cursor: help;
-}
-
 .review-card__row dt {
   min-width: 0;
 }
@@ -43,30 +38,7 @@
 }
 
 .review-card__detail {
-  position: absolute;
-  z-index: 40;
   top: calc(100% + 0.65rem);
-  right: 0;
-  max-width: 18rem;
-  min-width: 14rem;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid rgba(214, 190, 152, 0.16);
-  border-radius: 12px;
-  background: rgba(18, 24, 31, 0.985);
-  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.3);
-  font-size: 0.82rem;
-  color: #cabca8;
-  text-transform: none;
-  line-height: 1.45;
-  white-space: pre-line;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-0.35rem);
-  pointer-events: none;
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease,
-    visibility 180ms ease;
 }
 
 .review-card {
@@ -83,13 +55,6 @@
 .review-card__row.has-detail:hover,
 .review-card__row.has-detail:focus-visible {
   z-index: 30;
-}
-
-.review-card__row.has-detail:hover .review-card__detail,
-.review-card__row.has-detail:focus-visible .review-card__detail {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
 }
 
 .review-strip {

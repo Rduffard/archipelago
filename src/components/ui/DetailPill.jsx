@@ -1,13 +1,14 @@
+import HoverInfo from './HoverInfo/HoverInfo'
+
 function DetailPill({ children, className = '', detail, tone = 'default' }) {
   const classes = [`choice-pill`, `choice-pill--${tone}`, detail ? 'has-detail' : '', className]
     .filter(Boolean)
     .join(' ')
 
   return (
-    <span className={classes} tabIndex={detail ? 0 : undefined}>
+    <HoverInfo className={classes} content={detail} contentClassName="choice-pill__detail">
       {children}
-      {detail ? <span className="choice-pill__detail">{detail}</span> : null}
-    </span>
+    </HoverInfo>
   )
 }
 

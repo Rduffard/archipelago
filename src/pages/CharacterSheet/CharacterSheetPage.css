@@ -14,6 +14,7 @@
 }
 
 .character-sheet__layout {
+  /* Full sheet rhythm: keep top-level sections close without shrinking inner sheet text. */
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 0.7rem;
@@ -26,123 +27,6 @@
   grid-column: span 12;
 }
 
-.character-sheet__card-grid,
-.character-sheet__skill-grid {
-  display: grid;
-  gap: 0.1rem;
-}
-
-.character-sheet__card-grid {
-  grid-template-columns: 1fr;
-}
-
-.character-sheet__hover-card {
-  position: relative;
-  min-height: 6.5rem;
-  padding: 0.85rem;
-  border-radius: 16px;
-  border: 1px solid rgba(214, 190, 152, 0.12);
-  background:
-    linear-gradient(180deg, rgba(255, 248, 237, 0.05), rgba(255, 248, 237, 0.02));
-  overflow: hidden;
-  transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease;
-}
-
-.character-sheet__hover-card.has-detail {
-  cursor: help;
-}
-
-.character-sheet__hover-card:hover,
-.character-sheet__hover-card:focus-visible {
-  transform: translateY(-2px);
-  border-color: rgba(214, 190, 152, 0.32);
-  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.18);
-}
-
-.character-sheet__hover-card:focus-visible {
-  outline: none;
-}
-
-.character-sheet__hover-card-face {
-  display: grid;
-  gap: 0.28rem;
-  align-content: start;
-  height: 100%;
-}
-
-.character-sheet__eyebrow,
-.character-sheet__hover-card-meta,
-.character-sheet__skill-count {
-  display: inline-block;
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #d1b38f;
-}
-
-.character-sheet__hover-card strong {
-  font-size: 1.55rem;
-  line-height: 1;
-  color: #f6edde;
-}
-
-.character-sheet__hover-card-title {
-  color: #f3eadb;
-  font-weight: 600;
-}
-
-.character-sheet__hover-card--text {
-  min-height: 5.8rem;
-}
-
-.character-sheet__hover-card--text h3 {
-  font-size: 1rem;
-  line-height: 1.2;
-  color: #f3eadb;
-}
-
-.character-sheet__hover-card-meta {
-  margin-top: 0.15rem;
-}
-
-.character-sheet__hover-card-detail {
-  position: absolute;
-  inset: auto 0 0 0;
-  padding: 0.8rem 0.85rem 0.85rem;
-  background: rgba(22, 28, 37, 0.96);
-  border-top: 1px solid rgba(214, 190, 152, 0.16);
-  color: #cabca8;
-  line-height: 1.5;
-  white-space: pre-line;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(0.65rem);
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease,
-    visibility 180ms ease;
-}
-
-.character-sheet__hover-card.has-detail:hover .character-sheet__hover-card-detail,
-.character-sheet__hover-card.has-detail:focus-visible .character-sheet__hover-card-detail {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.character-sheet__hover-card--positive .character-sheet__hover-card-meta,
-.character-sheet__hover-card--positive .character-sheet__eyebrow {
-  color: #bde8c7;
-}
-
-.character-sheet__hover-card--negative .character-sheet__hover-card-meta,
-.character-sheet__hover-card--negative .character-sheet__eyebrow {
-  color: #ffc9bf;
-}
-
 @media (max-width: 1180px) {
   .character-sheet__panel--wide {
     grid-column: span 12;
@@ -152,25 +36,5 @@
 @media (max-width: 840px) {
   .character-sheet__panel--wide {
     grid-column: 1 / -1;
-  }
-
-  .character-sheet__card-grid,
-  .character-sheet__skill-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (hover: none) {
-  .character-sheet__hover-card {
-    min-height: auto;
-  }
-
-  .character-sheet__hover-card-detail {
-    position: static;
-    margin-top: 0.75rem;
-    opacity: 1;
-    visibility: visible;
-    transform: none;
-    border-top: 1px solid rgba(214, 190, 152, 0.12);
   }
 }

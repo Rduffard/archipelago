@@ -1,10 +1,10 @@
 import { useSystem } from '../../../hooks/useSystem'
+import HoverInfo from '../../ui/HoverInfo/HoverInfo'
 import {
   getRollModifier,
   getAttributeLabel,
-  getStatLabel,
 } from '../../../lib/character'
-import { getDerivedStatDetails, getSocialStatDetails } from '../../../data/characterSheetData'
+import { getCheckGroups } from '../../../data/archipelagoChecks'
 import '../shared/CreatorSurfaceStyles/CreatorSurfaceStyles.css'
 import './ReviewStep.css'
 import {
@@ -18,21 +18,25 @@ import CreatorStepFrame from '../shared/CreatorStepFrame/CreatorStepFrame'
 
 function ReviewDataRow({ detail, label, value }) {
   return (
-    <div className={`review-card__row ${detail ? 'has-detail' : ''}`} tabIndex={detail ? 0 : undefined}>
+    <HoverInfo
+      as="div"
+      className="review-card__row"
+      content={detail}
+      contentClassName="review-card__detail"
+      placement="bottom-end"
+    >
       <dt>{label}</dt>
       <dd>
         {value}
-        {detail ? <span className="review-card__detail">{detail}</span> : null}
       </dd>
-    </div>
+    </HoverInfo>
   )
 }
 
 function ReviewStep({
   identity,
   attributeValues,
-  derivedStats,
-  socialStats,
+  checks,
   reputation,
   details,
   loadout,
@@ -62,8 +66,7 @@ function ReviewStep({
     reputation,
     skills,
   })
-  const derivedStatDetails = getDerivedStatDetails(blueprint)
-  const socialStatDetails = getSocialStatDetails(blueprint)
+  const checkGroups = getCheckGroups(blueprint)
   const startingFeatures = getStartingFeatures({ calling, origin, parsedOriginBonus, path })
   const reputationEntries = getReputationEntries(activeReputation, blueprint)
 
@@ -138,34 +141,24 @@ function ReviewStep({
         </article>
 
         <article className="review-card">
-          <h3>Derived Stats</h3>
+          <h3>Core Checks</h3>
           <dl>
-            {Object.entries(derivedStats).map(([key, value]) => (
-              <ReviewDataRow
-                key={key}
-                label={getStatLabel(key)}
-                value={value}
-                detail={`${derivedStatDetails[key]?.description}\n\nFormula: ${
-                  derivedStatDetails[key]?.formula
-                }\nRoll Modifier: ${getRollModifier(value)}`}
-              />
-            ))}
-          </dl>
-        </article>
+            {checkGroups.flatMap((group) =>
+              group.checks.map((check) => {
+                const value = checks?.[check.key] ?? 10
 
-        <article className="review-card">
-          <h3>Social Stats</h3>
-          <dl>
-            {Object.entries(socialStats ?? {}).map(([key, value]) => (
-              <ReviewDataRow
-                key={key}
-                label={getStatLabel(key)}
-                value={value}
-                detail={`${socialStatDetails[key]?.description}\n\nFormula: ${
-                  socialStatDetails[key]?.formula
-                }\nRoll Modifier: ${getRollModifier(value)}`}
-              />
-            ))}
+                return (
+                  <ReviewDataRow
+                    key={`${group.key}-${check.key}`}
+                    label={check.name}
+                    value={value}
+                    detail={`${group.label}. ${check.summary}\n\nFormula: ${
+                      check.formulaLabel
+                    }\nRoll Modifier: ${getRollModifier(value)}`}
+                  />
+                )
+              }),
+            )}
           </dl>
         </article>
 
@@ -179,7 +172,7 @@ function ReviewStep({
         </article>
 
         <article className="review-card">
-          <h3>Skills</h3>
+          <h3>Trained Skills</h3>
           <dl>
             {savedSkills.length ? (
               savedSkills.map((skill) => (

@@ -8,11 +8,14 @@ import {
   getSystemSpecialization,
   getSystemSpecializations,
 } from '../../../../data/archipelagoSystemSelectors'
+import { getCanonicalSkillGroups } from '../../../../data/archipelagoSkills'
+import {
+  calculateChecks,
+  getLegacyDerivedStats,
+  getLegacySocialStats,
+} from '../../../../data/archipelagoChecks'
 import {
   applyAttributeBonus,
-  calculateDerivedStats,
-  calculatePairingStats,
-  calculateSocialStats,
   createEmptyAttributes,
   getRemainingPoints,
 } from '../../../../lib/character'
@@ -68,7 +71,9 @@ function useCreatorController({
   )
   const [details, setDetails] = useState(() => hydratedState?.details ?? createEmptyDetails())
   const [loadout, setLoadout] = useState(() => hydratedState?.loadout ?? createEmptyLoadout())
-  const [skills, setSkills] = useState(() => hydratedState?.skills ?? createEmptySkills())
+  const [skills, setSkills] = useState(
+    () => hydratedState?.skills ?? createEmptySkills(blueprint?.expandedSkillList ?? {}),
+  )
   const [resourceValues, setResourceValues] = useState(
     () => hydratedState?.resourceValues ?? createEmptyResourceValues(),
   )
@@ -108,23 +113,10 @@ function useCreatorController({
     () => getSystemOriginStartingReputation(identity.originId, blueprint),
     [blueprint, identity.originId],
   )
-  const derivedStats = useMemo(() => calculateDerivedStats(finalAttributes), [finalAttributes])
-  const socialStats = useMemo(() => calculateSocialStats(finalAttributes), [finalAttributes])
-  const pairings = useMemo(() => blueprint?.catalogs?.pairings ?? [], [blueprint])
-  const skillGroups = useMemo(
-    () =>
-      Object.entries(blueprint?.expandedSkillList ?? {}).map(([categoryKey, categorySkills]) => ({
-        key: categoryKey,
-        label: categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1),
-        description: blueprint?.display?.pairingCategories?.[categoryKey]?.description ?? '',
-        skills: categorySkills,
-      })),
-    [blueprint],
-  )
-  const pairingStats = useMemo(
-    () => calculatePairingStats(finalAttributes, pairings),
-    [finalAttributes, pairings],
-  )
+  const checks = useMemo(() => calculateChecks(finalAttributes, blueprint), [blueprint, finalAttributes])
+  const derivedStats = useMemo(() => getLegacyDerivedStats(checks), [checks])
+  const socialStats = useMemo(() => getLegacySocialStats(checks), [checks])
+  const skillGroups = useMemo(() => getCanonicalSkillGroups(blueprint), [blueprint])
   const totalSkillPoints = useMemo(
     () => Math.max(STARTING_SKILL_POINTS, countAllocatedSkillPoints(initialCharacter?.skills ?? {})),
     [initialCharacter],
@@ -201,10 +193,10 @@ function useCreatorController({
       details,
       derivedStats,
       finalAttributes,
+      checks,
       identity,
       initialCharacter,
       loadout,
-      pairingStats,
       progressionValues,
       resourceValues,
       selectedCalling,
@@ -298,6 +290,7 @@ function useCreatorController({
       identity,
       attributeValues,
       derivedStats,
+      checks,
       socialStats,
       startingReputation,
       details,
@@ -320,6 +313,7 @@ function useCreatorController({
     currentStepMeta,
     details,
     derivedStats,
+    checks,
     finalAttributes,
     getStepValidity,
     handleAddCustomAbility,

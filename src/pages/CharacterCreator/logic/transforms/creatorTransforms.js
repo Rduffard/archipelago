@@ -1,7 +1,7 @@
 import { createEmptyAttributes, parseAttributeBonus } from '../../../../lib/character'
+import { normalizeCharacterSkills } from '../../../../data/archipelagoSkills'
 import {
   createEmptyCustomAbility,
-  createEmptySkills,
   removeAttributeBonus,
 } from '../state/creatorState'
 
@@ -37,17 +37,7 @@ export function formatAbilitySource(source = '') {
 }
 
 export function normalizeSkills(initialSkills = {}, expandedSkillList = {}) {
-  return Object.keys(expandedSkillList).reduce((skills, categoryKey) => {
-    const savedSkills = initialSkills?.[categoryKey] ?? []
-    skills[categoryKey] = savedSkills
-      .filter((skill) => expandedSkillList[categoryKey].some((entry) => entry.id === skill.id))
-      .map((skill) => ({
-        ...skill,
-        rank: Math.max(0, Math.min(3, skill.rank ?? 0)),
-        specialty: skill.specialty ?? '',
-      }))
-    return skills
-  }, createEmptySkills())
+  return normalizeCharacterSkills(initialSkills, expandedSkillList)
 }
 
 export function normalizeCustomAbilities(abilities = []) {

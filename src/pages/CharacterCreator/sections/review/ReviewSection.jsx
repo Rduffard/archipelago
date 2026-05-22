@@ -2,7 +2,7 @@ import ReviewStep from '../../../../components/creator/ReviewStep/ReviewStep'
 
 function ReviewSection({
   attributeValues,
-  derivedStats,
+  checks,
   details,
   identity,
   loadout,
@@ -10,7 +10,6 @@ function ReviewSection({
   resourceMaximums,
   resourceValues,
   skills,
-  socialStats,
   startingReputation,
   wounds,
 }) {
@@ -18,8 +17,7 @@ function ReviewSection({
     <ReviewStep
       identity={identity}
       attributeValues={attributeValues}
-      derivedStats={derivedStats}
-      socialStats={socialStats}
+      checks={checks}
       reputation={startingReputation}
       details={details}
       loadout={loadout}

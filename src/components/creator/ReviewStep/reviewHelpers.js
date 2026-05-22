@@ -8,6 +8,7 @@ import {
   getSystemSpecialization,
   getSystemSpecializationNode,
 } from '../../../data/archipelagoSystemSelectors'
+import { resolveCharacterSkillGroups } from '../../../data/archipelagoSkills'
 import {
   applyAttributeBonus,
   parseAttributeBonus,
@@ -42,10 +43,14 @@ export function getReviewContext({
     reputation ?? getSystemOriginStartingReputation(identity.originId, blueprint),
     blueprint,
   )
-  const savedSkills = Object.entries(skills ?? {}).flatMap(([categoryKey, entries]) =>
-    (entries ?? []).map((skill) => ({
+  const savedSkills = resolveCharacterSkillGroups({
+    characterSkills: skills,
+    expandedSkillList: blueprint?.expandedSkillList ?? {},
+  }).flatMap((group) =>
+    group.entries.map((skill) => ({
       ...skill,
-      categoryKey,
+      name: skill.label,
+      categoryKey: group.key,
     })),
   )
 

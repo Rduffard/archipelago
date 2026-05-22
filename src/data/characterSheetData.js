@@ -82,5 +82,5 @@ export function getSocialStatDetails(blueprint) {
 }
 
 export function getPairingCategoryDetails(blueprint) {
-  return blueprint?.display?.pairingCategories ?? FALLBACK_PAIRING_CATEGORY_DETAILS
+  return blueprint?.display?.checkCategories ?? blueprint?.display?.pairingCategories ?? FALLBACK_PAIRING_CATEGORY_DETAILS
 }

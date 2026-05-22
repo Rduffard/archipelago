@@ -1,4 +1,5 @@
 import { createEmptyAttributes } from '../../../../lib/character'
+import { createEmptySkillState } from '../../../../data/archipelagoSkills'
 
 export function createEmptyDetails() {
   return {
@@ -45,19 +46,19 @@ export function createEmptyResourceValues() {
   }
 }
 
-export function createEmptySkills() {
-  return {
-    combat: [],
-    social: [],
-    exploration: [],
-    utility: [],
-    arcane: [],
-  }
+export function createEmptySkills(expandedSkillList = {}) {
+  return createEmptySkillState(expandedSkillList)
 }
 
 export function countAllocatedSkillPoints(skills = {}) {
-  return Object.values(skills).reduce(
-    (total, entries) => total + (entries ?? []).reduce((groupTotal, skill) => groupTotal + (skill.rank ?? 0), 0),
+  const groups = Array.isArray(skills) ? [skills] : Object.values(skills)
+
+  return groups.reduce(
+    (total, entries) =>
+      total +
+      (Array.isArray(entries)
+        ? entries.reduce((groupTotal, skill) => groupTotal + (skill.rank ?? 0), 0)
+        : 0),
     0,
   )
 }

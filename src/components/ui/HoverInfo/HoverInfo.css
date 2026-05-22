@@ -1,0 +1,99 @@
+.hover-info {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.hover-info.has-detail {
+  cursor: help;
+}
+
+.hover-info.has-detail:hover,
+.hover-info.has-detail:focus-visible,
+.hover-info.has-detail:focus-within {
+  z-index: 999;
+}
+
+.hover-info:focus-visible {
+  outline: 1px solid rgba(214, 190, 152, 0.42);
+  outline-offset: 2px;
+}
+
+.hover-info__content {
+  position: absolute;
+  z-index: 999;
+  width: max-content;
+  min-width: min(12rem, calc(100vw - 2rem));
+  max-width: min(17rem, calc(100vw - 2rem));
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--tooltip-border, #5c4d39);
+  border-radius: 12px;
+  background: var(--tooltip-bg, #101820);
+  backdrop-filter: none;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  color: var(--tooltip-text, #f3eadb);
+  font-size: 0.82rem;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: break-word;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform 180ms ease,
+    visibility 180ms ease;
+}
+
+.hover-info__content--pre-line {
+  white-space: pre-line;
+}
+
+.hover-info--bottom-start .hover-info__content {
+  top: calc(100% + 0.55rem);
+  left: 0;
+  transform: translateY(-0.3rem);
+}
+
+.hover-info--bottom-end .hover-info__content {
+  top: calc(100% + 0.55rem);
+  right: 0;
+  transform: translateY(-0.3rem);
+}
+
+.hover-info--top-start .hover-info__content {
+  bottom: calc(100% + 0.55rem);
+  left: 0;
+  transform: translateY(0.3rem);
+}
+
+.hover-info--top-end .hover-info__content {
+  right: 0;
+  bottom: calc(100% + 0.55rem);
+  transform: translateY(0.3rem);
+}
+
+.hover-info.has-detail:hover .hover-info__content,
+.hover-info.has-detail:focus-visible .hover-info__content,
+.hover-info.has-detail:focus-within .hover-info__content {
+  visibility: visible;
+  transform: translateY(0);
+}
+
+@media (hover: none) {
+  .hover-info__content {
+    position: static;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    margin-top: 0.65rem;
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
+    box-shadow: none;
+  }
+}

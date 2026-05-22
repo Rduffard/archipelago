@@ -4,24 +4,6 @@ import {
   FALLBACK_ATTRIBUTES,
 } from '../data/archipelagoSystemBlueprint'
 
-const DEFAULT_PAIRING_FORMULAS = [
-  { key: 'skirmish', attributes: ['might', 'agility'] },
-  { key: 'leverage', attributes: ['might', 'wit'] },
-  { key: 'conviction', attributes: ['might', 'spirit'] },
-  { key: 'pressure', attributes: ['might', 'resolve'] },
-  { key: 'pursuit', attributes: ['might', 'instinct'] },
-  { key: 'precision', attributes: ['agility', 'wit'] },
-  { key: 'flourish', attributes: ['agility', 'spirit'] },
-  { key: 'balance', attributes: ['agility', 'resolve'] },
-  { key: 'reflex', attributes: ['agility', 'instinct'] },
-  { key: 'guile', attributes: ['wit', 'spirit'] },
-  { key: 'tactics', attributes: ['wit', 'resolve'] },
-  { key: 'sense', attributes: ['wit', 'instinct'] },
-  { key: 'grace', attributes: ['spirit', 'resolve'] },
-  { key: 'attunement', attributes: ['spirit', 'instinct'] },
-  { key: 'nerve', attributes: ['resolve', 'instinct'] },
-]
-
 export function createEmptyAttributes() {
   return ATTRIBUTE_KEYS.reduce((accumulator, key) => {
     accumulator[key] = 0
@@ -35,31 +17,6 @@ export function getSpentPoints(attributeValues) {
 
 export function getRemainingPoints(attributeValues) {
   return ATTRIBUTE_POINTS - getSpentPoints(attributeValues)
-}
-
-export function calculateDerivedStats(attributeValues) {
-  return {
-    vitality: 10 + attributeValues.might + attributeValues.resolve,
-    guard: 10 + attributeValues.agility,
-    initiative: 10 + attributeValues.agility + attributeValues.instinct,
-    focus: 10 + attributeValues.spirit + attributeValues.resolve,
-  }
-}
-
-export function calculateSocialStats(attributeValues) {
-  return {
-    grace: 10 + attributeValues.resolve + attributeValues.spirit,
-    guile: 10 + attributeValues.wit + attributeValues.spirit,
-    pressure: 10 + attributeValues.might + attributeValues.resolve,
-  }
-}
-
-export function calculatePairingStats(attributeValues, pairings = DEFAULT_PAIRING_FORMULAS) {
-  return pairings.reduce((pairingStats, pairing) => {
-    const [leftAttribute, rightAttribute] = pairing.attributes
-    pairingStats[pairing.key] = 10 + (attributeValues[leftAttribute] ?? 0) + (attributeValues[rightAttribute] ?? 0)
-    return pairingStats
-  }, {})
 }
 
 export function getRollModifier(score) {

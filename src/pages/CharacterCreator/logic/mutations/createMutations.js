@@ -123,12 +123,10 @@ export function createMutations({
               ...currentGroup.filter((entry) => entry.id !== blueprintSkill.id),
               {
                 id: blueprintSkill.id,
-                name: blueprintSkill.name,
                 rank: clampedRank,
-                linkedAttributes: blueprintSkill.linkedAttributes ?? [],
                 specialty: existingEntry?.specialty ?? '',
               },
-            ].sort((left, right) => left.name.localeCompare(right.name))
+            ].sort((left, right) => left.id.localeCompare(right.id))
 
       const nextSkills = {
         ...current,

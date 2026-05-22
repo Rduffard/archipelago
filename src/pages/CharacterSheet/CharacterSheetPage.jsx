@@ -11,12 +11,11 @@ import {
   getAttributeDetails,
   getDerivedStatDetails,
   getPairingCategoryDetails,
-  getSocialStatDetails,
 } from '../../data/characterSheetData'
+import { resolveCharacterChecks } from '../../data/archipelagoChecks'
 import {
   getSystemCallings,
   getSystemOrigins,
-  getSystemPairings,
 } from '../../data/archipelagoSystemSelectors'
 import { deleteCharacter, getCharacterById } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
@@ -27,7 +26,6 @@ import {
   buildReputationEntries,
   getAbilityEntries,
   getCatalogGroups,
-  getCharacterPairingStats,
   getIdentityEntries,
   getOriginBonus,
   getProgressionEntries,
@@ -188,22 +186,20 @@ function CharacterSheetPage() {
 
   const callings = getSystemCallings(blueprint)
   const origins = getSystemOrigins(blueprint)
-  const pairings = getSystemPairings(blueprint)
   const attributeDetails = getAttributeDetails(blueprint)
   const derivedStatDetails = getDerivedStatDetails(blueprint)
   const pairingCategoryDetails = getPairingCategoryDetails(blueprint)
-  const socialStatDetails = getSocialStatDetails(blueprint)
   const calling = callings.find((entry) => entry.id === character.calling) ?? null
   const origin = origins.find((entry) => entry.id === character.origin) ?? null
   const characterRank = character.progression?.rank ?? 1
   const activeReputation = buildReputationEntries(character, blueprint)
-  const pairingStats = getCharacterPairingStats(character, pairings)
   const originBonus = getOriginBonus(origin)
   const traits = getTraitEntries(character, calling, origin)
   const identityEntries = getIdentityEntries(character)
   const progressionEntries = getProgressionEntries(character, blueprint)
   const abilities = getAbilityEntries(character, calling)
-  const vitality = character.derivedStats?.vitality ?? 0
+  const checkStats = resolveCharacterChecks(character, blueprint)
+  const vitality = checkStats.vitality ?? character.derivedStats?.vitality ?? 0
   const health = getTrackerValue(
     character.resources?.health ?? character.health,
     vitality,
@@ -212,8 +208,8 @@ function CharacterSheetPage() {
   const stamina = getTrackerValue(character.resources?.stamina, 0, character.resources?.stamina?.max ?? 0)
   const focus = getTrackerValue(
     character.resources?.focus ?? character.spellSlots,
-    character.derivedStats?.focus ?? 0,
-    character.resources?.focus?.max ?? character.derivedStats?.focus ?? 0,
+    checkStats.focus ?? character.derivedStats?.focus ?? 0,
+    character.resources?.focus?.max ?? checkStats.focus ?? character.derivedStats?.focus ?? 0,
   )
   const corruption = getTrackerValue(
     character.resources?.corruption ?? character.corruption,
@@ -239,9 +235,6 @@ function CharacterSheetPage() {
     character,
     derivedStatDetails,
     pairingCategoryDetails,
-    pairingStats,
-    pairings,
-    socialStatDetails,
   })
 
   return (
