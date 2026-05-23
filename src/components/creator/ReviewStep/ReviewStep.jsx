@@ -91,8 +91,8 @@ function ReviewStep({
           <strong>{calling?.name || 'Unset'}</strong>
         </div>
         <div className="review-strip__item">
-          <span>Skills</span>
-          <strong>{savedSkills.length} trained</strong>
+          <span>Specialties</span>
+          <strong>{savedSkills.length} ranked</strong>
         </div>
         <div className="review-strip__item">
           <span>Loadout</span>
@@ -146,6 +146,7 @@ function ReviewStep({
             {checkGroups.flatMap((group) =>
               group.checks.map((check) => {
                 const value = checks?.[check.key] ?? 10
+                const investment = progression?.coreCheckInvestments?.[check.key] ?? 0
 
                 return (
                   <ReviewDataRow
@@ -154,7 +155,7 @@ function ReviewStep({
                     value={value}
                     detail={`${group.label}. ${check.summary}\n\nFormula: ${
                       check.formulaLabel
-                    }\nRoll Modifier: ${getRollModifier(value)}`}
+                    }${investment ? `\nCore Training: +${investment}` : ''}\nRoll Modifier: ${getRollModifier(value)}`}
                   />
                 )
               }),
@@ -172,19 +173,24 @@ function ReviewStep({
         </article>
 
         <article className="review-card">
-          <h3>Trained Skills</h3>
+          <h3>Specialties</h3>
           <dl>
             {savedSkills.length ? (
               savedSkills.map((skill) => (
                 <ReviewDataRow
                   key={`${skill.categoryKey}-${skill.id}`}
                   label={skill.name || skill.id}
-                  value={`Rank ${skill.rank ?? 0}`}
+                  value={skill.rankLabel ?? `Rank ${skill.rank ?? 0}`}
                   detail={[
                     skill.categoryKey.charAt(0).toUpperCase() + skill.categoryKey.slice(1),
-                    skill.linkedAttributes?.length
-                      ? `Linked: ${skill.linkedAttributes.join(' / ')}`
+                    skill.description,
+                    skill.relatedChecks?.length
+                      ? `Related Core Checks: ${skill.relatedChecks.join(' / ')}`
                       : null,
+                    `Current Effect: ${skill.currentEffect || 'No effect recorded yet.'}`,
+                    skill.nextRankEffect ? `Next Rank Effect: ${skill.nextRankEffect}` : null,
+                    skill.context ? `Context: ${skill.context}` : null,
+                    skill.prerequisiteLabel ? `Prerequisite: ${skill.prerequisiteLabel}` : null,
                     skill.specialty ? `Granted Focus: ${skill.specialty}` : null,
                   ]
                     .filter(Boolean)
@@ -346,7 +352,8 @@ function ReviewStep({
           <h3>Progression</h3>
           <dl>
             <ReviewDataRow label="Rank" value={progression?.rank ?? 1} />
-            <ReviewDataRow label="Skill Points" value={progression?.skillPoints ?? 0} />
+            <ReviewDataRow label="Core Points" value={progression?.corePoints ?? 0} />
+            <ReviewDataRow label="Specialty Picks" value={progression?.specialtyPicks ?? 0} />
             <ReviewDataRow label="Advancement Points" value={progression?.advancementPoints ?? 0} />
             <ReviewDataRow label="Advancement Invested" value={advancementSpent} />
             <ReviewDataRow

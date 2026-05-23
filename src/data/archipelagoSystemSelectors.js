@@ -83,10 +83,10 @@ function getSpecializationReasons(specialization, callingId, categoryRanks, skil
     }
   })
 
-  ;(specialization.affinity?.skills ?? []).forEach((skillId) => {
-    const rank = skillRanks[skillId] ?? 0
+  ;(specialization.affinity?.specialties ?? specialization.affinity?.skills ?? []).forEach((specialtyId) => {
+    const rank = skillRanks[specialtyId] ?? 0
     if (rank > 0) {
-      reasons.push(`${skillId} rank ${rank}`)
+      reasons.push(`${specialtyId} rank ${rank}`)
     }
   })
 
@@ -94,7 +94,7 @@ function getSpecializationReasons(specialization, callingId, categoryRanks, skil
 }
 
 export function getRankedSystemSpecializations(callingId, skills = {}, blueprint) {
-  const normalizedSkills = normalizeCharacterSkills(skills, blueprint?.expandedSkillList ?? {})
+  const normalizedSkills = normalizeCharacterSkills(skills, blueprint?.specialties ?? blueprint?.expandedSkillList ?? {})
   const categoryRanks = getSkillCategoryRanks(normalizedSkills)
   const skillRanks = getSkillRankMap(normalizedSkills)
 
@@ -105,8 +105,8 @@ export function getRankedSystemSpecializations(callingId, skills = {}, blueprint
         (total, categoryKey) => total + (categoryRanks[categoryKey] ?? 0),
         0,
       )
-      const skillScore = (specialization.affinity?.skills ?? []).reduce(
-        (total, skillId) => total + (skillRanks[skillId] ?? 0),
+      const skillScore = (specialization.affinity?.specialties ?? specialization.affinity?.skills ?? []).reduce(
+        (total, specialtyId) => total + (skillRanks[specialtyId] ?? 0),
         0,
       )
       const score = callingScore + categoryScore + skillScore

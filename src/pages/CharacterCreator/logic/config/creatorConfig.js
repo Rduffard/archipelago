@@ -11,7 +11,8 @@ export const PATH_ORIGIN_MAP = {
   lilin: 'lilin-core',
 }
 
-export const STARTING_SKILL_POINTS = 5
+export const STARTING_CORE_POINTS = 3
+export const STARTING_SPECIALTY_PICKS = 5
 
 export const CREATOR_STEPS = [
   {
@@ -31,8 +32,8 @@ export const CREATOR_STEPS = [
   },
   {
     id: 'skills',
-    title: 'Skills',
-    description: 'Spend training points on your starting skills.',
+    title: 'Training',
+    description: 'Invest in core checks and choose ranked specialties.',
   },
   {
     id: 'loadout',

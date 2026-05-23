@@ -7,8 +7,8 @@ function CharacterSheetSkills({ skillGroups }) {
     <SectionCard className="character-sheet__panel character-sheet__panel--wide">
       <SectionCardHeader
         className="character-sheet__panel-header"
-        title="Trained Skills"
-        description="Skills are trained specialties that enhance checks through bonuses, permissions, or situational advantages."
+        title="Specialties"
+        description="Ranked techniques, permissions, and situational mastery that shape how Core Checks express character identity."
       />
 
       {skillGroups.length ? (
@@ -26,7 +26,7 @@ function CharacterSheetSkills({ skillGroups }) {
           ))}
         </div>
       ) : (
-        <SectionCardEmpty>No canonical skills are available right now.</SectionCardEmpty>
+        <SectionCardEmpty>No specialties are available right now.</SectionCardEmpty>
       )}
     </SectionCard>
   )

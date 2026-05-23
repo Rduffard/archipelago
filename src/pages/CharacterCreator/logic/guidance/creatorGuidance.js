@@ -4,14 +4,15 @@ export function getCreatorValidations({
   identity,
   isIdentityComplete,
   progressionValues,
+  remainingCorePoints,
   remainingPoints,
-  remainingSkillPoints,
+  remainingSpecialtyPicks,
 }) {
   return {
     identity: isIdentityComplete,
     calling: Boolean(identity.callingId),
     attributes: remainingPoints === 0,
-    skills: remainingSkillPoints === 0,
+    skills: remainingCorePoints === 0 && remainingSpecialtyPicks === 0,
     loadout: true,
     details: true,
     progression: progressionValues.rank >= 1,
@@ -20,7 +21,8 @@ export function getCreatorValidations({
       Boolean(identity.callingId) &&
       Boolean(identity.originId) &&
       remainingPoints === 0 &&
-      remainingSkillPoints === 0 &&
+      remainingCorePoints === 0 &&
+      remainingSpecialtyPicks === 0 &&
       progressionValues.rank >= 1,
   }
 }
@@ -29,8 +31,9 @@ export function getCreatorActionHint({
   currentStepId,
   hasValidName,
   identity,
+  remainingCorePoints,
   remainingPoints,
-  remainingSkillPoints,
+  remainingSpecialtyPicks,
   trimmedName,
   validations,
 }) {
@@ -59,7 +62,11 @@ export function getCreatorActionHint({
   }
 
   if (currentStepId === 'skills' && !validations.skills) {
-    return `Spend the remaining ${remainingSkillPoints} skill point${remainingSkillPoints === 1 ? '' : 's'} to continue.`
+    if (remainingCorePoints > 0) {
+      return `Spend the remaining ${remainingCorePoints} core point${remainingCorePoints === 1 ? '' : 's'} to continue.`
+    }
+
+    return `Spend the remaining ${remainingSpecialtyPicks} specialty pick${remainingSpecialtyPicks === 1 ? '' : 's'} to continue.`
   }
 
   if (currentStepId === 'loadout') {

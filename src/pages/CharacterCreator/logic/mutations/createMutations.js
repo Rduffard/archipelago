@@ -2,10 +2,15 @@ import { getRemainingPoints } from '../../../../lib/character'
 import { PATH_ORIGIN_MAP } from '../config/creatorConfig'
 import {
   clampTrackValue,
+  countAllocatedCorePoints,
   countAllocatedSkillPoints,
   createEmptyCustomAbility,
   createEmptyWound,
 } from '../state/creatorState'
+
+function shouldProfileSpecialtyPerf() {
+  return Boolean(globalThis.__ARCHIPELAGO_PROFILE_SPECIALTIES__)
+}
 
 export function createMutations({
   activeSpecialization,
@@ -19,7 +24,8 @@ export function createMutations({
   setSaveMessage,
   setSkills,
   setWounds,
-  totalSkillPoints,
+  totalCorePoints,
+  totalSpecialtyPicks,
 }) {
   function clearSaveMessage() {
     setSaveMessage('')
@@ -109,11 +115,39 @@ export function createMutations({
     }))
   }
 
+  function handleCoreCheckInvestmentChange(checkKey, nextValue) {
+    clearSaveMessage()
+
+    setProgressionValues((current) => {
+      const currentInvestments = current.coreCheckInvestments ?? {}
+      const clampedValue = Math.max(0, Math.min(20, Number(nextValue) || 0))
+      const nextInvestments = {
+        ...currentInvestments,
+        [checkKey]: clampedValue,
+      }
+
+      if (countAllocatedCorePoints(nextInvestments) > totalCorePoints) {
+        return current
+      }
+
+      return {
+        ...current,
+        coreCheckInvestments: nextInvestments,
+      }
+    })
+  }
+
   function handleSkillRankChange(categoryKey, blueprintSkill, nextRank) {
+    const profile = shouldProfileSpecialtyPerf()
+
+    if (profile) {
+      console.time(`handleSkillRankChange:${blueprintSkill.id}`)
+    }
+
     clearSaveMessage()
 
     setSkills((current) => {
-      const clampedRank = Math.max(0, Math.min(3, nextRank))
+      const clampedRank = Math.max(0, Math.min(blueprintSkill.maxRank ?? 3, nextRank))
       const currentGroup = current[categoryKey] ?? []
       const existingEntry = currentGroup.find((entry) => entry.id === blueprintSkill.id)
       const nextGroup =
@@ -133,8 +167,16 @@ export function createMutations({
         [categoryKey]: nextGroup,
       }
 
-      if (countAllocatedSkillPoints(nextSkills) > totalSkillPoints) {
+      if (countAllocatedSkillPoints(nextSkills) > totalSpecialtyPicks) {
+        if (profile) {
+          console.timeEnd(`handleSkillRankChange:${blueprintSkill.id}`)
+        }
+
         return current
+      }
+
+      if (profile) {
+        console.timeEnd(`handleSkillRankChange:${blueprintSkill.id}`)
       }
 
       return nextSkills
@@ -170,7 +212,10 @@ export function createMutations({
       return {
         ...current,
         [field]:
-          field === 'rank' || field === 'skillPoints' || field === 'advancementPoints'
+          field === 'rank' ||
+          field === 'corePoints' ||
+          field === 'specialtyPicks' ||
+          field === 'advancementPoints'
             ? Math.max(field === 'rank' ? 1 : 0, Number(value) || 0)
             : value,
       }
@@ -208,6 +253,7 @@ export function createMutations({
     handleAttributeChange,
     handleCustomAbilityChange,
     handleDetailsChange,
+    handleCoreCheckInvestmentChange,
     handleIdentityChange,
     handleLoadoutChange,
     handleProgressionChange,

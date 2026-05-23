@@ -63,6 +63,26 @@ export function countAllocatedSkillPoints(skills = {}) {
   )
 }
 
+export function createEmptyCoreCheckInvestments(blueprint) {
+  return Object.values(blueprint?.checks ?? {}).flatMap((checks) => checks).reduce((investments, check) => {
+    investments[check.key] = 0
+    return investments
+  }, {})
+}
+
+export function normalizeCoreCheckInvestments(investments = {}, blueprint) {
+  const emptyInvestments = createEmptyCoreCheckInvestments(blueprint)
+
+  return Object.keys(emptyInvestments).reduce((normalized, checkKey) => {
+    normalized[checkKey] = Math.max(0, Math.min(20, Number(investments?.[checkKey]) || 0))
+    return normalized
+  }, emptyInvestments)
+}
+
+export function countAllocatedCorePoints(coreCheckInvestments = {}) {
+  return Object.values(coreCheckInvestments).reduce((total, value) => total + (Number(value) || 0), 0)
+}
+
 export function createEmptyWound() {
   return {
     name: '',
@@ -115,18 +135,22 @@ export function clampTrackValue(value, max) {
 export function createProgression(rank = 1) {
   return {
     rank,
-    skillPoints: 0,
+    corePoints: 0,
+    specialtyPicks: 0,
     advancementPoints: 0,
+    coreCheckInvestments: {},
     specializationPath: '',
     unlockedNodes: [],
   }
 }
 
-export function normalizeProgression(progression = {}) {
+export function normalizeProgression(progression = {}, blueprint) {
   return {
     rank: Math.max(1, Number(progression.rank) || 1),
-    skillPoints: Math.max(0, Number(progression.skillPoints) || 0),
+    corePoints: Math.max(0, Number(progression.corePoints) || 0),
+    specialtyPicks: Math.max(0, Number(progression.specialtyPicks) || 0),
     advancementPoints: Math.max(0, Number(progression.advancementPoints) || 0),
+    coreCheckInvestments: normalizeCoreCheckInvestments(progression.coreCheckInvestments ?? {}, blueprint),
     specializationPath: progression.specializationPath ?? '',
     unlockedNodes: progression.unlockedNodes ?? [],
   }

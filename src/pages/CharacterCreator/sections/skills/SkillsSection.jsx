@@ -1,20 +1,30 @@
 import SkillsStep from '../../../../components/creator/SkillsStep/SkillsStep'
 
 function SkillsSection({
+  checks,
+  coreCheckInvestments,
   finalAttributes,
+  onCoreCheckInvestmentChange,
   onSkillRankChange,
-  remainingSkillPoints,
+  remainingCorePoints,
+  remainingSpecialtyPicks,
   skillGroups,
   skills,
-  totalSkillPoints,
+  totalCorePoints,
+  totalSpecialtyPicks,
 }) {
   return (
     <SkillsStep
+      checks={checks}
+      coreCheckInvestments={coreCheckInvestments}
       skillGroups={skillGroups}
       skills={skills}
       finalAttributes={finalAttributes}
-      remainingSkillPoints={remainingSkillPoints}
-      totalSkillPoints={totalSkillPoints}
+      remainingCorePoints={remainingCorePoints}
+      remainingSpecialtyPicks={remainingSpecialtyPicks}
+      totalCorePoints={totalCorePoints}
+      totalSpecialtyPicks={totalSpecialtyPicks}
+      onCoreCheckInvestmentChange={onCoreCheckInvestmentChange}
       onSkillRankChange={onSkillRankChange}
     />
   )

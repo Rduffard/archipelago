@@ -125,10 +125,17 @@ export function getProgressionEntries(character, blueprint) {
     },
     {
       key: 'progression-skill-points',
-      label: 'Skill Points',
+      label: 'Core Points',
       meta: 'Banked',
-      value: progression.skillPoints ?? 0,
-      detail: 'Unspent points available for skill growth.',
+      value: progression.corePoints ?? 0,
+      detail: 'Unspent currency available for direct Core Check growth.',
+    },
+    {
+      key: 'progression-specialty-picks',
+      label: 'Specialty Picks',
+      meta: 'Banked',
+      value: progression.specialtyPicks ?? 0,
+      detail: 'Unspent training available for acquiring or ranking specialties.',
     },
     {
       key: 'progression-advancement-points',
@@ -359,6 +366,7 @@ export function buildReferenceGroups({
       entries: group.checks.map((check) => {
         const score = checkStats[check.key] ?? 10
         const legacyDetail = legacyDetails[check.key]
+        const investment = character.progression?.coreCheckInvestments?.[check.key] ?? 0
 
         return {
           key: check.key,
@@ -368,9 +376,10 @@ export function buildReferenceGroups({
           detail: [
             check.summary ?? legacyDetail?.description ?? 'A core gameplay check available to every character.',
             `Formula: ${check.formulaLabel}`,
+            investment ? `Core Training: +${investment}` : null,
             `Roll Modifier: ${getRollModifier(score)}`,
             check.examples?.length ? `Examples: ${check.examples.join(', ')}` : null,
-            'Skills do not replace this check; trained skills may modify it when the fiction fits.',
+            'Specialties do not replace this check; they modify, unlock, or bend options when the fiction fits.',
           ]
             .filter(Boolean)
             .join('\n\n'),

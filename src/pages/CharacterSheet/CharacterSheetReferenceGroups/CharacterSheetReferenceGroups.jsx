@@ -8,7 +8,7 @@ function CharacterSheetReferenceGroups({ referenceGroups }) {
       <SectionCardHeader
         className="character-sheet__panel-header"
         title="Core Checks"
-        description="Checks are the primary rolls used during gameplay. Trained skills can modify them when the situation fits."
+        description="Primary rolls and direct numerical progression. Specialties modify or unlock options when the situation fits."
       />
 
       <div className="character-sheet__skill-groups">

@@ -1,4 +1,4 @@
-import { createElement, useId } from 'react'
+import { createElement, useId, useState } from 'react'
 import './HoverInfo.css'
 
 function HoverInfo({
@@ -9,14 +9,17 @@ function HoverInfo({
   contentClassName = '',
   placement = 'bottom-start',
   preserveLineBreaks = true,
+  renderContent,
   tabIndex,
 }) {
   const generatedId = useId()
-  const tooltipId = content ? `hover-info-${generatedId}` : undefined
+  const hasContent = Boolean(content || renderContent)
+  const [isActive, setIsActive] = useState(false)
+  const tooltipId = hasContent ? `hover-info-${generatedId}` : undefined
   const classes = [
     'hover-info',
     `hover-info--${placement}`,
-    content ? 'has-detail' : '',
+    hasContent ? 'has-detail' : '',
     className,
   ]
     .filter(Boolean)
@@ -29,7 +32,8 @@ function HoverInfo({
     .filter(Boolean)
     .join(' ')
 
-  const tooltip = content
+  const resolvedContent = isActive ? (renderContent ? renderContent() : content) : null
+  const tooltip = resolvedContent
     ? createElement(
         'span',
         {
@@ -37,7 +41,7 @@ function HoverInfo({
           className: contentClasses,
           role: 'tooltip',
         },
-        content,
+        resolvedContent,
       )
     : null
 
@@ -45,8 +49,12 @@ function HoverInfo({
     Component,
     {
       className: classes,
-      tabIndex: content ? (tabIndex ?? 0) : tabIndex,
+      tabIndex: hasContent ? (tabIndex ?? 0) : tabIndex,
       'aria-describedby': tooltipId,
+      onBlur: () => setIsActive(false),
+      onFocus: () => setIsActive(true),
+      onMouseEnter: () => setIsActive(true),
+      onMouseLeave: () => setIsActive(false),
     },
     children,
     tooltip,

@@ -31,7 +31,7 @@ export function getSkillCatalogMap(expandedSkillList = {}) {
 }
 
 export function getCanonicalSkillGroups(blueprint) {
-  return Object.entries(blueprint?.expandedSkillList ?? {}).map(([categoryKey, categorySkills]) => ({
+  return Object.entries(blueprint?.specialties ?? blueprint?.expandedSkillList ?? {}).map(([categoryKey, categorySkills]) => ({
     key: categoryKey,
     label: titleCase(categoryKey),
     description: blueprint?.display?.pairingCategories?.[categoryKey]?.description ?? '',
@@ -39,8 +39,112 @@ export function getCanonicalSkillGroups(blueprint) {
   }))
 }
 
-function clampSkillRank(rank) {
-  return Math.max(0, Math.min(3, Number(rank) || 0))
+const SPECIALTY_RANK_LABELS = ['Untrained', 'I', 'II', 'III', 'IV', 'V']
+
+export function getSpecialtyRankLabel(rank = 0) {
+  return SPECIALTY_RANK_LABELS[Math.max(0, Math.min(SPECIALTY_RANK_LABELS.length - 1, Number(rank) || 0))]
+}
+
+export function getSpecialtyRankEntry(specialty, rank = 0) {
+  return (specialty?.ranks ?? []).find((entry) => Number(entry.rank) === Number(rank))
+}
+
+export function getSpecialtyRankEffect(specialty, rank = 0) {
+  if (rank <= 0) {
+    return 'No specialty training recorded yet.'
+  }
+
+  return (
+    getSpecialtyRankEntry(specialty, rank)?.effect ??
+    specialty?.description ??
+    'A ranked technique that changes what the character can do in the right situation.'
+  )
+}
+
+export function getSpecialtyRankTitle(specialty, rank = 0) {
+  if (rank <= 0) {
+    return 'Untrained'
+  }
+
+  return getSpecialtyRankEntry(specialty, rank)?.title ?? `Rank ${getSpecialtyRankLabel(rank)}`
+}
+
+export function getNextSpecialtyRankEffect(specialty, rank = 0) {
+  const nextRank = rank + 1
+  const maxRank = specialty?.maxRank ?? specialty?.ranks?.length ?? 3
+
+  if (nextRank > maxRank) {
+    return ''
+  }
+
+  return getSpecialtyRankEntry(specialty, nextRank)?.effect ?? ''
+}
+
+export function formatSpecialtyPrerequisites(prerequisites = []) {
+  const prerequisiteList = Array.isArray(prerequisites)
+    ? prerequisites
+    : Object.entries(prerequisites ?? {}).flatMap(([rank, rankPrerequisites]) =>
+        (rankPrerequisites ?? []).map((prerequisite) => ({
+          ...prerequisite,
+          rankRequiredFor: Number(rank),
+        })),
+      )
+
+  if (!prerequisiteList.length) {
+    return 'None'
+  }
+
+  return prerequisiteList
+    .map((prerequisite) => {
+      if (typeof prerequisite === 'string') {
+        return prerequisite
+      }
+
+      if (prerequisite.coreCheck) {
+        return `${titleCase(prerequisite.coreCheck)} ${prerequisite.min}+`
+      }
+
+      return [prerequisite.type, prerequisite.id, prerequisite.rank ? `Rank ${prerequisite.rank}` : null]
+        .filter(Boolean)
+        .join(' ')
+    })
+    .join(', ')
+}
+
+export function getSpecialtyPrerequisitesForRank(specialty, rank) {
+  return specialty?.prerequisites?.[rank] ?? []
+}
+
+export function getSpecialtyPrerequisiteStatus(specialty, rank, checks = {}) {
+  const prerequisites = getSpecialtyPrerequisitesForRank(specialty, rank)
+  const checksByKey = checks ?? {}
+
+  return prerequisites.map((prerequisite) => {
+    if (prerequisite.coreCheck) {
+      const current = checksByKey[prerequisite.coreCheck] ?? 0
+
+      return {
+        ...prerequisite,
+        label: `${titleCase(prerequisite.coreCheck)} ${prerequisite.min}+`,
+        current,
+        met: current >= prerequisite.min,
+      }
+    }
+
+    return {
+      ...prerequisite,
+      label: formatSpecialtyPrerequisites([prerequisite]),
+      met: true,
+    }
+  })
+}
+
+export function meetsSpecialtyPrerequisites(specialty, rank, checks = {}) {
+  return getSpecialtyPrerequisiteStatus(specialty, rank, checks).every((entry) => entry.met)
+}
+
+function clampSkillRank(rank, maxRank = 3) {
+  return Math.max(0, Math.min(maxRank, Number(rank) || 0))
 }
 
 function getSavedSkillEntries(initialSkills = {}) {
@@ -71,7 +175,7 @@ export function normalizeCharacterSkills(initialSkills = {}, expandedSkillList =
       return
     }
 
-    const rank = clampSkillRank(skill.rank)
+    const rank = clampSkillRank(skill.rank, catalogSkill.maxRank ?? 3)
 
     if (rank <= 0) {
       return
@@ -120,21 +224,39 @@ export function resolveCharacterSkillGroups({
             id: catalogSkill.id,
             label: catalogSkill.name,
             value: rank,
-            modifier: rank > 0 ? `Rank ${rank}` : 'Untrained',
+            modifier: rank > 0 ? getSpecialtyRankLabel(rank) : 'Untrained',
             detail: [
-              catalogSkill.verb ?? 'No system description loaded yet.',
-              catalogSkill.linkedAttributes?.length
-                ? `Linked Attributes: ${catalogSkill.linkedAttributes.map(titleCase).join(' + ')}`
+              catalogSkill.description,
+              `Specialty Rank: ${getSpecialtyRankLabel(rank)}`,
+              getSpecialtyRankEffect(catalogSkill, rank),
+              getNextSpecialtyRankEffect(catalogSkill, rank)
+                ? `Next Rank: ${getNextSpecialtyRankEffect(catalogSkill, rank)}`
                 : null,
+              `Prerequisites: ${formatSpecialtyPrerequisites(catalogSkill.prerequisites)}`,
+              catalogSkill.context ? `Context: ${catalogSkill.context}` : null,
               savedSkill?.specialty
-                ? `Granted Focus: ${savedSkill.specialty}\nThis is a system- or progression-granted edge inside the skill, not a separate stat players assign freely.`
+                ? `Granted Focus: ${savedSkill.specialty}\nThis is a system- or progression-granted edge inside the specialty, not a separate stat players assign freely.`
                 : null,
             ]
               .filter(Boolean)
               .join('\n\n'),
             rank,
+            rankLabel: getSpecialtyRankLabel(rank),
+            maxRank: catalogSkill.maxRank ?? catalogSkill.ranks?.length ?? 3,
+            currentRankTitle: getSpecialtyRankTitle(catalogSkill, rank),
+            nextRankTitle: getSpecialtyRankTitle(catalogSkill, rank + 1),
+            currentEffect: getSpecialtyRankEffect(catalogSkill, rank),
+            nextRankEffect: getNextSpecialtyRankEffect(catalogSkill, rank),
             categoryKey,
-            linkedAttributes: catalogSkill.linkedAttributes ?? [],
+            relatedChecks: catalogSkill.relatedChecks ?? [],
+            description: catalogSkill.description ?? '',
+            ranks: catalogSkill.ranks ?? [],
+            prerequisites: catalogSkill.prerequisites ?? [],
+            prerequisiteLabel: formatSpecialtyPrerequisites(catalogSkill.prerequisites),
+            tags: catalogSkill.tags ?? [],
+            context: catalogSkill.context ?? '',
+            trained: rank > 0,
+            unlocked: rank > 0,
             specialty: savedSkill?.specialty ?? '',
           }
         })

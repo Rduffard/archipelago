@@ -127,8 +127,10 @@ export function buildCharacterPayload({
   const progression = {
     ...(initialCharacter?.progression ?? createProgression(rank)),
     rank,
-    skillPoints: progressionValues.skillPoints,
+    corePoints: progressionValues.corePoints,
+    specialtyPicks: progressionValues.specialtyPicks,
     advancementPoints: progressionValues.advancementPoints,
+    coreCheckInvestments: progressionValues.coreCheckInvestments,
     specializationPath: progressionValues.specializationPath.trim(),
     unlockedNodes: progressionValues.unlockedNodes,
   }

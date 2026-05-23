@@ -28,8 +28,9 @@ function CharacterCreatorSession({
     isEditing,
     isStepAccessible,
     originSummaryValue,
+    remainingCorePoints,
     remainingPoints,
-    remainingSkillPoints,
+    remainingSpecialtyPicks,
     saveMessage,
     selectedCalling,
     stepPropsById,
@@ -53,7 +54,8 @@ function CharacterCreatorSession({
         onGoToStep={handleGoToStep}
         originSummaryValue={originSummaryValue}
         remainingPoints={remainingPoints}
-        remainingSkillPoints={remainingSkillPoints}
+        remainingCorePoints={remainingCorePoints}
+        remainingSpecialtyPicks={remainingSpecialtyPicks}
         selectedCalling={selectedCalling}
         steps={CREATOR_STEPS}
         isStepAccessible={isStepAccessible}

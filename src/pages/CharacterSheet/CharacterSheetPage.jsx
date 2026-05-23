@@ -229,7 +229,7 @@ function CharacterSheetPage() {
   const visibleCatalogGroups = catalogGroups.filter(
     (group) => group.entries.length || (group.key === 'notes' && character.notes),
   )
-  const skillGroups = getSkillGroups(character, blueprint?.expandedSkillList ?? {})
+  const skillGroups = getSkillGroups(character, blueprint?.specialties ?? blueprint?.expandedSkillList ?? {})
   const referenceGroups = buildReferenceGroups({
     blueprint,
     character,

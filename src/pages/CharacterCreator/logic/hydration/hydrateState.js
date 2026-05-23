@@ -45,7 +45,7 @@ export function hydrateCreatorState({
     attributeValues: removeOriginBonus(initialCharacter.attributes, initialOrigin?.bonus),
     skills: normalizeSkills(
       initialCharacter.skills ?? createEmptySkills(),
-      blueprint?.expandedSkillList ?? {},
+      blueprint?.specialties ?? blueprint?.expandedSkillList ?? {},
     ),
     loadout: {
       customAbilities: normalizeCustomAbilities(initialCharacter.abilities ?? []),
@@ -71,6 +71,6 @@ export function hydrateCreatorState({
       wounds: initialCharacter.resources?.wounds?.current ?? 0,
     },
     wounds: normalizeWounds(initialCharacter.resources?.wounds?.active ?? []),
-    progressionValues: normalizeProgression(initialCharacter.progression ?? createProgression()),
+    progressionValues: normalizeProgression(initialCharacter.progression ?? createProgression(), blueprint),
   }
 }

@@ -6,8 +6,9 @@ function CreatorNav({
   getStepValidity,
   onGoToStep,
   originSummaryValue,
+  remainingCorePoints,
   remainingPoints,
-  remainingSkillPoints,
+  remainingSpecialtyPicks,
   selectedCalling,
   steps,
   isStepAccessible,
@@ -69,7 +70,10 @@ function CreatorNav({
             <strong>Attr</strong> {remainingPoints} left
           </span>
           <span>
-            <strong>Skills</strong> {remainingSkillPoints} left
+            <strong>Core</strong> {remainingCorePoints} left
+          </span>
+          <span>
+            <strong>Spec</strong> {remainingSpecialtyPicks} left
           </span>
         </div>
       </section>

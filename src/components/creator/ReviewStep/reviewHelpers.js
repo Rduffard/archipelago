@@ -45,7 +45,7 @@ export function getReviewContext({
   )
   const savedSkills = resolveCharacterSkillGroups({
     characterSkills: skills,
-    expandedSkillList: blueprint?.expandedSkillList ?? {},
+    expandedSkillList: blueprint?.specialties ?? blueprint?.expandedSkillList ?? {},
   }).flatMap((group) =>
     group.entries.map((skill) => ({
       ...skill,

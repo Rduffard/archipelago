@@ -23,16 +23,22 @@ export function getCheckList(blueprint) {
   return getCheckGroups(blueprint).flatMap((group) => group.checks)
 }
 
-export function calculateChecks(attributes = {}, blueprint) {
+export function calculateChecks(attributes = {}, blueprint, investments = {}) {
   return getCheckList(blueprint).reduce((scores, check) => {
     scores[check.key] =
-      10 + (check.attributes ?? []).reduce((total, attributeKey) => total + (attributes[attributeKey] ?? 0), 0)
+      10 +
+      (check.attributes ?? []).reduce((total, attributeKey) => total + (attributes[attributeKey] ?? 0), 0) +
+      (investments[check.key] ?? 0)
     return scores
   }, {})
 }
 
 export function resolveCharacterChecks(character = {}, blueprint) {
-  const generatedChecks = calculateChecks(character.attributes ?? {}, blueprint)
+  const generatedChecks = calculateChecks(
+    character.attributes ?? {},
+    blueprint,
+    character.progression?.coreCheckInvestments ?? {},
+  )
 
   return {
     ...generatedChecks,

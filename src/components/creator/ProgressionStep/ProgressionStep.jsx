@@ -31,13 +31,24 @@ function ProgressionFields({ onProgressionChange, progression, specializations, 
       </CreatorField>
 
       <CreatorField>
-        <CreatorLabel htmlFor="progression-skill-points">Skill Points</CreatorLabel>
+        <CreatorLabel htmlFor="progression-core-points">Core Points</CreatorLabel>
         <CreatorInput
-          id="progression-skill-points"
+          id="progression-core-points"
           type="number"
           min="0"
-          value={progression.skillPoints}
-          onChange={(event) => onProgressionChange('skillPoints', event.target.value)}
+          value={progression.corePoints}
+          onChange={(event) => onProgressionChange('corePoints', event.target.value)}
+        />
+      </CreatorField>
+
+      <CreatorField>
+        <CreatorLabel htmlFor="progression-specialty-picks">Specialty Picks</CreatorLabel>
+        <CreatorInput
+          id="progression-specialty-picks"
+          type="number"
+          min="0"
+          value={progression.specialtyPicks}
+          onChange={(event) => onProgressionChange('specialtyPicks', event.target.value)}
         />
       </CreatorField>
 
