@@ -153,7 +153,6 @@ export function buildCharacterPayload({
     checks,
     derivedStats,
     socialStats,
-    pairingStats: checks,
     reputation: startingReputation,
     skills,
     abilities,
