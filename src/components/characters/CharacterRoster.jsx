@@ -2,7 +2,13 @@ import { Link } from 'react-router-dom'
 import '../dashboard/Dashboard.css'
 import './CharacterRoster.css'
 
-function CharacterRoster({ characters, limit }) {
+function resourceSummary(track) {
+  if (!Number.isFinite(track?.current) || !Number.isFinite(track?.max)) return "Unavailable"
+  return `${track.current} / ${track.max}`
+}
+
+function CharacterRoster({ characters = [], limit }) {
+  characters = characters ?? []
   const visibleCharacters = typeof limit === 'number' ? characters.slice(0, limit) : characters
   const hiddenCount = Math.max(characters.length - visibleCharacters.length, 0)
 
@@ -26,9 +32,9 @@ function CharacterRoster({ characters, limit }) {
             </p>
           </div>
           <div className="roster-item__stats">
-            <span>Vitality {character.derivedStats.vitality}</span>
-            <span>Guard {character.derivedStats.guard}</span>
-            <span>Focus {character.derivedStats.focus}</span>
+            <span>Health {resourceSummary(character.resources?.health)}</span>
+            <span>Stamina {resourceSummary(character.resources?.stamina)}</span>
+            <span>Focus {resourceSummary(character.resources?.focus)}</span>
           </div>
         </Link>
       ))}
@@ -43,3 +49,4 @@ function CharacterRoster({ characters, limit }) {
 }
 
 export default CharacterRoster
+
