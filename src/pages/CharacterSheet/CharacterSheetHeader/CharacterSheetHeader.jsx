@@ -17,7 +17,7 @@ function CharacterSheetHeader({
         <div className="character-sheet__toolbar-copy">
           <h1>{character.name}</h1>
           <p>
-            {calling ? calling.name : character.calling} | {origin ? origin.name : character.origin} | Rank {characterRank}
+            {calling ? calling.name : character.calling} | {origin ? origin.name : character.origin} | Level {characterRank}
             {character.pronouns ? ` | ${character.pronouns}` : ''}
           </p>
         </div>

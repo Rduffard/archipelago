@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createRoll, rollAttributes, rollTone, signed, skillIsTrained } from '../../lib/roll.js'
+import { createRoll, rollAttributes, rollTone, signed, skillIsTrained, skillAttributes, appendRollHistory } from '../../lib/roll.js'
 import { calculateCheckModifier } from '../../lib/checkModifier.js'
 import { proficiencyBonus } from '../../lib/training.js'
 import './CharacterChecks.css'
@@ -13,7 +13,6 @@ export function RollResult({ roll }) {
 }
 
 export default function CharacterChecks({ character, skills = [], legacyOptions = [] }) {
-  const [selected, setSelected] = useState(null)
   const [history, setHistory] = useState([])
   const [error, setError] = useState('')
   let bonus = 'Unavailable'
@@ -22,13 +21,12 @@ export default function CharacterChecks({ character, skills = [], legacyOptions 
   function roll(type, name, attribute, skillId) {
     try {
       const result = createRoll({ character, type, name, attribute, skillId })
-      setHistory(current => [result, ...current].slice(0, 8))
+      setHistory(current => appendRollHistory(current, result))
       setError('')
-      setSelected(null)
     } catch (err) { setError(err.message) }
   }
   return <section className="character-sheet__panel character-sheet__panel--wide sheet-checks" aria-label="Character checks">
-    <header><h2>Checks & Saving Throws</h2><span>Proficiency {bonus}</span></header>
+    <header><h2>Attributes & Saving Throws</h2><span>Proficiency {bonus}</span></header>
     <div className="sheet-checks__attributes">{rollAttributes.map(attribute => {
       let modifier = null
       try { modifier = calculateCheckModifier(character.attributes, attribute) } catch { /* Missing scores are not zero. */ }
@@ -44,13 +42,17 @@ export default function CharacterChecks({ character, skills = [], legacyOptions 
     })}</div>
     {!character.advancement?.savingThrows ? <p>Saving-throw proficiencies are unrecorded; no proficiency is added.</p> : null}
     <h3>General Skills</h3>
-    <div className="sheet-checks__skills">{skills.map(skill => <button type="button" key={skill.id} aria-pressed={selected?.id === skill.id} onClick={() => setSelected(skill)} title={skill.description}>
-      <span>{skill.name}</span><small>{skillIsTrained(character, skill.id) ? 'Trained' : 'Untrained'}</small>
-    </button>)}</div>
-    {selected ? <fieldset className="sheet-checks__selection"><legend>{selected.name}: choose an attribute to roll</legend>
-      {rollAttributes.map(attribute => <button type="button" key={attribute} onClick={() => roll('skill', selected.name, attribute, selected.id)}>{attribute}</button>)}
-      <button type="button" onClick={() => setSelected(null)}>Cancel</button>
-    </fieldset> : null}
+    <div className="sheet-checks__skills">{skills.map(skill => {
+      const attribute = skillAttributes[skill.id]
+      const trained = skillIsTrained(character, skill.id)
+      let modifier = null
+      try { modifier = calculateCheckModifier(character.attributes, attribute) + (trained ? proficiencyBonus(character.progression?.rank) : 0) } catch { /* Unavailable saved score or level. */ }
+      return <button type="button" key={skill.id} disabled={modifier === null} onClick={() => roll('skill', skill.name, undefined, skill.id)} title={skill.description} aria-label={'Roll ' + skill.name + ' skill check'}>
+        <span className={trained ? 'sheet-checks__training is-trained' : 'sheet-checks__training'} title={trained ? 'Trained' : 'Untrained'}>{trained ? '●' : '○'}</span>
+        <span>{skill.name}<small>{attribute}</small></span><strong>{modifier === null ? '—' : signed(modifier)}</strong>
+      </button>
+    })}</div>
+    <small>● Trained · ○ Untrained</small>
     {legacy.length ? <aside><h3>Unresolved legacy Training</h3><p>Preserved selections; no General Skill proficiency inferred.</p><ul>{legacy.map(id => <li key={id}>{legacyOptions.find(option => option.id === id)?.name ?? id}</li>)}</ul></aside> : null}
     {character.training === undefined ? <p>Training unavailable: historical selections have not been converted.</p> : null}
     {error ? <p role="alert">{error}</p> : null}

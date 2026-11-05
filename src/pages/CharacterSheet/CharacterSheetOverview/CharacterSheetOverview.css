@@ -1,120 +1,15 @@
-.character-sheet__overview-shell {
-  /* Overview layout: columns can differ in height; panels should never stretch empty content. */
-  grid-column: 1 / -1;
-  padding: 0.7rem;
-  border: 1px solid rgba(214, 190, 152, 0.14);
-  border-radius: 24px;
-  background: rgba(14, 18, 25, 0.42);
-}
-
-.character-sheet__overview-grid {
-  /* Internal sheet map: one unified container, content-height panels, no rigid columns. */
-  display: grid;
-  grid-template-columns: minmax(180px, 0.95fr) minmax(220px, 1.35fr) minmax(220px, 1.25fr);
-  grid-template-areas:
-    "abilities abilities identity"
-    "trackers trackers progression"
-    "trackers trackers traits"
-    "reputation reputation traits";
-  gap: 0.7rem;
-  align-items: start;
-}
-
-.character-sheet__panel {
-  position: relative;
-  align-self: start;
-  padding: 0.75rem 0.85rem;
-  border: 1px solid rgba(214, 190, 152, 0.18);
-  background: rgba(14, 18, 25, 0.78);
-  border-radius: 22px;
-  backdrop-filter: blur(10px);
-  overflow: visible;
-}
-
-.character-sheet__panel--core {
-  grid-area: core;
-}
-
-.character-sheet__panel--abilities {
-  grid-area: abilities;
-}
-
-.character-sheet__panel--trackers {
-  grid-area: trackers;
-}
-
-.character-sheet__panel--identity {
-  grid-area: identity;
-}
-
-.character-sheet__panel--progression {
-  grid-area: progression;
-}
-
-.character-sheet__panel--traits {
-  grid-area: traits;
-}
-
-.character-sheet__panel--reputation {
-  grid-area: reputation;
-}
-
-.character-sheet__panel-header {
-  margin-bottom: 0.4rem;
-}
-
-.character-sheet__panel-header h2,
-.character-sheet__stat-section h3 {
-  margin: 0;
-}
-
-.character-sheet__stat-board {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0.45rem;
-}
-
-.character-sheet__stat-section {
-  padding: 0.55rem 0.7rem;
-  border-radius: 14px;
-  border: 1px solid rgba(214, 190, 152, 0.12);
-  background: rgba(255, 248, 237, 0.03);
-}
-
-.character-sheet__stat-section header {
-  margin-bottom: 0.2rem;
-}
-
-.character-sheet__panel:hover,
-.character-sheet__panel:focus-within {
-  z-index: 30;
-}
-
-@media (max-width: 1180px) {
-  .character-sheet__overview-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-areas:
-      "core abilities"
-      "trackers trackers"
-      "identity progression"
-      "traits reputation";
-  }
-}
-
-@media (max-width: 840px) {
-  .character-sheet__overview-shell {
-    padding: 0.55rem;
-  }
-
-  .character-sheet__overview-grid {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "core"
-      "abilities"
-      "trackers"
-      "identity"
-      "progression"
-      "traits"
-      "reputation";
-  }
-}
+/* The play area uses the existing ink, parchment and brass palette. */
+.character-sheet__overview-shell { grid-column:1/-1; padding:0; border:0; background:none; }
+.character-sheet__overview-grid { display:flex; flex-wrap:wrap; gap:.5rem 1.25rem; align-items:start; }
+.character-sheet__panel { position:relative; min-width:0; align-self:start; padding:.75rem .85rem; border:0; border-radius:6px; background:rgba(14,18,25,.78); overflow:visible; }
+.character-sheet__panel--trackers { order:-1; flex:1 0 100%; }
+.character-sheet__panel-header { margin-bottom:.4rem; }
+.character-sheet__panel-header h2 { margin:0; font-size:1.1rem; }
+.sheet-reference { flex:1 1 150px; min-width:0; }
+.sheet-reference summary, .character-sheet__secondary > summary { cursor:pointer; padding:.55rem .2rem; color:#d1b38f; }
+.sheet-reference summary:focus-visible, .character-sheet__secondary > summary:focus-visible { outline:2px solid #d1b38f; }
+.sheet-reference .character-sheet__panel { padding:.5rem 0; background:none; }
+.character-sheet__tracker-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
+@media(max-width:600px) { .character-sheet__tracker-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .sheet-reference { flex-basis:40%; } }
+.character-sheet__overview-shell .character-sheet__tracker-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
+@media(max-width:600px) { .character-sheet__overview-shell .character-sheet__tracker-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }

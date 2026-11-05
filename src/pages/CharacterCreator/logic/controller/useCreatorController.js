@@ -7,7 +7,7 @@ import {
   getSystemSpecialization,
   getSystemSpecializations,
 } from '../../../../data/archipelagoSystemSelectors'
-import { getTrainingOptions, toggleTraining } from '../../../../data/training.js'
+import { getTrainingOptions, toggleTraining, selectCallingTraining } from '../../../../data/training.js'
 import { applyOriginBonus } from '../../../../lib/originBonus.js'
 import {
   applyAttributeBonus,
@@ -166,7 +166,7 @@ function useCreatorController({
     handleAttributeChange,
     handleCustomAbilityChange,
     handleDetailsChange,
-    handleIdentityChange,
+    handleIdentityChange: mutateIdentity,
     handleLoadoutChange,
     handleProgressionChange,
     handleRemoveCustomAbility,
@@ -174,6 +174,13 @@ function useCreatorController({
     handleResourceChange,
     handleWoundChange,
   } = mutations
+  function handleIdentityChange(field, value) {
+    if (field === 'callingId' && value !== identity.callingId && !isEditing) {
+      const packages = blueprint?.startingProficiencies?.callings ?? {}
+      setTraining(current => selectCallingTraining(current, packages[identity.callingId]?.skills, packages[value]?.skills))
+    }
+    mutateIdentity(field, value)
+  }
   const handleTrainingToggle = useCallback((id) => {
     setSaveMessage('')
     setTraining((current) => toggleTraining(current, id, trainingOptions))

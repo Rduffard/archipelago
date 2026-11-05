@@ -12,7 +12,7 @@ test('trained and untrained skills add proficiency exactly once', () => {
   assert.equal(roll('skill', 'might', { skillId: training[0].id }).total, 17)
   assert.equal(roll('skill', 'might', { skillId: 'unknown' }).total, 14)
   assert.equal(roll('skill', 'agility', { skillId: training[0].id }).total, 13)
-  assert.throws(() => roll('skill', undefined, { skillId: training[0].id }))
+  assert.equal(roll('skill', undefined, { skillId: training[0].id }).attribute, 'spirit')
 })
 test('saving throws use recorded save proficiencies independently of Training', () => {
   assert.equal(roll('save', 'agility').proficiency, 3)
@@ -53,4 +53,43 @@ test('legacy display retains unresolved labels and unavailable scores', () => {
 test('resource cards preserve depleted current and authoritative maximum', () => {
   const html = renderToStaticMarkup(React.createElement(TrackerCard, { label: 'Health', current: 0, max: 24, detail: 'Saved values' }))
   assert.ok(html.includes('Health')); assert.ok(html.includes('24')); assert.ok(html.includes('0'))
+})
+import { skillAttributes } from '../src/lib/roll.js'
+import { selectCallingTraining, toggleTraining } from '../src/data/training.js'
+import packages from '../../crossworld_backend/src/modules/archipelago/system/blueprints/startingProficiencies.js'
+test('all twenty defaults match the approved attribute groups', () => {
+  const groups = { spirit: ['bargain','deceive','perform','persuade','attune'], resolve: ['command','threaten','endure'], instinct: ['read','track','perception'], wit: ['navigate','investigate','lore','jury-rig','stabilize'], might: ['climb','dive'], agility: ['stealth','finesse'] }
+  assert.deepEqual(Object.keys(skillAttributes).sort(), training.map(s => s.id).sort())
+  for (const [attribute, ids] of Object.entries(groups)) for (const id of ids) assert.equal(skillAttributes[id], attribute)
+})
+test('every Calling package, free choice and substitution uses saved Training exactly once', () => {
+  for (const pkg of Object.values(packages.callings)) {
+    let owned = selectCallingTraining([], [], pkg.skills)
+    assert.deepEqual(owned, pkg.skills)
+    for (const entry of training.filter(s => !owned.includes(s.id)).slice(0,2)) owned = toggleTraining(owned, entry.id, training)
+    assert.equal(owned.length, 4)
+    const c = { ...character, training: owned }
+    for (const skill of training) {
+      const result = createRoll({ character: c, type: 'skill', skillId: skill.id }, () => .5)
+      assert.equal(result.attribute, skillAttributes[skill.id])
+      assert.equal(result.proficiency, owned.includes(skill.id) ? 3 : 0)
+    }
+    const replacement = training.find(s => !owned.includes(s.id)).id
+    const substituted = toggleTraining(toggleTraining(owned, pkg.skills[0], training), replacement, training)
+    assert.equal(skillIsTrained({...c, training: substituted}, pkg.skills[0]), false)
+    assert.equal(skillIsTrained({...c, training: substituted}, replacement), true)
+  }
+})
+import { appendRollHistory } from '../src/lib/roll.js'
+test('history preserves the newest eight mixed checks without mutating earlier results', () => {
+  let history = []
+  for (let i = 0; i < 10; i++) {
+    const previous = [...history]
+    const type = ['attribute','save','skill'][i % 3]
+    const result = createRoll({ character, type, name: String(i), attribute: type === 'skill' ? undefined : 'might', skillId: 'climb' }, () => .5)
+    const next = appendRollHistory(history, result)
+    assert.deepEqual(history, previous)
+    history = next
+  }
+  assert.deepEqual(history.map(r => r.name), ['9','8','7','6','5','4','3','2'])
 })

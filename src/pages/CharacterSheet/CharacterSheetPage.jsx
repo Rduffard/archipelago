@@ -226,7 +226,6 @@ function CharacterSheetPage() {
         />
 
         <section className="character-sheet__layout">
-          <CharacterChecks key={character._id} character={character} skills={blueprint.training ?? []} legacyOptions={getTrainingOptions(blueprint, character)} />
           <CharacterSheetOverview
             abilities={abilities}
             activeReputation={activeReputation}
@@ -243,9 +242,10 @@ function CharacterSheetPage() {
             traits={traits}
             woundTrack={woundTrack}
           />
+          <CharacterChecks key={character._id} character={character} skills={blueprint.training ?? []} legacyOptions={getTrainingOptions(blueprint, character)} />
 
-          <CharacterAdvancement character={character} rules={blueprint.progression} startingPackage={blueprint.startingProficiencies?.callings?.[character.calling]} onAdvance={handleAdvance} />
-          <CharacterSheetLoadout character={character} visibleCatalogGroups={visibleCatalogGroups} />
+          <details className="character-sheet__secondary"><summary>Calling, Specialized Path & advancement</summary><CharacterAdvancement character={character} rules={blueprint.progression} startingPackage={blueprint.startingProficiencies?.callings?.[character.calling]} onAdvance={handleAdvance} /></details>
+          <details className="character-sheet__secondary"><summary>Equipment & notes</summary><CharacterSheetLoadout character={character} visibleCatalogGroups={visibleCatalogGroups} /></details>
         </section>
       </section>
     </main>

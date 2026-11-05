@@ -22,7 +22,7 @@ function CharacterSheetOverview({
     <section className="character-sheet__overview-shell">
       <div className="character-sheet__overview-grid">
 
-        <SectionCard className="character-sheet__panel character-sheet__panel--abilities">
+        <details className="sheet-reference sheet-reference--abilities"><summary>Abilities</summary>        <SectionCard className="character-sheet__panel character-sheet__panel--abilities">
           <SectionCardHeader className="character-sheet__panel-header" title="Abilities" />
 
           {abilities.length ? (
@@ -41,7 +41,7 @@ function CharacterSheetOverview({
           ) : (
             <SectionCardEmpty>No abilities recorded yet.</SectionCardEmpty>
           )}
-        </SectionCard>
+        </SectionCard></details>
 
         <SectionCard className="character-sheet__panel character-sheet__panel--trackers">
           <SectionCardHeader className="character-sheet__panel-header" title="Trackers" />
@@ -85,7 +85,7 @@ function CharacterSheetOverview({
           </div>
         </SectionCard>
 
-        <SectionCard className="character-sheet__panel character-sheet__panel--identity">
+        <details className="sheet-reference sheet-reference--identity"><summary>Background</summary>        <SectionCard className="character-sheet__panel character-sheet__panel--identity">
           <SectionCardHeader className="character-sheet__panel-header" title="Identity" />
 
           {identityEntries.length ? (
@@ -93,15 +93,15 @@ function CharacterSheetOverview({
           ) : (
             <SectionCardEmpty>No background details recorded yet.</SectionCardEmpty>
           )}
-        </SectionCard>
+        </SectionCard></details>
 
-        <SectionCard className="character-sheet__panel character-sheet__panel--progression">
+        <details className="sheet-reference sheet-reference--progression"><summary>Path & progression</summary>        <SectionCard className="character-sheet__panel character-sheet__panel--progression">
           <SectionCardHeader className="character-sheet__panel-header" title="Progression" />
 
           <ReferenceList entries={progressionEntries} variant="tight" />
-        </SectionCard>
+        </SectionCard></details>
 
-        <SectionCard className="character-sheet__panel character-sheet__panel--traits">
+        <details className="sheet-reference sheet-reference--traits"><summary>Calling & Origin traits</summary>        <SectionCard className="character-sheet__panel character-sheet__panel--traits">
           <SectionCardHeader className="character-sheet__panel-header" title="Identity Tags" />
 
           {traits.length ? (
@@ -120,9 +120,9 @@ function CharacterSheetOverview({
           ) : (
             <SectionCardEmpty>No identity tags recorded yet.</SectionCardEmpty>
           )}
-        </SectionCard>
+        </SectionCard></details>
 
-        <SectionCard className="character-sheet__panel character-sheet__panel--reputation">
+        <details className="sheet-reference sheet-reference--reputation"><summary>Reputation</summary>        <SectionCard className="character-sheet__panel character-sheet__panel--reputation">
           <SectionCardHeader className="character-sheet__panel-header" title="Reputation" />
 
           {activeReputation.length ? (
@@ -142,7 +142,7 @@ function CharacterSheetOverview({
           ) : (
             <SectionCardEmpty>No reputation pressure recorded yet.</SectionCardEmpty>
           )}
-        </SectionCard>
+        </SectionCard></details>
       </div>
     </section>
   )
