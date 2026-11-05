@@ -17,6 +17,8 @@ function CharacterSheetSkills({ character, trainingOptions }) {
   const trained = Boolean(trainingId && owned.includes(trainingId))
   return <SectionCard className="character-sheet__panel character-sheet__panel--wide">
     <SectionCardHeader title="Training & Checks" description="The GM chooses the attribute and whether relevant Training applies." />
+    {character.trainingRulesVersion !== 1 ? <p>Legacy Training: original selections are preserved. Changing to General Skills requires an explicit selection of four skills.</p> : null}
+    {character.advancement ? <p>Saving throw proficiencies: {character.advancement.savingThrows.join(', ')}. Add proficiency once to the designated save; General Skills do not add to saves.</p> : null}
     {character.training === undefined ? <p>Training unavailable: historical Specialty ownership has not been converted.</p> :
       <ul>{owned.map((id) => { const option = trainingOptions.find((entry) => entry.id === id); return <li key={id}><strong>{option?.name ?? id}</strong> — {option?.description}</li> })}</ul>}
     <label>GM-selected attribute <select value={attribute} onChange={(event) => setAttribute(event.target.value)}>

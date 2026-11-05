@@ -108,7 +108,7 @@ function OriginCard({ blueprint, callings, identity, onIdentityChange, origin })
   )
 }
 
-function WorldPathStep({ identity, onIdentityChange }) {
+function WorldPathStep({ identity, onIdentityChange, locked }) {
   const { blueprint } = useSystem()
   const callings = getSystemCallings(blueprint)
   const originPaths = getSystemOriginPaths(blueprint)
@@ -155,6 +155,7 @@ function WorldPathStep({ identity, onIdentityChange }) {
         </div>
       </div>
 
+      <fieldset disabled={locked}>
       <div className="choice-group">
         <div className="choice-group__header">
           <h3>World Path</h3>
@@ -209,6 +210,7 @@ function WorldPathStep({ identity, onIdentityChange }) {
         </section>
       ) : null}
 
+      </fieldset>
       {selectedPath ? (
         <section className="creator-highlight creator-highlight--origin">
           <span className="creator-highlight__eyebrow">{getSelectedPathEyebrow(isArchipelagoExpanded)}</span>
@@ -262,7 +264,7 @@ function CallingStep({ identity, onIdentityChange }) {
       <div className="creator-panel__header">
         <p className="creator-panel__kicker">Step 2</p>
         <h2>Choose your calling</h2>
-        <p>Pick the playstyle first, then we can layer culture and stats around it.</p>
+        <p>Pick the playstyle first. The defining passive is recorded automatically. Active selections remain unspent until ability content is reviewed.</p>
       </div>
 
       <div className="choice-group">
@@ -293,10 +295,10 @@ function CallingStep({ identity, onIdentityChange }) {
                     <DetailPill detail={`${calling.name} leans on ${calling.primaryStats.join(' and ')} most heavily.`}>
                       {calling.primaryStats.join(' / ')}
                     </DetailPill>
-                    <DetailPill detail={calling.passiveRule}>
+                    <DetailPill detail={`Original passive text; combat conversion pending review. ${calling.passiveRule}`}>
                       Passive: {calling.passive}
                     </DetailPill>
-                    <DetailPill detail={`${calling.starterAbilityType}. ${calling.starterAbilityRule}`}>
+                    <DetailPill detail={`Historical reference, not automatically granted. ${calling.starterAbilityType}. ${calling.starterAbilityRule}`}>
                       {calling.starterAbility}
                     </DetailPill>
                   </div>
@@ -316,10 +318,10 @@ function CallingStep({ identity, onIdentityChange }) {
             <DetailPill detail={`${selectedCalling.name} leans on ${selectedCalling.primaryStats.join(' and ')} most heavily.`}>
               {selectedCalling.primaryStats.join(' / ')}
             </DetailPill>
-            <DetailPill detail={selectedCalling.passiveRule}>
+            <DetailPill detail={`Original passive text; combat conversion pending review. ${selectedCalling.passiveRule}`}>
               Passive: {selectedCalling.passive}
             </DetailPill>
-            <DetailPill detail={`${selectedCalling.starterAbilityType}. ${selectedCalling.starterAbilityRule}`}>
+            <DetailPill detail={`Historical reference, not automatically granted. ${selectedCalling.starterAbilityType}. ${selectedCalling.starterAbilityRule}`}>
               {selectedCalling.starterAbility}
             </DetailPill>
           </div>

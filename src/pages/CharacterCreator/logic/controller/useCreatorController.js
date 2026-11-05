@@ -268,22 +268,26 @@ function useCreatorController({
   const originSummaryValue = getOriginSummaryValue(selectedOrigin, identity.path)
   const stepPropsById = {
     identity: {
+      locked: Boolean(initialCharacter?.advancement),
       identity,
-      onIdentityChange: handleIdentityChange,
+      onIdentityChange: initialCharacter?.advancement ? (field, value) => { if (!['callingId', 'originId', 'path'].includes(field)) handleIdentityChange(field, value) } : handleIdentityChange,
     },
     calling: {
+      locked: Boolean(initialCharacter?.advancement),
       identity,
       onIdentityChange: handleIdentityChange,
     },
     attributes: {
+      locked: Boolean(initialCharacter?.advancement),
       attributeValues,
       finalAttributes,
       selectedOrigin,
       resourceMaximums,
-      onAttributeChange: handleAttributeChange,
+      onAttributeChange: initialCharacter?.advancement ? () => {} : handleAttributeChange,
     },
     skills: { trainingOptions, training, onTrainingToggle: handleTrainingToggle,
-      historical: isEditing && !initialCharacter.training },
+      historical: isEditing && initialCharacter.trainingRulesVersion !== 1,
+      startingPackage: blueprint?.startingProficiencies?.callings?.[identity.callingId] },
     loadout: {
       loadout,
       onLoadoutChange: handleLoadoutChange,

@@ -4,7 +4,7 @@ function ProgressionSection({
     return (
       <section className="choice-group">
         <h2>Paths</h2>
-        <p>Path advancement is unavailable pending progression rules. Existing ownership is preserved. Inspect the original nodes and recorded prerequisites below.</p>
+        <p>Use Advancement on the character sheet to record levels, improve attributes, and retain rewards. Calling and Path selections await reviewed ability content. Existing Path ownership is preserved; the original nodes below are historical references.</p>
         {specializations.map((path) => (
           <details key={path.id} className="review-card">
             <summary>{path.name} — Locked</summary>

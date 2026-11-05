@@ -5,6 +5,7 @@ import PageHeader from '../../components/layout/PageHeader'
 import CharacterSheetHeader from './CharacterSheetHeader/CharacterSheetHeader'
 import CharacterSheetLoadout from './CharacterSheetLoadout/CharacterSheetLoadout'
 import CharacterSheetOverview from './CharacterSheetOverview/CharacterSheetOverview'
+import CharacterAdvancement from './CharacterAdvancement'
 import CharacterSheetSkills from './CharacterSheetSkills/CharacterSheetSkills'
 import {
   getAttributeDetails,
@@ -13,7 +14,7 @@ import {
   getSystemCallings,
   getSystemOrigins,
 } from '../../data/archipelagoSystemSelectors'
-import { deleteCharacter, getCharacterById } from '../../lib/api'
+import { deleteCharacter, getCharacterById, updateCharacter } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { useSystem } from '../../hooks/useSystem'
 import '../shared/PageShell.css'
@@ -93,6 +94,12 @@ function CharacterSheetPage() {
       cancelled = true
     }
   }, [characterId, rosterCharacter, setCharacters, token])
+
+  async function handleAdvance(patch) {
+    const saved = await updateCharacter(token, character._id, patch)
+    setCharacter(saved)
+    setCharacters(current => current.map(entry => entry._id === saved._id ? saved : entry))
+  }
 
   async function handleDeleteCharacter() {
     if (!character || isDeleting) {
@@ -236,7 +243,8 @@ function CharacterSheetPage() {
             woundTrack={woundTrack}
           />
 
-          <CharacterSheetSkills character={character} trainingOptions={getTrainingOptions(blueprint)} />
+          <CharacterAdvancement character={character} rules={blueprint.progression} startingPackage={blueprint.startingProficiencies?.callings?.[character.calling]} onAdvance={handleAdvance} />
+          <CharacterSheetSkills character={character} trainingOptions={getTrainingOptions(blueprint, character)} />
           <CharacterSheetLoadout character={character} visibleCatalogGroups={visibleCatalogGroups} />
         </section>
       </section>

@@ -67,9 +67,9 @@ export function getStartingFeatures({ calling, origin, parsedOriginBonus, path }
       : null,
     calling?.starterAbility
       ? {
-          label: 'Starter Ability',
+          label: 'Historical ability reference',
           value: calling.starterAbility,
-          detail: `${calling.starterAbilityType}. ${calling.starterAbilityRule}`,
+          detail: `Not automatically granted; ability content awaits review. ${calling.starterAbilityType}. ${calling.starterAbilityRule}`,
         }
       : null,
     origin?.bonus

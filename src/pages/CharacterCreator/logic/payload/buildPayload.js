@@ -94,7 +94,7 @@ export function buildCharacterPayload({
   const customTraits = parseCustomTraitsText(details.customTraitsText)
   const traits = [...generatedTraits, ...customTraits]
   const customAbilities = parseCustomAbilities(loadout.customAbilities)
-  const abilities = [...createStarterAbilities(selectedCalling), ...customAbilities]
+  const abilities = [...(initialCharacter?._id ? createStarterAbilities(selectedCalling) : []), ...customAbilities]
   const isEditing = Boolean(initialCharacter?._id)
   const baseResources = isEditing
     ? Object.fromEntries(['health', 'stamina', 'focus', 'wounds', 'corruption'].map((key) => [key, initialCharacter.resources?.[key] ?? { current: null, max: null }]))

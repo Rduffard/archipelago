@@ -27,7 +27,7 @@ const args = () => ({
   details: state.createEmptyDetails(), finalAttributes: applyOriginBonus(allocation, origin.id, blueprint), attributeValues: allocation,
   identity: { name: 'Test Sailor', pronouns: '', originId: origin.id, callingId: catalog.callings[0].id, path: origin.path },
   loadout: state.createEmptyLoadout(), progressionValues: state.createProgression(), resourceValues: state.createEmptyResourceValues(),
-  selectedOrigin: origin, selectedCalling: catalog.callings[0], selectedPath: catalog.originPaths[0], training: ['board', 'shoot', 'deceive', 'navigate'], startingReputation: {}, trimmedName: 'Test Sailor', wounds: [],
+  selectedOrigin: origin, selectedCalling: catalog.callings[0], selectedPath: catalog.originPaths[0], training: ['climb', 'perception', 'deceive', 'navigate'], startingReputation: {}, trimmedName: 'Test Sailor', wounds: [],
 });
 
 test('resource parity for every supported level, negative modifiers and minimum growth', () => {
@@ -154,7 +154,7 @@ test('origin and calling tag updates use their new catalog identifiers', () => {
 });
 
 
-test('Training selector shows 23 descriptions, exactly four count, and prevents fifth / duplicate selections', async () => {
+test('Training selector shows 20 descriptions, exactly four count, and prevents fifth / duplicate selections', async () => {
   const { getTrainingOptions, toggleTraining } = await load('data/training.js');
   const { default: TrainingStep } = await load('components/creator/SkillsStep/SkillsStep.jsx');
   const options = getTrainingOptions(blueprint);
@@ -165,9 +165,9 @@ test('Training selector shows 23 descriptions, exactly four count, and prevents 
   assert.deepEqual(toggleTraining(selected,'unknown',options),selected);
   assert.equal(toggleTraining(selected,selected[0],options).length,3);
   const html = renderToStaticMarkup(React.createElement(TrainingStep,{ trainingOptions: options, training: selected, onTrainingToggle: () => {} }));
-  assert.equal((html.match(/type="checkbox"/g) ?? []).length,23);
+  assert.equal((html.match(/type="checkbox"/g) ?? []).length,20);
   assert.equal((html.match(/checked=""/g) ?? []).length,4);
-  assert.equal((html.match(/disabled=""/g) ?? []).length,19);
+  assert.equal((html.match(/disabled=""/g) ?? []).length,16);
   for (const option of options) assert.ok(html.includes(option.name));
   assert.equal(/Core Points|Specialty Picks|ranked|Core Check/.test(html),false);
   const common = { identity: args().identity, isIdentityComplete: true, progressionValues: state.createProgression(), remainingPoints: 0 };
