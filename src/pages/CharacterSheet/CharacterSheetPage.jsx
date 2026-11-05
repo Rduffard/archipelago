@@ -6,7 +6,7 @@ import CharacterSheetHeader from './CharacterSheetHeader/CharacterSheetHeader'
 import CharacterSheetLoadout from './CharacterSheetLoadout/CharacterSheetLoadout'
 import CharacterSheetOverview from './CharacterSheetOverview/CharacterSheetOverview'
 import CharacterAdvancement from './CharacterAdvancement'
-import CharacterSheetSkills from './CharacterSheetSkills/CharacterSheetSkills'
+import CharacterChecks from './CharacterChecks'
 import {
   getAttributeDetails,
 } from '../../data/characterSheetData'
@@ -226,6 +226,7 @@ function CharacterSheetPage() {
         />
 
         <section className="character-sheet__layout">
+          <CharacterChecks key={character._id} character={character} skills={blueprint.training ?? []} legacyOptions={getTrainingOptions(blueprint, character)} />
           <CharacterSheetOverview
             abilities={abilities}
             activeReputation={activeReputation}
@@ -244,7 +245,6 @@ function CharacterSheetPage() {
           />
 
           <CharacterAdvancement character={character} rules={blueprint.progression} startingPackage={blueprint.startingProficiencies?.callings?.[character.calling]} onAdvance={handleAdvance} />
-          <CharacterSheetSkills character={character} trainingOptions={getTrainingOptions(blueprint, character)} />
           <CharacterSheetLoadout character={character} visibleCatalogGroups={visibleCatalogGroups} />
         </section>
       </section>

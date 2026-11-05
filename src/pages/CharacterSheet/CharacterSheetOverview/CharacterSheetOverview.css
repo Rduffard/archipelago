@@ -12,7 +12,7 @@
   display: grid;
   grid-template-columns: minmax(180px, 0.95fr) minmax(220px, 1.35fr) minmax(220px, 1.25fr);
   grid-template-areas:
-    "core abilities identity"
+    "abilities abilities identity"
     "trackers trackers progression"
     "trackers trackers traits"
     "reputation reputation traits";

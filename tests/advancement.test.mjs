@@ -42,6 +42,15 @@ test('historical sheet has no advancement write controls',()=>{
  const html=renderToStaticMarkup(React.createElement(Advancement,{character:{progression:{rank:12}},rules,onAdvance:()=>{}}));
  assert.ok(html.includes('reviewed upgrade'));assert.equal(html.includes('<button'),false);
 });
+
+test('sheet distinguishes acquired milestones, exchanges, Path tiers and future rewards',()=>{
+ const character=fresh();
+ character.advancement.spends=[{rewardId:'attribute:4',kind:'attribute',increases:{might:2}},{rewardId:'path:3',kind:'path',pathId:'historical-path',tier:1},{rewardId:'calling:1',kind:'calling',abilityId:'recorded-ability'}];
+ character.advancement.exchanges=[{rewardId:'attribute:8',kind:'calling'}];
+ character.progression.rank=8;
+ const html=renderToStaticMarkup(React.createElement(Advancement,{character,rules,onAdvance:()=>{}}));
+ for(const text of ['might +2','historical-path','tier 1','recorded-ability','attribute:8 exchanged for calling','Locked future rewards','Level 20']) assert.ok(html.includes(text),text);
+});
 test('legacy Training is shown unchanged; retired IDs can be removed explicitly',()=>{
  assert.equal(getTrainingOptions({training,legacyTraining},{training:['board']}).length,23);
  assert.equal(getTrainingOptions({training,legacyTraining},{trainingRulesVersion:1}).length,20);

@@ -137,7 +137,7 @@ export function getAbilityEntries(character, calling) {
     }))
   }
 
-  if (!calling?.starterAbility) {
+  if (character.advancement || !calling?.starterAbility) {
     return []
   }
 

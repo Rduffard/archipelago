@@ -1,29 +1,18 @@
 import { getSystemReputationTier, getSystemReputationTrack } from '../../../data/archipelagoSystemSelectors'
-import { getAttributeLabel } from '../../../lib/character'
 import { SectionCard, SectionCardEmpty, SectionCardHeader } from '../../../components/ui/SectionCard/SectionCard'
-import { ATTRIBUTE_KEYS, toReferenceEntries } from '../characterSheetHelpers'
+import { toReferenceEntries } from '../characterSheetHelpers'
 import { ReferenceList, TrackerCard } from '../CharacterSheetSectionBits/CharacterSheetSectionBits'
-import { calculateCheckModifier } from '../../../lib/checkModifier.js'
 import './CharacterSheetOverview.css'
 
-function getAttributeModifier(attributes, key) {
-  const score = attributes?.[key]
-  if (!Number.isSafeInteger(score) || score < 1) return '—'
-  const modifier = calculateCheckModifier(attributes, key)
-  return modifier >= 0 ? `+${modifier}` : `${modifier}`
-}
 
 function CharacterSheetOverview({
   abilities,
   activeReputation,
-  attributeDetails,
   blueprint,
-  character,
   corruption,
   focus,
   health,
   identityEntries,
-  originBonus,
   progressionEntries,
   stamina,
   traits,
@@ -32,29 +21,6 @@ function CharacterSheetOverview({
   return (
     <section className="character-sheet__overview-shell">
       <div className="character-sheet__overview-grid">
-        <SectionCard className="character-sheet__panel character-sheet__panel--core">
-          <SectionCardHeader className="character-sheet__panel-header" title="Sheet Core" />
-
-          <div className="character-sheet__stat-board">
-            <section className="character-sheet__stat-section">
-              <header>
-                <h3>Attributes</h3>
-              </header>
-              <ReferenceList
-                entries={ATTRIBUTE_KEYS.map((key) => ({
-                  key,
-                  label: getAttributeLabel(key),
-                  meta: originBonus?.key === key ? `+${originBonus.amount}` : '',
-                  value: character.attributes?.[key] ?? 0,
-                  modifier: getAttributeModifier(character.attributes, key),
-                  detail: `${attributeDetails[key]}\n\nModifier: ${getAttributeModifier(character.attributes, key)}${
-                    originBonus?.key === key ? `\nOrigin Bonus: +${originBonus.amount}` : ''
-                  }`,
-                }))}
-              />
-            </section>
-          </div>
-        </SectionCard>
 
         <SectionCard className="character-sheet__panel character-sheet__panel--abilities">
           <SectionCardHeader className="character-sheet__panel-header" title="Abilities" />

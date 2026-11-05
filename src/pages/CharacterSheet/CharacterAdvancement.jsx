@@ -28,14 +28,19 @@ export default function CharacterAdvancement({ character, rules, startingPackage
     catch (err) { setError(err.message) }
     finally { setBusy(false) }
   }
-  if (!ledger) return <section className="review-card"><h2>Advancement</h2><p>Historical progression is preserved. A reviewed upgrade is required before using the new reward system.</p></section>
+  if (!ledger) return <section className="review-card character-sheet__panel--wide"><h2>Advancement</h2><p>Historical progression is preserved. A reviewed upgrade is required before using the new reward system.</p></section>
   const rewards = unspentRewards(character, rules)
   const level = character.progression.rank
-  return <section className="review-card">
+  return <section className="review-card character-sheet__panel--wide">
     <h2>Advancement · Level {level}</h2>
     <p>Defining passive: {ledger.passive.name}. Original combat text awaits review; no converted combat effect is applied.</p>
     <p>Unspent rewards: {rewards.length}. Milestone exchanges: {ledger.exchanges.length} / 2. Exchanges require an explicit respec to reverse.</p>
     <p>Calling selections await reviewed ability definitions. Path investments await reviewed four-tier content. Rewards remain available.</p>
+    <details><summary>Acquired improvements and selections ({ledger.spends.length})</summary>
+      {ledger.spends.length ? <ul>{ledger.spends.map(spend => <li key={spend.rewardId}>{spend.rewardId}: {spend.kind === 'attribute' ? Object.entries(spend.increases ?? {}).map(([key, value]) => key + ' +' + value).join(', ') : spend.kind === 'calling' ? 'Calling ability: ' + spend.abilityId : 'Specialized Path: ' + spend.pathId + ' · tier ' + spend.tier} · acquired</li>)}</ul> : <p>No rewards spent.</p>}
+      {ledger.exchanges.map(exchange => <p key={exchange.rewardId}>{exchange.rewardId} exchanged for {exchange.kind}</p>)}
+    </details>
+    <details><summary>Locked future rewards</summary>{[['Calling selection', rules?.callingLevels], ['Path investment', rules?.pathLevels], ['Attribute milestone', rules?.attributeLevels]].map(([name, levels]) => <p key={name}>{name}: {(levels ?? []).filter(value => value > level).map(value => 'Level ' + value).join(', ') || 'None remaining'}</p>)}</details>
     {startingPackage ? <p>Planned equipment proficiencies: {[...startingPackage.weapons, ...startingPackage.armor, ...startingPackage.tools].join(', ') || 'None'}. Item categories and combat effects await review.</p> : null}
     <fieldset disabled={busy || level === 20}><legend>Record a level increase</legend><label>New level <select value={selectedLevel} onChange={e => setSelectedLevel(e.target.value)}><option value="">Choose level</option>{Array.from({ length: 20 - level }, (_, i) => level + i + 1).map(n => <option key={n} value={n}>{n}</option>)}</select></label><button type="button" disabled={!selectedLevel} onClick={() => submit({ level: Number(selectedLevel) })}>Record level</button></fieldset>
     {rewards.map(reward => reward.kind === 'attribute' ? <AttributeReward key={reward.id} reward={reward} busy={busy} canExchange={ledger.exchanges.length < 2} onAdvance={submit} /> : <p key={reward.id}>Level {reward.level}: unspent {reward.kind === 'calling' ? 'Calling selection' : 'Path investment'} · content pending review</p>)}

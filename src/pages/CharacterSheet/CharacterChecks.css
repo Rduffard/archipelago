@@ -1,0 +1,16 @@
+.sheet-checks header { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+.sheet-checks h2, .sheet-checks h3 { margin:0.4rem 0; }
+.sheet-checks__attributes, .sheet-checks__skills { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:0.35rem; }
+.sheet-checks__attributes > div { display:grid; gap:0.2rem; }
+.sheet-checks button { color:inherit; background:transparent; border:1px solid currentColor; border-radius:8px; padding:0.45rem; cursor:pointer; font:inherit; text-align:left; }
+.sheet-checks button:hover, .sheet-checks button:focus-visible { background:rgba(180,150,100,.18); outline:2px solid currentColor; outline-offset:1px; }
+.sheet-checks button:disabled { opacity:.5; cursor:default; }
+.sheet-checks button[aria-pressed=true] { background:rgba(180,150,100,.25); }
+.sheet-checks__skills button { display:flex; justify-content:space-between; align-items:center; gap:0.5rem; }
+.sheet-checks__selection { margin:.6rem 0; display:flex; flex-wrap:wrap; gap:.3rem; }
+.sheet-checks [role=status] { margin:.6rem 0; }
+.sheet-roll { display:block; padding:.4rem; border-left:3px solid currentColor; }
+.sheet-roll span { display:block; }
+.sheet-roll--high { border-left-width:7px; }
+.sheet-roll--low { border-left-style:double; border-left-width:7px; }
+@media (max-width:480px) { .sheet-checks__attributes, .sheet-checks__skills { grid-template-columns:repeat(2,minmax(0,1fr)); } }
