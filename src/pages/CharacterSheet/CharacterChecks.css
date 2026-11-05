@@ -11,7 +11,7 @@
 .sheet-checks__attributes button + button { font-size:.75rem; color:#d1b38f; }
 .sheet-checks h3 { margin-top:1rem; }
 .sheet-checks__skills { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); column-gap:1.25rem; }
-.sheet-checks__skills button { display:grid; grid-template-columns:1rem 1fr auto; align-items:center; gap:.35rem; border-bottom:1px solid rgba(214,190,152,.12); border-radius:0; }
+.sheet-checks__skills button { display:grid; grid-template-columns:1fr auto; align-items:center; gap:.35rem; border-bottom:1px solid rgba(214,190,152,.12); border-radius:0; }
 .sheet-checks__skills small { display:block; font-size:.7rem; text-transform:capitalize; color:#cabca8; }
 .sheet-checks__training { color:#cabca8; font-size:.65rem; }
 .sheet-checks__training.is-trained { color:#d1b38f; }
@@ -21,3 +21,11 @@
 .sheet-roll--high { border-left-width:7px; }
 .sheet-roll--low { border-left-style:double; border-left-width:7px; }
 @media(max-width:760px) { .sheet-checks__attributes { grid-template-columns:repeat(3,minmax(0,1fr)); } .sheet-checks__skills { grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:.5rem; } }
+
+.sheet-checks__skills button { color:var(--cw-text); border:0; font-weight:400; }
+.sheet-checks__skills button strong { font-weight:400; font-variant-numeric:tabular-nums; }
+.sheet-checks__skills button.is-trained { color:var(--cw-accent); font-weight:600; }
+.sheet-checks__skills button.is-trained strong { font-weight:700; }
+.sheet-checks__skills small { color:var(--cw-muted); font-weight:400; }
+.sheet-checks__skills button:hover { background:var(--cw-surface-elevated); }
+.sheet-checks__skills button:focus-visible { outline-color:var(--cw-accent); }

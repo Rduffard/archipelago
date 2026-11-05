@@ -47,12 +47,10 @@ export default function CharacterChecks({ character, skills = [], legacyOptions 
       const trained = skillIsTrained(character, skill.id)
       let modifier = null
       try { modifier = calculateCheckModifier(character.attributes, attribute) + (trained ? proficiencyBonus(character.progression?.rank) : 0) } catch { /* Unavailable saved score or level. */ }
-      return <button type="button" key={skill.id} disabled={modifier === null} onClick={() => roll('skill', skill.name, undefined, skill.id)} title={skill.description} aria-label={'Roll ' + skill.name + ' skill check'}>
-        <span className={trained ? 'sheet-checks__training is-trained' : 'sheet-checks__training'} title={trained ? 'Trained' : 'Untrained'}>{trained ? '●' : '○'}</span>
+      return <button type="button" className={trained ? 'is-trained' : undefined} key={skill.id} disabled={modifier === null} onClick={() => roll('skill', skill.name, undefined, skill.id)} title={skill.description} aria-label={'Roll ' + skill.name + ' skill check'}>
         <span>{skill.name}<small>{attribute}</small></span><strong>{modifier === null ? '—' : signed(modifier)}</strong>
       </button>
     })}</div>
-    <small>● Trained · ○ Untrained</small>
     {legacy.length ? <aside><h3>Unresolved legacy Training</h3><p>Preserved selections; no General Skill proficiency inferred.</p><ul>{legacy.map(id => <li key={id}>{legacyOptions.find(option => option.id === id)?.name ?? id}</li>)}</ul></aside> : null}
     {character.training === undefined ? <p>Training unavailable: historical selections have not been converted.</p> : null}
     {error ? <p role="alert">{error}</p> : null}

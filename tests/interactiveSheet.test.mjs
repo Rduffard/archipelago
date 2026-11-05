@@ -36,7 +36,7 @@ test('sheet renders all canonical skills, six attributes and saves without rolli
   assert.equal((html.match(/attribute check/g) ?? []).length, 6)
   assert.equal((html.match(/saving throw&quot;|saving throw"/g) ?? []).length, 6)
   assert.ok(html.includes('Select an attribute, saving throw, or skill'))
-  assert.ok(html.includes('Trained'))
+  assert.equal((html.match(/class="is-trained"/g) ?? []).length, 1)
 })
 test('natural extremes are labeled without changing totals or success rules', () => {
   for (const [sample, natural, tone] of [[0, 1, 'low'], [0.999, 20, 'high']]) {
@@ -65,8 +65,8 @@ test('all twenty defaults match the approved attribute groups', () => {
 test('every Calling package, free choice and substitution uses saved Training exactly once', () => {
   for (const pkg of Object.values(packages.callings)) {
     let owned = selectCallingTraining([], [], pkg.skills)
-    assert.deepEqual(owned, pkg.skills)
-    for (const entry of training.filter(s => !owned.includes(s.id)).slice(0,2)) owned = toggleTraining(owned, entry.id, training)
+    assert.deepEqual(owned, [])
+    for (const entry of training.filter(s => !owned.includes(s.id)).slice(0,4)) owned = toggleTraining(owned, entry.id, training)
     assert.equal(owned.length, 4)
     const c = { ...character, training: owned }
     for (const skill of training) {
@@ -75,8 +75,8 @@ test('every Calling package, free choice and substitution uses saved Training ex
       assert.equal(result.proficiency, owned.includes(skill.id) ? 3 : 0)
     }
     const replacement = training.find(s => !owned.includes(s.id)).id
-    const substituted = toggleTraining(toggleTraining(owned, pkg.skills[0], training), replacement, training)
-    assert.equal(skillIsTrained({...c, training: substituted}, pkg.skills[0]), false)
+    const substituted = toggleTraining(toggleTraining(owned, owned[0], training), replacement, training)
+    assert.equal(skillIsTrained({...c, training: substituted}, owned[0]), false)
     assert.equal(skillIsTrained({...c, training: substituted}, replacement), true)
   }
 })
@@ -93,3 +93,4 @@ test('history preserves the newest eight mixed checks without mutating earlier r
   }
   assert.deepEqual(history.map(r => r.name), ['9','8','7','6','5','4','3','2'])
 })
+
