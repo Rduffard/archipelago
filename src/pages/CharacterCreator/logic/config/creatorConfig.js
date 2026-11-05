@@ -11,8 +11,6 @@ export const PATH_ORIGIN_MAP = {
   lilin: 'lilin-core',
 }
 
-export const STARTING_CORE_POINTS = 3
-export const STARTING_SPECIALTY_PICKS = 5
 
 export const CREATOR_STEPS = [
   {
@@ -28,12 +26,12 @@ export const CREATOR_STEPS = [
   {
     id: 'attributes',
     title: 'Attributes',
-    description: 'Spend the 12 starting points.',
+    description: 'Allocate up to 27 points before origin bonuses.',
   },
   {
     id: 'skills',
     title: 'Training',
-    description: 'Invest in core checks and choose ranked specialties.',
+    description: 'Choose exactly four Training proficiencies.',
   },
   {
     id: 'loadout',
@@ -47,8 +45,8 @@ export const CREATOR_STEPS = [
   },
   {
     id: 'progression',
-    title: 'Progression',
-    description: 'Set rank, specialization path, and unlocked advancement.',
+    title: 'Paths',
+    description: 'Inspect Paths and their recorded benefits.',
   },
   {
     id: 'review',

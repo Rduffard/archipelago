@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
 import {
-  getRankedSystemSpecializations,
   getSystemCallings,
   getSystemOrigins,
   getSystemOriginPaths,
@@ -8,17 +7,13 @@ import {
   getSystemSpecialization,
   getSystemSpecializations,
 } from '../../../../data/archipelagoSystemSelectors'
-import { getCanonicalSkillGroups } from '../../../../data/archipelagoSkills'
-import {
-  calculateChecks,
-  getLegacyDerivedStats,
-  getLegacySocialStats,
-} from '../../../../data/archipelagoChecks'
+import { getTrainingOptions, toggleTraining } from '../../../../data/training.js'
+import { applyOriginBonus } from '../../../../lib/originBonus.js'
 import {
   applyAttributeBonus,
   createEmptyAttributes,
   getRemainingPoints,
-} from '../../../../lib/character'
+} from '../../../../lib/creatorAttributes.js'
 import {
   getCreatorActionHint,
   getCreatorValidations,
@@ -26,23 +21,19 @@ import {
 } from '../guidance/creatorGuidance'
 import { hydrateCreatorState } from '../hydration/hydrateState'
 import { buildCharacterPayload } from '../payload/buildPayload'
+import { buildCharacterPatch } from '../payload/buildPatch'
 import {
   INITIAL_IDENTITY,
   PATH_ORIGIN_MAP,
-  STARTING_CORE_POINTS,
-  STARTING_SPECIALTY_PICKS,
 } from '../config/creatorConfig'
 import { createMutations } from '../mutations/createMutations'
 import { createNavigation } from '../navigation/stepNavigation'
 import {
-  countAllocatedSkillPoints,
   createEmptyDetails,
   createEmptyLoadout,
   createEmptyResourceValues,
-  createEmptySkills,
   createProgression,
   createResources,
-  countAllocatedCorePoints,
   normalizeProgression,
 } from '../state/creatorState'
 
@@ -73,10 +64,8 @@ function useCreatorController({
   )
   const [details, setDetails] = useState(() => hydratedState?.details ?? createEmptyDetails())
   const [loadout, setLoadout] = useState(() => hydratedState?.loadout ?? createEmptyLoadout())
-  const [skills, setSkills] = useState(
-    () => hydratedState?.skills ?? createEmptySkills(blueprint?.specialties ?? blueprint?.expandedSkillList ?? {}),
-  )
-  const [resourceValues, setResourceValues] = useState(
+  const [training, setTraining] = useState(() => hydratedState?.training ?? [])
+  const [storedResourceValues, setResourceValues] = useState(
     () => hydratedState?.resourceValues ?? createEmptyResourceValues(),
   )
   const [wounds, setWounds] = useState(() => hydratedState?.wounds ?? [])
@@ -90,16 +79,7 @@ function useCreatorController({
   const selectedCalling = callings.find((entry) => entry.id === identity.callingId)
   const selectedOrigin = origins.find((entry) => entry.id === identity.originId)
   const selectedPath = originPaths.find((entry) => entry.id === identity.path)
-  const rankedSpecializations = useMemo(
-    () => getRankedSystemSpecializations(identity.callingId, skills, blueprint),
-    [blueprint, identity.callingId, skills],
-  )
-  const activeSpecialization =
-    rankedSpecializations.find((entry) => entry.id === progressionValues.specializationPath) ??
-    getSystemSpecialization(progressionValues.specializationPath, blueprint)
-  const recommendedSpecializations = rankedSpecializations.filter(
-    (specialization) => specialization.recommendationScore > 0,
-  )
+  const activeSpecialization = getSystemSpecialization(progressionValues.specializationPath, blueprint)
   const advancementSpent = useMemo(
     () =>
       (activeSpecialization?.nodes ?? [])
@@ -108,50 +88,39 @@ function useCreatorController({
     [activeSpecialization, progressionValues.unlockedNodes],
   )
   const finalAttributes = useMemo(
-    () => applyAttributeBonus(attributeValues, selectedOrigin?.bonus),
-    [attributeValues, selectedOrigin?.bonus],
+    () => {
+      try { return applyOriginBonus(attributeValues, selectedOrigin?.id, blueprint) }
+      catch { return applyAttributeBonus(attributeValues, selectedOrigin?.bonus) }
+    },
+    [attributeValues, selectedOrigin, blueprint],
   )
   const startingReputation = useMemo(
     () => getSystemOriginStartingReputation(identity.originId, blueprint),
     [blueprint, identity.originId],
   )
-  const checks = useMemo(
-    () => calculateChecks(finalAttributes, blueprint, progressionValues.coreCheckInvestments),
-    [blueprint, finalAttributes, progressionValues.coreCheckInvestments],
-  )
-  const derivedStats = useMemo(() => getLegacyDerivedStats(checks), [checks])
-  const socialStats = useMemo(() => getLegacySocialStats(checks), [checks])
-  const skillGroups = useMemo(() => getCanonicalSkillGroups(blueprint), [blueprint])
-  const totalCorePoints = useMemo(
-    () =>
-      Math.max(
-        STARTING_CORE_POINTS,
-        countAllocatedCorePoints(initialCharacter?.progression?.coreCheckInvestments ?? {}),
-      ),
-    [initialCharacter],
-  )
-  const totalSpecialtyPicks = useMemo(
-    () => Math.max(STARTING_SPECIALTY_PICKS, countAllocatedSkillPoints(initialCharacter?.skills ?? {})),
-    [initialCharacter],
-  )
-  const allocatedCorePoints = useMemo(
-    () => countAllocatedCorePoints(progressionValues.coreCheckInvestments),
-    [progressionValues.coreCheckInvestments],
-  )
-  const allocatedSpecialtyPicks = useMemo(() => countAllocatedSkillPoints(skills), [skills])
-  const remainingCorePoints = Math.max(0, totalCorePoints - allocatedCorePoints)
-  const remainingSpecialtyPicks = Math.max(0, totalSpecialtyPicks - allocatedSpecialtyPicks)
+  const trainingOptions = getTrainingOptions(blueprint)
+  const trainingUnchanged = isEditing && JSON.stringify(training) === JSON.stringify(hydratedState?.training)
+  const validTraining = trainingUnchanged || (training.length === 4 && new Set(training).size === 4 && training.every((id) => trainingOptions.some((entry) => entry.id === id)))
   const resourceMaximums = useMemo(() => {
-    const generatedResources = createResources(finalAttributes, derivedStats)
+    const canCalculate = Object.values(finalAttributes).every((score) => score >= 8)
+    const generatedResources = canCalculate
+      ? createResources(finalAttributes, isEditing ? progressionValues.rank : 1)
+      : initialCharacter?.resources ?? {}
 
     return {
-      health: generatedResources.health.max,
-      stamina: generatedResources.stamina.max,
-      focus: generatedResources.focus.max,
-      corruption: generatedResources.corruption.max,
-      wounds: generatedResources.wounds.max,
+      health: isEditing && !initialCharacter?.resources?.health ? null : generatedResources.health?.max ?? null,
+      stamina: isEditing && !initialCharacter?.resources?.stamina ? null : generatedResources.stamina?.max ?? null,
+      focus: isEditing && !initialCharacter?.resources?.focus ? null : generatedResources.focus?.max ?? null,
+      corruption: initialCharacter?.resources?.corruption?.max ?? generatedResources.corruption?.max ?? 6,
+      wounds: initialCharacter?.resources?.wounds?.max ?? generatedResources.wounds?.max ?? 3,
     }
-  }, [derivedStats, finalAttributes])
+  }, [finalAttributes, initialCharacter, isEditing, progressionValues.rank])
+  const resourceValues = {
+    ...storedResourceValues,
+    ...Object.fromEntries(['health', 'stamina', 'focus'].map((key) => [key,
+      isEditing ? (resourceMaximums[key] === null ? null : Math.min(storedResourceValues[key], resourceMaximums[key])) : resourceMaximums[key],
+    ])),
+  }
   const remainingPoints = getRemainingPoints(attributeValues)
   const trimmedName = identity.name.trim()
   const hasValidName = trimmedName.length >= 2
@@ -168,10 +137,11 @@ function useCreatorController({
         isIdentityComplete,
         progressionValues,
         remainingPoints,
-        remainingCorePoints,
-        remainingSpecialtyPicks,
+        isEditing,
+        attributesUnchanged: JSON.stringify(attributeValues) === JSON.stringify(hydratedState?.attributeValues) && identity.originId === hydratedState?.identity.originId,
+        validTraining,
       }),
-    [identity, isIdentityComplete, progressionValues, remainingCorePoints, remainingPoints, remainingSpecialtyPicks],
+    [identity, isIdentityComplete, progressionValues, validTraining, remainingPoints, isEditing, attributeValues, hydratedState],
   )
 
   const mutations = useMemo(
@@ -186,12 +156,9 @@ function useCreatorController({
         setProgressionValues,
         setResourceValues,
         setSaveMessage,
-        setSkills,
         setWounds,
-        totalCorePoints,
-        totalSpecialtyPicks,
       }),
-    [activeSpecialization, resourceMaximums, totalCorePoints, totalSpecialtyPicks],
+    [activeSpecialization, resourceMaximums],
   )
   const {
     handleAddCustomAbility,
@@ -205,66 +172,22 @@ function useCreatorController({
     handleRemoveCustomAbility,
     handleRemoveWound,
     handleResourceChange,
-    handleCoreCheckInvestmentChange,
     handleWoundChange,
   } = mutations
-  const handleSkillRankChange = useCallback(
-    (categoryKey, blueprintSkill, nextRank) => {
-      const profile = Boolean(globalThis.__ARCHIPELAGO_PROFILE_SPECIALTIES__)
-
-      if (profile) {
-        console.time(`handleSkillRankChange:${blueprintSkill.id}`)
-      }
-
-      setSaveMessage('')
-      setSkills((current) => {
-        const clampedRank = Math.max(0, Math.min(blueprintSkill.maxRank ?? 3, nextRank))
-        const currentGroup = current[categoryKey] ?? []
-        const existingEntry = currentGroup.find((entry) => entry.id === blueprintSkill.id)
-        const nextGroup =
-          clampedRank === 0
-            ? currentGroup.filter((entry) => entry.id !== blueprintSkill.id)
-            : [
-                ...currentGroup.filter((entry) => entry.id !== blueprintSkill.id),
-                {
-                  id: blueprintSkill.id,
-                  rank: clampedRank,
-                  specialty: existingEntry?.specialty ?? '',
-                },
-              ].sort((left, right) => left.id.localeCompare(right.id))
-        const nextSkills = {
-          ...current,
-          [categoryKey]: nextGroup,
-        }
-
-        if (countAllocatedSkillPoints(nextSkills) > totalSpecialtyPicks) {
-          if (profile) {
-            console.timeEnd(`handleSkillRankChange:${blueprintSkill.id}`)
-          }
-
-          return current
-        }
-
-        if (profile) {
-          console.timeEnd(`handleSkillRankChange:${blueprintSkill.id}`)
-        }
-
-        return nextSkills
-      })
-    },
-    [totalSpecialtyPicks],
-  )
+  const handleTrainingToggle = useCallback((id) => {
+    setSaveMessage('')
+    setTraining((current) => toggleTraining(current, id, trainingOptions))
+  }, [trainingOptions])
 
   async function handleSaveCharacter() {
     if (!onSaveCharacter || !validations.review) {
       return
     }
 
-    const payload = buildCharacterPayload({
+    const payloadArguments = {
       details,
-      derivedStats,
       finalAttributes,
-      checks,
+      attributeValues,
       identity,
       initialCharacter,
       loadout,
@@ -273,12 +196,47 @@ function useCreatorController({
       selectedCalling,
       selectedOrigin,
       selectedPath,
-      skills,
-      socialStats,
+      training,
       startingReputation,
       trimmedName,
       wounds,
-    })
+    }
+    let payload = buildCharacterPayload(payloadArguments)
+    if (isEditing) {
+      const initialOrigin = origins.find((origin) => origin.id === hydratedState.identity.originId)
+      const baseline = buildCharacterPayload({
+        ...payloadArguments,
+        ...hydratedState,
+        selectedOrigin: initialOrigin,
+        selectedCalling: callings.find((calling) => calling.id === hydratedState.identity.callingId),
+        selectedPath: originPaths.find((path) => path.id === hydratedState.identity.path),
+        finalAttributes: applyAttributeBonus(hydratedState.attributeValues, initialOrigin?.bonus),
+        trimmedName: hydratedState.identity.name.trim(),
+      })
+      // Compare against stored current values, not the clamped preview; the server applies clamping.
+      try {
+        payload = buildCharacterPatch(payload, baseline, initialCharacter)
+      } catch (error) {
+        setSaveMessage(error.message)
+        return
+      }
+      const resourcePatch = {}
+      Object.entries(storedResourceValues).forEach(([track, current]) => {
+        if (current !== hydratedState.resourceValues[track]) resourcePatch[track] = { current }
+      })
+      if (JSON.stringify(wounds) !== JSON.stringify(hydratedState.wounds)) {
+        resourcePatch.wounds = { ...resourcePatch.wounds, active: buildCharacterPayload(payloadArguments).resources.wounds.active }
+      }
+      delete payload.resources
+      if (Object.keys(resourcePatch).length) payload.resources = resourcePatch
+      for (const field of ['pastRole', 'definingEvent']) {
+        if (details[field] === hydratedState.details[field] && payload.identity?.background) {
+          delete payload.identity.background[field]
+        } else if (payload.identity?.background) {
+          payload.identity.background[field] = details[field].trim()
+        }
+      }
+    }
 
     await onSaveCharacter(payload)
     setSaveMessage(
@@ -304,8 +262,6 @@ function useCreatorController({
     hasValidName,
     identity,
     remainingPoints,
-    remainingCorePoints,
-    remainingSpecialtyPicks,
     trimmedName,
     validations,
   })
@@ -321,21 +277,13 @@ function useCreatorController({
     },
     attributes: {
       attributeValues,
+      finalAttributes,
+      selectedOrigin,
+      resourceMaximums,
       onAttributeChange: handleAttributeChange,
     },
-    skills: {
-      skillGroups,
-      skills,
-      finalAttributes,
-      remainingCorePoints,
-      remainingSpecialtyPicks,
-      totalCorePoints,
-      totalSpecialtyPicks,
-      checks,
-      coreCheckInvestments: progressionValues.coreCheckInvestments,
-      onCoreCheckInvestmentChange: handleCoreCheckInvestmentChange,
-      onSkillRankChange: handleSkillRankChange,
-    },
+    skills: { trainingOptions, training, onTrainingToggle: handleTrainingToggle,
+      historical: isEditing && !initialCharacter.training },
     loadout: {
       loadout,
       onLoadoutChange: handleLoadoutChange,
@@ -344,6 +292,7 @@ function useCreatorController({
       onRemoveCustomAbility: handleRemoveCustomAbility,
     },
     details: {
+      isEditing,
       details,
       resourceValues,
       resourceMaximums,
@@ -355,26 +304,23 @@ function useCreatorController({
       onRemoveWound: handleRemoveWound,
     },
     progression: {
+      isEditing,
       progressionValues,
       specializations,
       activeSpecialization,
-      recommendedSpecializations,
-      rankedSpecializations,
       advancementSpent,
       onProgressionChange: handleProgressionChange,
     },
     review: {
       identity,
       attributeValues,
-      derivedStats,
-      checks,
-      socialStats,
       startingReputation,
       details,
       loadout,
       resourceValues,
       resourceMaximums,
-      skills,
+      training,
+      trainingOptions,
       wounds,
       progressionValues,
     },
@@ -389,8 +335,6 @@ function useCreatorController({
     currentStep,
     currentStepMeta,
     details,
-    derivedStats,
-    checks,
     finalAttributes,
     getStepValidity,
     handleAddCustomAbility,
@@ -408,8 +352,6 @@ function useCreatorController({
     handleRemoveWound,
     handleResourceChange,
     handleSaveCharacter,
-    handleCoreCheckInvestmentChange,
-    handleSkillRankChange,
     handleWoundChange,
     identity,
     isEditing,
@@ -417,23 +359,16 @@ function useCreatorController({
     loadout,
     originSummaryValue,
     progressionValues,
-    rankedSpecializations,
-    recommendedSpecializations,
     remainingPoints,
-    remainingCorePoints,
-    remainingSpecialtyPicks,
+    trainingCount: training.length,
     resourceMaximums,
     resourceValues,
     saveMessage,
     selectedCalling,
-    skillGroups,
-    skills,
-    socialStats,
+      training,
     specializations,
     startingReputation,
     stepPropsById,
-    totalCorePoints,
-    totalSpecialtyPicks,
     validations,
     wounds,
   }

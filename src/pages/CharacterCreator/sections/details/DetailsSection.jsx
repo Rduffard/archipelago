@@ -1,6 +1,7 @@
 import DetailsStep from '../../../../components/creator/DetailsStep/DetailsStep'
 
 function DetailsSection({
+  isEditing,
   details,
   onAddWound,
   onDetailsChange,
@@ -13,6 +14,7 @@ function DetailsSection({
 }) {
   return (
     <DetailsStep
+      isEditing={isEditing}
       details={details}
       resources={resourceValues}
       resourceMaximums={resourceMaximums}

@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Corruption System
 
 Corruption is a risk/reward pressure system for forbidden power, spiritual contamination, and dangerous relic interaction.

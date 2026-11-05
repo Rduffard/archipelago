@@ -1,28 +1,6 @@
 import {
-  ATTRIBUTE_KEYS,
-  ATTRIBUTE_POINTS,
   FALLBACK_ATTRIBUTES,
 } from '../data/archipelagoSystemBlueprint'
-
-export function createEmptyAttributes() {
-  return ATTRIBUTE_KEYS.reduce((accumulator, key) => {
-    accumulator[key] = 0
-    return accumulator
-  }, {})
-}
-
-export function getSpentPoints(attributeValues) {
-  return Object.values(attributeValues).reduce((total, value) => total + value, 0)
-}
-
-export function getRemainingPoints(attributeValues) {
-  return ATTRIBUTE_POINTS - getSpentPoints(attributeValues)
-}
-
-export function getRollModifier(score) {
-  const modifier = Number(score ?? 0) - 10
-  return modifier >= 0 ? `+${modifier}` : `${modifier}`
-}
 
 export function getAttributeLabel(attributeKey) {
   return FALLBACK_ATTRIBUTES.find((attribute) => attribute.key === attributeKey)?.name ?? attributeKey

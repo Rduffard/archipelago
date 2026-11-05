@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Resolution Flow
 
 Resolution in Sanguine Archipelago begins with fictional intent and ends with changed circumstances. The system is not built around selecting a move from a fixed combat menu.

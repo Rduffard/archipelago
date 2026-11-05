@@ -1,10 +1,9 @@
+import { calculateCheckModifier } from '../../../lib/checkModifier.js'
 import { useSystem } from '../../../hooks/useSystem'
 import HoverInfo from '../../ui/HoverInfo/HoverInfo'
 import {
-  getRollModifier,
   getAttributeLabel,
 } from '../../../lib/character'
-import { getCheckGroups } from '../../../data/archipelagoChecks'
 import '../shared/CreatorSurfaceStyles/CreatorSurfaceStyles.css'
 import './ReviewStep.css'
 import {
@@ -36,13 +35,13 @@ function ReviewDataRow({ detail, label, value }) {
 function ReviewStep({
   identity,
   attributeValues,
-  checks,
   reputation,
   details,
   loadout,
   resources,
   resourceMaximums,
-  skills,
+  training,
+  trainingOptions,
   wounds,
   progression,
 }) {
@@ -55,8 +54,6 @@ function ReviewStep({
     origin,
     parsedOriginBonus,
     path,
-    recommendedSpecializations,
-    savedSkills,
     specialization,
   } = getReviewContext({
     attributeValues,
@@ -64,9 +61,9 @@ function ReviewStep({
     identity,
     progression,
     reputation,
-    skills,
+    training,
+  trainingOptions,
   })
-  const checkGroups = getCheckGroups(blueprint)
   const startingFeatures = getStartingFeatures({ calling, origin, parsedOriginBonus, path })
   const reputationEntries = getReputationEntries(activeReputation, blueprint)
 
@@ -91,8 +88,8 @@ function ReviewStep({
           <strong>{calling?.name || 'Unset'}</strong>
         </div>
         <div className="review-strip__item">
-          <span>Specialties</span>
-          <strong>{savedSkills.length} ranked</strong>
+          <span>Training</span>
+          <strong>{training.length} selected</strong>
         </div>
         <div className="review-strip__item">
           <span>Loadout</span>
@@ -100,7 +97,7 @@ function ReviewStep({
         </div>
         <div className="review-strip__item">
           <span>Progression</span>
-          <strong>Rank {progression?.rank ?? 1}</strong>
+          <strong>Level {progression?.rank ?? 1}</strong>
         </div>
       </section>
 
@@ -129,7 +126,7 @@ function ReviewStep({
               <ReviewDataRow
                 key={key}
                 label={getAttributeLabel(key)}
-                value={value}
+                value={`${value} (${value >= 1 && calculateCheckModifier(finalAttributes, key) >= 0 ? '+' : ''}${value >= 1 ? calculateCheckModifier(finalAttributes, key) : '—'})`}
                 detail={
                   parsedOriginBonus?.key === key
                     ? `Allocated: ${attributeValues[key] ?? 0}\nOrigin Bonus: +${parsedOriginBonus.amount}`
@@ -137,29 +134,6 @@ function ReviewStep({
                 }
               />
             ))}
-          </dl>
-        </article>
-
-        <article className="review-card">
-          <h3>Core Checks</h3>
-          <dl>
-            {checkGroups.flatMap((group) =>
-              group.checks.map((check) => {
-                const value = checks?.[check.key] ?? 10
-                const investment = progression?.coreCheckInvestments?.[check.key] ?? 0
-
-                return (
-                  <ReviewDataRow
-                    key={`${group.key}-${check.key}`}
-                    label={check.name}
-                    value={value}
-                    detail={`${group.label}. ${check.summary}\n\nFormula: ${
-                      check.formulaLabel
-                    }${investment ? `\nCore Training: +${investment}` : ''}\nRoll Modifier: ${getRollModifier(value)}`}
-                  />
-                )
-              }),
-            )}
           </dl>
         </article>
 
@@ -173,34 +147,11 @@ function ReviewStep({
         </article>
 
         <article className="review-card">
-          <h3>Specialties</h3>
-          <dl>
-            {savedSkills.length ? (
-              savedSkills.map((skill) => (
-                <ReviewDataRow
-                  key={`${skill.categoryKey}-${skill.id}`}
-                  label={skill.name || skill.id}
-                  value={skill.rankLabel ?? `Rank ${skill.rank ?? 0}`}
-                  detail={[
-                    skill.categoryKey.charAt(0).toUpperCase() + skill.categoryKey.slice(1),
-                    skill.description,
-                    skill.relatedChecks?.length
-                      ? `Related Core Checks: ${skill.relatedChecks.join(' / ')}`
-                      : null,
-                    `Current Effect: ${skill.currentEffect || 'No effect recorded yet.'}`,
-                    skill.nextRankEffect ? `Next Rank Effect: ${skill.nextRankEffect}` : null,
-                    skill.context ? `Context: ${skill.context}` : null,
-                    skill.prerequisiteLabel ? `Prerequisite: ${skill.prerequisiteLabel}` : null,
-                    skill.specialty ? `Granted Focus: ${skill.specialty}` : null,
-                  ]
-                    .filter(Boolean)
-                    .join('\n')}
-                />
-              ))
-            ) : (
-              <ReviewDataRow label="Training" value="None recorded" />
-            )}
-          </dl>
+          <h3>Training</h3>
+          <dl>{training.map((id) => {
+            const option = trainingOptions.find((entry) => entry.id === id)
+            return <ReviewDataRow key={id} label={option?.name ?? id} value="Trained" detail={option?.description} />
+          })}</dl>
         </article>
 
         <article className="review-card">
@@ -298,15 +249,15 @@ function ReviewStep({
           <dl>
             <ReviewDataRow
               label="Health"
-              value={`${resources?.health ?? 0}/${resourceMaximums?.health ?? 0}`}
+              value={resourceMaximums?.health == null ? 'Unavailable' : `${resources?.health ?? 0}/${resourceMaximums.health}`}
             />
             <ReviewDataRow
               label="Stamina"
-              value={`${resources?.stamina ?? 0}/${resourceMaximums?.stamina ?? 0}`}
+              value={resourceMaximums?.stamina == null ? 'Unavailable' : `${resources?.stamina ?? 0}/${resourceMaximums.stamina}`}
             />
             <ReviewDataRow
               label="Focus"
-              value={`${resources?.focus ?? 0}/${resourceMaximums?.focus ?? 0}`}
+              value={resourceMaximums?.focus == null ? 'Unavailable' : `${resources?.focus ?? 0}/${resourceMaximums.focus}`}
             />
             <ReviewDataRow
               label="Corruption"
@@ -352,8 +303,6 @@ function ReviewStep({
           <h3>Progression</h3>
           <dl>
             <ReviewDataRow label="Rank" value={progression?.rank ?? 1} />
-            <ReviewDataRow label="Core Points" value={progression?.corePoints ?? 0} />
-            <ReviewDataRow label="Specialty Picks" value={progression?.specialtyPicks ?? 0} />
             <ReviewDataRow label="Advancement Points" value={progression?.advancementPoints ?? 0} />
             <ReviewDataRow label="Advancement Invested" value={advancementSpent} />
             <ReviewDataRow
@@ -364,9 +313,6 @@ function ReviewStep({
                   specialization?.summary,
                   specialization?.recommendationReasons?.length
                     ? `Why it fits: ${specialization.recommendationReasons.join(', ')}`
-                    : null,
-                  !specialization && recommendedSpecializations.length
-                    ? `Recommended alternatives: ${recommendedSpecializations.map((entry) => entry.name).join(', ')}`
                     : null,
                 ]
                   .filter(Boolean)

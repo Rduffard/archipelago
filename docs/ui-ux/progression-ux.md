@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Progression UX
 
 Progression UI should make the player feel the difference between becoming broadly more capable and becoming more distinctive.

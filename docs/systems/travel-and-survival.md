@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Travel And Survival
 
 Travel in Sanguine Archipelago should feel like movement through contested waters, unstable weather, local memory, faction borders, and spiritual pressure. It is not empty distance between scenes.

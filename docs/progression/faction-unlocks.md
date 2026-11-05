@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Faction Unlocks
 
 Faction unlocks connect reputation to training, access, and narrative authority. They should make the character more embedded in the world, not merely stronger.

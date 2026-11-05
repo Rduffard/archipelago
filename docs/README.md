@@ -1,5 +1,7 @@
 # Sanguine Archipelago Documentation
 
+**Current implemented rules:** [Training and attribute checks](training.md). Documents marked historical describe retired mechanics or future design, not active rules.
+
 This directory is the source of truth for Sanguine Archipelago gameplay systems, app architecture, progression design, and UI rationale. Code should align to these documents over time; when a major system changes, update the relevant docs in the same change set.
 
 ## Directory Map

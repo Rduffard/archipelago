@@ -1,9 +1,17 @@
 import { getSystemReputationTier, getSystemReputationTrack } from '../../../data/archipelagoSystemSelectors'
-import { getAttributeLabel, getRollModifier } from '../../../lib/character'
+import { getAttributeLabel } from '../../../lib/character'
 import { SectionCard, SectionCardEmpty, SectionCardHeader } from '../../../components/ui/SectionCard/SectionCard'
 import { ATTRIBUTE_KEYS, toReferenceEntries } from '../characterSheetHelpers'
 import { ReferenceList, TrackerCard } from '../CharacterSheetSectionBits/CharacterSheetSectionBits'
+import { calculateCheckModifier } from '../../../lib/checkModifier.js'
 import './CharacterSheetOverview.css'
+
+function getAttributeModifier(attributes, key) {
+  const score = attributes?.[key]
+  if (!Number.isSafeInteger(score) || score < 1) return '—'
+  const modifier = calculateCheckModifier(attributes, key)
+  return modifier >= 0 ? `+${modifier}` : `${modifier}`
+}
 
 function CharacterSheetOverview({
   abilities,
@@ -38,8 +46,8 @@ function CharacterSheetOverview({
                   label: getAttributeLabel(key),
                   meta: originBonus?.key === key ? `+${originBonus.amount}` : '',
                   value: character.attributes?.[key] ?? 0,
-                  modifier: getRollModifier(character.attributes?.[key] ?? 0),
-                  detail: `${attributeDetails[key]}\n\nModifier: ${getRollModifier(character.attributes?.[key] ?? 0)}${
+                  modifier: getAttributeModifier(character.attributes, key),
+                  detail: `${attributeDetails[key]}\n\nModifier: ${getAttributeModifier(character.attributes, key)}${
                     originBonus?.key === key ? `\nOrigin Bonus: +${originBonus.amount}` : ''
                   }`,
                 }))}
@@ -77,7 +85,7 @@ function CharacterSheetOverview({
               label="Health"
               current={health.current}
               max={health.max}
-              detail={`Current: ${health.current}\nMax: ${health.max}\nPulled from the saved resource track and defaults to Vitality when absent.`}
+              detail={`Current: ${health.current}\nMax: ${health.max}\nSaved authoritative resource track; unavailable when absent.`}
               tone="health"
             />
             <TrackerCard

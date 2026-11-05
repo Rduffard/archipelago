@@ -1,5 +1,5 @@
-import { createEmptyAttributes, parseAttributeBonus } from '../../../../lib/character'
-import { normalizeCharacterSkills } from '../../../../data/archipelagoSkills'
+import { parseAttributeBonus } from '../../../../lib/character'
+import { createEmptyAttributes } from '../../../../lib/creatorAttributes.js'
 import {
   createEmptyCustomAbility,
   removeAttributeBonus,
@@ -34,10 +34,6 @@ export function formatAbilitySource(source = '') {
   }
 
   return 'custom'
-}
-
-export function normalizeSkills(initialSkills = {}, expandedSkillList = {}) {
-  return normalizeCharacterSkills(initialSkills, expandedSkillList)
 }
 
 export function normalizeCustomAbilities(abilities = []) {

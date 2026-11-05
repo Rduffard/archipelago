@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Social Conflict
 
 Social conflict is not a charm spell, a persuasion button, or a way to erase NPC agency. It is a structured exchange of pressure, leverage, reputation, identity, and consequence.

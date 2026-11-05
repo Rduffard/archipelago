@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Tooltip Guidelines
 
 Tooltips provide focused depth. They should not become hidden encyclopedias.

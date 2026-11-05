@@ -1,29 +1,30 @@
-import { ATTRIBUTE_POINTS } from '../../../../data/archipelagoSystemBlueprint'
+const ATTRIBUTE_POINTS = 27
 
 export function getCreatorValidations({
   identity,
   isIdentityComplete,
   progressionValues,
-  remainingCorePoints,
   remainingPoints,
-  remainingSpecialtyPicks,
+  isEditing = false,
+  attributesUnchanged = false,
+  validTraining = false,
 }) {
+  const validAttributes = (isEditing && attributesUnchanged) || remainingPoints >= 0
   return {
     identity: isIdentityComplete,
     calling: Boolean(identity.callingId),
-    attributes: remainingPoints === 0,
-    skills: remainingCorePoints === 0 && remainingSpecialtyPicks === 0,
+    attributes: validAttributes,
+    skills: validTraining,
     loadout: true,
     details: true,
-    progression: progressionValues.rank >= 1,
+    progression: Number.isInteger(progressionValues.rank) && progressionValues.rank >= 1 && progressionValues.rank <= 20,
     review:
       isIdentityComplete &&
       Boolean(identity.callingId) &&
       Boolean(identity.originId) &&
-      remainingPoints === 0 &&
-      remainingCorePoints === 0 &&
-      remainingSpecialtyPicks === 0 &&
-      progressionValues.rank >= 1,
+      validAttributes &&
+      (validTraining) &&
+      Number.isInteger(progressionValues.rank) && progressionValues.rank >= 1 && progressionValues.rank <= 20,
   }
 }
 
@@ -31,9 +32,7 @@ export function getCreatorActionHint({
   currentStepId,
   hasValidName,
   identity,
-  remainingCorePoints,
   remainingPoints,
-  remainingSpecialtyPicks,
   trimmedName,
   validations,
 }) {
@@ -58,16 +57,10 @@ export function getCreatorActionHint({
   }
 
   if (currentStepId === 'attributes' && !validations.attributes) {
-    return `Spend the remaining ${remainingPoints} point${remainingPoints === 1 ? '' : 's'} to continue.`
+    return `Keep the allocation within the ${ATTRIBUTE_POINTS}-point budget (${remainingPoints} remaining).`
   }
 
-  if (currentStepId === 'skills' && !validations.skills) {
-    if (remainingCorePoints > 0) {
-      return `Spend the remaining ${remainingCorePoints} core point${remainingCorePoints === 1 ? '' : 's'} to continue.`
-    }
-
-    return `Spend the remaining ${remainingSpecialtyPicks} specialty pick${remainingSpecialtyPicks === 1 ? '' : 's'} to continue.`
-  }
+  if (currentStepId === 'skills' && !validations.skills) return 'Choose exactly four distinct Training proficiencies to continue.'
 
   if (currentStepId === 'loadout') {
     return 'Add any optional gear, relics, inventory, or custom abilities before review.'
@@ -78,11 +71,11 @@ export function getCreatorActionHint({
   }
 
   if (currentStepId === 'progression') {
-    return 'Set the current rank and any advancement state before review.'
+    return 'Inspect the Paths and their recorded benefits before review.'
   }
 
   if (currentStepId === 'review' && !validations.review) {
-    return `Spend all ${ATTRIBUTE_POINTS} points and finish the earlier choices to save.`
+    return `Stay within the ${ATTRIBUTE_POINTS}-point budget and finish the earlier choices to save.`
   }
 
   return 'You can jump between unlocked steps from the rail above.'

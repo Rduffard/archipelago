@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Attributes
 
 Attributes describe raw identity and natural capability. They are the roots beneath Core Checks, not the main campaign progression track.

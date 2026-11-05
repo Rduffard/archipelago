@@ -1,8 +1,5 @@
-import { createEmptyAttributes } from '../../../../lib/character'
 import {
-  createEmptySkills,
   createProgression,
-  createResources,
   normalizeProgression,
 } from '../state/creatorState'
 import {
@@ -13,13 +10,11 @@ import {
   getCreatorIdentity,
   getGeneratedTraitKeys,
   normalizeCustomAbilities,
-  normalizeSkills,
   normalizeWounds,
   removeOriginBonus,
 } from '../transforms/creatorTransforms'
 
 export function hydrateCreatorState({
-  blueprint,
   initialCharacter,
   origins,
 }) {
@@ -35,18 +30,11 @@ export function hydrateCreatorState({
   const customTraits = (initialCharacter.identity?.tags ?? []).filter(
     (trait) => !generatedTraitKeys.has(trait.key),
   )
-  const fallbackResources = createResources(
-    initialCharacter.attributes ?? createEmptyAttributes(),
-    initialCharacter.derivedStats ?? {},
-  )
 
   return {
     identity: getCreatorIdentity(initialCharacter, initialOrigin),
     attributeValues: removeOriginBonus(initialCharacter.attributes, initialOrigin?.bonus),
-    skills: normalizeSkills(
-      initialCharacter.skills ?? createEmptySkills(),
-      blueprint?.specialties ?? blueprint?.expandedSkillList ?? {},
-    ),
+    training: initialCharacter.training ?? [],
     loadout: {
       customAbilities: normalizeCustomAbilities(initialCharacter.abilities ?? []),
       weaponsText: formatEquipmentText(initialCharacter.equipment?.weapons ?? []),
@@ -63,14 +51,14 @@ export function hydrateCreatorState({
       customTraitsText: formatCustomTraitsText(customTraits),
     },
     resourceValues: {
-      health: initialCharacter.resources?.health?.current ?? fallbackResources.health.current,
-      stamina: initialCharacter.resources?.stamina?.current ?? fallbackResources.stamina.current,
-      focus: initialCharacter.resources?.focus?.current ?? fallbackResources.focus.current,
+      health: initialCharacter.resources?.health?.current ?? null,
+      stamina: initialCharacter.resources?.stamina?.current ?? null,
+      focus: initialCharacter.resources?.focus?.current ?? null,
       corruption:
-        initialCharacter.resources?.corruption?.current ?? fallbackResources.corruption.current,
+        initialCharacter.resources?.corruption?.current ?? 0,
       wounds: initialCharacter.resources?.wounds?.current ?? 0,
     },
     wounds: normalizeWounds(initialCharacter.resources?.wounds?.active ?? []),
-    progressionValues: normalizeProgression(initialCharacter.progression ?? createProgression(), blueprint),
+    progressionValues: normalizeProgression(initialCharacter.progression ?? createProgression()),
   }
 }

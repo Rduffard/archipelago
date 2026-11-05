@@ -1,8 +1,6 @@
 export const ARCHIPELAGO_SYSTEM_BLUEPRINT_VERSION = '2026-04-12'
 export const ARCHIPELAGO_SYSTEM_BLUEPRINT_ENDPOINT = '/archipelago/system/blueprint'
 export const ATTRIBUTE_KEYS = ['might', 'agility', 'wit', 'spirit', 'resolve', 'instinct']
-export const ATTRIBUTE_POINTS = 12
-export const ATTRIBUTE_CAP = 4
 
 export const FALLBACK_ATTRIBUTES = [
   {

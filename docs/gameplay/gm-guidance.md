@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # GM Guidance
 
 The GM's job is to make pressure legible, consequences meaningful, and character identity useful. The system works best when the table can see why a risk exists and why a particular character's training matters.

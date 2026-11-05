@@ -1,14 +1,12 @@
 import {
   formatSystemReputationScore,
   getActiveSystemReputationEntries,
-  getRankedSystemSpecializations,
   getSystemOriginStartingReputation,
   getSystemReputationTier,
   getSystemReputationTrack,
   getSystemSpecialization,
   getSystemSpecializationNode,
 } from '../../../data/archipelagoSystemSelectors'
-import { resolveCharacterSkillGroups } from '../../../data/archipelagoSkills'
 import {
   applyAttributeBonus,
   parseAttributeBonus,
@@ -20,7 +18,6 @@ export function getReviewContext({
   identity,
   progression,
   reputation,
-  skills,
 }) {
   const callings = blueprint ? blueprint.catalogs?.callings ?? [] : []
   const origins = blueprint ? blueprint.catalogs?.origins ?? [] : []
@@ -28,11 +25,7 @@ export function getReviewContext({
   const calling = callings.find((entry) => entry.id === identity.callingId)
   const origin = origins.find((entry) => entry.id === identity.originId)
   const path = originPaths.find((entry) => entry.id === identity.path)
-  const rankedSpecializations = getRankedSystemSpecializations(identity.callingId, skills, blueprint)
-  const specialization =
-    rankedSpecializations.find((entry) => entry.id === progression?.specializationPath) ??
-    getSystemSpecialization(progression?.specializationPath, blueprint)
-  const recommendedSpecializations = rankedSpecializations.filter((entry) => entry.recommendationScore > 0)
+  const specialization = getSystemSpecialization(progression?.specializationPath, blueprint)
   const advancementSpent =
     specialization?.nodes
       ?.filter((node) => progression?.unlockedNodes?.includes(node.id))
@@ -43,17 +36,6 @@ export function getReviewContext({
     reputation ?? getSystemOriginStartingReputation(identity.originId, blueprint),
     blueprint,
   )
-  const savedSkills = resolveCharacterSkillGroups({
-    characterSkills: skills,
-    expandedSkillList: blueprint?.specialties ?? blueprint?.expandedSkillList ?? {},
-  }).flatMap((group) =>
-    group.entries.map((skill) => ({
-      ...skill,
-      name: skill.label,
-      categoryKey: group.key,
-    })),
-  )
-
   return {
     activeReputation,
     advancementSpent,
@@ -62,8 +44,6 @@ export function getReviewContext({
     origin,
     parsedOriginBonus,
     path,
-    recommendedSpecializations,
-    savedSkills,
     specialization,
   }
 }

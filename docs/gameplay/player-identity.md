@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Player Identity
 
 Sanguine Archipelago characters should feel defined by what they do under pressure and how they learned to survive the world.

@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Milestone Progression
 
 Milestone progression records campaign change. It should reward meaningful decisions, survival through pressure, completed obligations, and new authority rather than simple encounter count.

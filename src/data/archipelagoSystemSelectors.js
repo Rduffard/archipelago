@@ -1,4 +1,3 @@
-import { normalizeCharacterSkills } from './archipelagoSkills'
 
 export function getSystemCallings(blueprint) {
   return blueprint?.catalogs?.callings ?? []
@@ -10,10 +9,6 @@ export function getSystemOriginPaths(blueprint) {
 
 export function getSystemOrigins(blueprint) {
   return blueprint?.catalogs?.origins ?? []
-}
-
-export function getSystemCheckCatalog(blueprint) {
-  return blueprint?.checks ?? {}
 }
 
 export function getSystemSpecializations(blueprint) {
@@ -51,84 +46,6 @@ export function getRecommendedSystemSpecializations(callingId, blueprint) {
   return getSystemSpecializations(blueprint).filter((specialization) =>
     (specialization.recommendedCallings ?? []).includes(callingId),
   )
-}
-
-function getSkillCategoryRanks(skills = {}) {
-  return Object.entries(skills).reduce((totals, [categoryKey, entries]) => {
-    totals[categoryKey] = (entries ?? []).reduce((sum, entry) => sum + (entry.rank ?? 0), 0)
-    return totals
-  }, {})
-}
-
-function getSkillRankMap(skills = {}) {
-  return Object.values(skills).reduce((rankMap, entries) => {
-    ;(entries ?? []).forEach((entry) => {
-      rankMap[entry.id] = entry.rank ?? 0
-    })
-    return rankMap
-  }, {})
-}
-
-function getSpecializationReasons(specialization, callingId, categoryRanks, skillRanks) {
-  const reasons = []
-
-  if ((specialization.recommendedCallings ?? []).includes(callingId)) {
-    reasons.push('matches current calling')
-  }
-
-  ;(specialization.affinity?.categories ?? []).forEach((categoryKey) => {
-    const rank = categoryRanks[categoryKey] ?? 0
-    if (rank > 0) {
-      reasons.push(`${categoryKey} training ${rank}`)
-    }
-  })
-
-  ;(specialization.affinity?.specialties ?? specialization.affinity?.skills ?? []).forEach((specialtyId) => {
-    const rank = skillRanks[specialtyId] ?? 0
-    if (rank > 0) {
-      reasons.push(`${specialtyId} rank ${rank}`)
-    }
-  })
-
-  return reasons.slice(0, 3)
-}
-
-export function getRankedSystemSpecializations(callingId, skills = {}, blueprint) {
-  const normalizedSkills = normalizeCharacterSkills(skills, blueprint?.specialties ?? blueprint?.expandedSkillList ?? {})
-  const categoryRanks = getSkillCategoryRanks(normalizedSkills)
-  const skillRanks = getSkillRankMap(normalizedSkills)
-
-  return getSystemSpecializations(blueprint)
-    .map((specialization) => {
-      const callingScore = (specialization.recommendedCallings ?? []).includes(callingId) ? 4 : 0
-      const categoryScore = (specialization.affinity?.categories ?? []).reduce(
-        (total, categoryKey) => total + (categoryRanks[categoryKey] ?? 0),
-        0,
-      )
-      const skillScore = (specialization.affinity?.specialties ?? specialization.affinity?.skills ?? []).reduce(
-        (total, specialtyId) => total + (skillRanks[specialtyId] ?? 0),
-        0,
-      )
-      const score = callingScore + categoryScore + skillScore
-
-      return {
-        ...specialization,
-        recommendationScore: score,
-        recommendationReasons: getSpecializationReasons(
-          specialization,
-          callingId,
-          categoryRanks,
-          skillRanks,
-        ),
-      }
-    })
-    .sort((left, right) => {
-      if (right.recommendationScore !== left.recommendationScore) {
-        return right.recommendationScore - left.recommendationScore
-      }
-
-      return left.name.localeCompare(right.name)
-    })
 }
 
 export function getSystemReputationTracks(blueprint) {

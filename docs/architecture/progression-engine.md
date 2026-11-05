@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Progression Engine
 
 The progression engine is the boundary between character identity, campaign rewards, and rule resolution. Its job is not to make every progression source look the same. Its job is to preserve the layered model clearly enough that UI, validation, saves, and future campaign systems can all agree on what changed.

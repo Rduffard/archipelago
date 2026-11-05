@@ -59,10 +59,10 @@ export function TrackerCard({ current, detail, label, max, tone = 'default' }) {
       <div className="character-sheet__tracker-head">
         <strong>{label}</strong>
         <span>
-          {current}/{max}
+          {Number.isFinite(current) && Number.isFinite(max) ? `${current}/${max}` : 'Unavailable'}
         </span>
       </div>
-      <PipTrack current={current} label={label} max={max} />
+      {Number.isFinite(current) && Number.isFinite(max) ? <PipTrack current={current} label={label} max={max} /> : <p>Authoritative resource values are missing.</p>}
     </HoverInfo>
   )
 }

@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Design Pillars
 
 Sanguine Archipelago is a fiction-first tabletop system about pressure, belonging, consequence, and mastery. Its rules should make the world feel political, cultural, dangerous, and alive rather than treating the setting as decoration around combat math.

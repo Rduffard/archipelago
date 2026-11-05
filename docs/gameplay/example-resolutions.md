@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Example Resolutions
 
 These examples show how intent, Core Checks, Specialties, consequences, and faction pressure work together.

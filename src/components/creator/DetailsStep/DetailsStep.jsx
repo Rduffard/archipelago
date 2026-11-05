@@ -74,14 +74,14 @@ function BackgroundFields({ details, onDetailsChange }) {
   )
 }
 
-function ResourceTrackFields({ onResourceChange, resourceMaximums, resources }) {
+function ResourceTrackFields({ isEditing, onResourceChange, resourceMaximums, resources }) {
   return (
     <div className="creator-grid creator-grid--resources">
       {RESOURCE_FIELDS.map(([key, label]) => (
         <CreatorField key={key}>
           <CreatorLabel htmlFor={`resource-${key}`}>
             {label} Current
-            {resourceMaximums[key] !== undefined ? ` / ${resourceMaximums[key]}` : ''}
+            {resourceMaximums[key] == null ? ' — Unavailable' : ` / ${resourceMaximums[key]}`}
           </CreatorLabel>
           <CreatorInput
             id={`resource-${key}`}
@@ -89,7 +89,8 @@ function ResourceTrackFields({ onResourceChange, resourceMaximums, resources }) 
             type="number"
             min="0"
             max={resourceMaximums[key] ?? undefined}
-            value={resources[key]}
+            disabled={resourceMaximums[key] == null || (!isEditing && ['health', 'stamina', 'focus'].includes(key))}
+            value={resources[key] ?? ''}
             onChange={(event) => onResourceChange(key, event.target.value)}
           />
         </CreatorField>
@@ -163,6 +164,7 @@ function WoundCard({ index, onRemoveWound, onWoundChange, wound }) {
 }
 
 function DetailsStep({
+  isEditing = true,
   details,
   resources,
   resourceMaximums,
@@ -185,10 +187,11 @@ function DetailsStep({
       <div className="choice-group">
         <CreatorSectionHeader
           title="Starting Tracks"
-          description="These values feed the saved character sheet directly and can start below the maximum."
+          description={isEditing ? "Edit current resource values independently of their maxima." : "Health, Stamina, and Focus start full. Wounds and Corruption are independent."}
         />
 
         <ResourceTrackFields
+          isEditing={isEditing}
           onResourceChange={onResourceChange}
           resourceMaximums={resourceMaximums}
           resources={resources}

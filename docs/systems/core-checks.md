@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Core Checks
 
 Core Checks are the primary rollable and investable stats in Sanguine Archipelago.

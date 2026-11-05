@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Combat Flow
 
 Combat in Sanguine Archipelago is not a class rotation. It is a pressure exchange built from position, intent, consequence, and tactical identity.

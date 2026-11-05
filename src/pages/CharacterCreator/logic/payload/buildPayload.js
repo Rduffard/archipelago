@@ -74,9 +74,8 @@ function createStarterAbilities(selectedCalling) {
 
 export function buildCharacterPayload({
   details,
-  derivedStats,
   finalAttributes,
-  checks,
+  attributeValues,
   identity,
   initialCharacter,
   loadout,
@@ -85,8 +84,7 @@ export function buildCharacterPayload({
   selectedCalling,
   selectedOrigin,
   selectedPath,
-  skills,
-  socialStats,
+  training,
   startingReputation,
   trimmedName,
   wounds,
@@ -97,7 +95,10 @@ export function buildCharacterPayload({
   const traits = [...generatedTraits, ...customTraits]
   const customAbilities = parseCustomAbilities(loadout.customAbilities)
   const abilities = [...createStarterAbilities(selectedCalling), ...customAbilities]
-  const baseResources = createResources(finalAttributes, derivedStats)
+  const isEditing = Boolean(initialCharacter?._id)
+  const baseResources = isEditing
+    ? Object.fromEntries(['health', 'stamina', 'focus', 'wounds', 'corruption'].map((key) => [key, initialCharacter.resources?.[key] ?? { current: null, max: null }]))
+    : createResources(finalAttributes, 1)
   const activeWounds = parseWounds(wounds)
   const savedWoundCount = Math.max(resourceValues.wounds, activeWounds.length)
   const resources = {
@@ -125,14 +126,11 @@ export function buildCharacterPayload({
     },
   }
   const progression = {
-    ...(initialCharacter?.progression ?? createProgression(rank)),
-    rank,
-    corePoints: progressionValues.corePoints,
-    specialtyPicks: progressionValues.specialtyPicks,
+    ...createProgression(rank),
+    rank: isEditing ? rank : 1,
     advancementPoints: progressionValues.advancementPoints,
-    coreCheckInvestments: progressionValues.coreCheckInvestments,
-    specializationPath: progressionValues.specializationPath.trim(),
-    unlockedNodes: progressionValues.unlockedNodes,
+    specializationPath: isEditing ? progressionValues.specializationPath.trim() : '',
+    unlockedNodes: isEditing ? progressionValues.unlockedNodes : [],
   }
 
   return {
@@ -149,14 +147,11 @@ export function buildCharacterPayload({
       },
       tags: traits,
     },
-    attributes: finalAttributes,
-    checks,
-    derivedStats,
-    socialStats,
+    attributes: isEditing ? finalAttributes : attributeValues,
     reputation: startingReputation,
-    skills,
+    training,
     abilities,
-    resources,
+    resources: isEditing ? resources : { wounds: resources.wounds, corruption: resources.corruption },
     inventory: parseInventoryText(loadout.inventoryText),
     relics: parseRelicsText(loadout.relicsText),
     equipment: {

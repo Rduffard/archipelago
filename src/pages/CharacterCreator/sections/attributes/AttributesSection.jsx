@@ -1,7 +1,5 @@
 import AttributesStep from '../../../../components/creator/AttributesStep/AttributesStep'
 
-function AttributesSection({ attributeValues, onAttributeChange }) {
-  return <AttributesStep attributeValues={attributeValues} onAttributeChange={onAttributeChange} />
+export default function AttributesSection(props) {
+  return <AttributesStep {...props} />
 }
-
-export default AttributesSection

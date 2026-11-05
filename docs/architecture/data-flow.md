@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Data Flow
 
 This document defines the intended lifecycle for progression data from registries through UI rendering, editing, validation, and persistence.

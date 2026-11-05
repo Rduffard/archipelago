@@ -1,17 +1,14 @@
+import { proficiencyBonus } from '../../lib/training.js'
 import {
   formatSystemReputationScore,
   getActiveSystemReputationEntries,
-  getRankedSystemSpecializations,
   getSystemOriginStartingReputation,
   getSystemReputationTier,
   getSystemReputationTrack,
   getSystemSpecialization,
   getSystemSpecializationNode,
 } from '../../data/archipelagoSystemSelectors'
-import { resolveCharacterSkillGroups } from '../../data/archipelagoSkills'
-import { getCheckGroups, resolveCharacterChecks } from '../../data/archipelagoChecks'
 import {
-  getRollModifier,
   parseAttributeBonus,
 } from '../../lib/character'
 
@@ -105,90 +102,16 @@ export function getIdentityEntries(character) {
 
 export function getProgressionEntries(character, blueprint) {
   const progression = character.progression ?? {}
-  const rankedSpecializations = getRankedSystemSpecializations(character.calling, character.skills ?? {}, blueprint)
-  const specialization =
-    rankedSpecializations.find((entry) => entry.id === progression.specializationPath) ??
-    getSystemSpecialization(progression.specializationPath, blueprint)
-  const recommendedSpecializations = rankedSpecializations.filter((entry) => entry.recommendationScore > 0)
-  const advancementSpent =
-    specialization?.nodes
-      ?.filter((node) => progression.unlockedNodes?.includes(node.id))
-      .reduce((total, node) => total + (node.cost ?? 0), 0) ?? 0
-
+  const level = progression.rank ?? 1
+  const path = getSystemSpecialization(progression.specializationPath, blueprint)
+  let bonus = 'Unavailable'
+  try { bonus = `+${proficiencyBonus(level)}` } catch { /* Historical invalid level. */ }
   return [
-    {
-      key: 'progression-rank',
-      label: 'Rank',
-      meta: 'Progression',
-      value: progression.rank ?? 1,
-      detail: 'The character tier that gates advancement, durability, and long-term system growth.',
-    },
-    {
-      key: 'progression-skill-points',
-      label: 'Core Points',
-      meta: 'Banked',
-      value: progression.corePoints ?? 0,
-      detail: 'Unspent currency available for direct Core Check growth.',
-    },
-    {
-      key: 'progression-specialty-picks',
-      label: 'Specialty Picks',
-      meta: 'Banked',
-      value: progression.specialtyPicks ?? 0,
-      detail: 'Unspent training available for acquiring or ranking specialties.',
-    },
-    {
-      key: 'progression-advancement-points',
-      label: 'Advancement Points',
-      meta: 'Banked',
-      value: progression.advancementPoints ?? 0,
-      detail: 'Campaign-earned advancement currency waiting to be invested.',
-    },
-    {
-      key: 'progression-advancement-invested',
-      label: 'Advancement Invested',
-      meta: 'Spent',
-      value: advancementSpent,
-      detail: 'Total advancement already committed into the active specialization path.',
-    },
-    {
-      key: 'progression-specialization',
-      label: 'Specialization Path',
-      meta: 'Path',
-      value: specialization?.name || progression.specializationPath || 'Unchosen',
-      detail:
-        [
-          specialization ? specialization.summary : null,
-          specialization?.recommendationReasons?.length
-            ? `Why it fits: ${specialization.recommendationReasons.join(', ')}`
-            : null,
-          !specialization && recommendedSpecializations.length
-            ? `Suggested paths: ${recommendedSpecializations.map((entry) => entry.name).join(', ')}`
-            : null,
-          !specialization && !recommendedSpecializations.length && progression.specializationPath
-            ? `Current path: ${progression.specializationPath}`
-            : null,
-          !specialization && !recommendedSpecializations.length && !progression.specializationPath
-            ? 'No specialization path recorded yet.'
-            : null,
-        ]
-          .filter(Boolean)
-          .join('\n\n'),
-    },
-    {
-      key: 'progression-unlocked-nodes',
-      label: 'Unlocked Nodes',
-      meta: 'Progression',
-      value: progression.unlockedNodes?.length ?? 0,
-      detail: progression.unlockedNodes?.length
-        ? progression.unlockedNodes
-            .map((nodeId) => {
-              const node = getSystemSpecializationNode(progression.specializationPath, nodeId, blueprint)
-              return node ? `${node.name}\n${node.effect}` : nodeId
-            })
-            .join('\n\n')
-        : 'No unlocked nodes recorded yet.',
-    },
+    { key: 'level', label: 'Level', value: level, detail: 'Character level.' },
+    { key: 'proficiency', label: 'Proficiency Bonus', value: bonus, detail: 'Derived from level; added at most once when relevant Training applies.' },
+    { key: 'path', label: 'Specialized Path', value: path?.name ?? progression.specializationPath ?? 'Unchosen', detail: `${path?.summary ?? ''} Path advancement is unavailable pending progression rules.` },
+    { key: 'nodes', label: 'Recorded Path Nodes', value: progression.unlockedNodes?.length ?? 0,
+      detail: (progression.unlockedNodes ?? []).map((id) => { const node = getSystemSpecializationNode(progression.specializationPath, id, blueprint); return node ? `${node.name}: ${node.effect}` : id }).join('\n') || 'No nodes recorded.' },
   ]
 }
 
@@ -225,18 +148,6 @@ export function getAbilityEntries(character, calling) {
       detail: `${calling.starterAbilityType}. ${calling.starterAbilityRule}`,
     },
   ]
-}
-
-export function getSkillGroups(character, expandedSkillList = {}) {
-  return resolveCharacterSkillGroups({
-    characterSkills: character.skills ?? {},
-    expandedSkillList,
-    includeUntrained: true,
-  })
-}
-
-export function getCharacterCheckStats(character, blueprint) {
-  return resolveCharacterChecks(character, blueprint)
 }
 
 export function getCatalogGroups(character) {
@@ -333,60 +244,10 @@ export function toReferenceEntries(items, config = {}) {
   }))
 }
 
-export function getTrackerValue(resource, fallbackCurrent, fallbackMax) {
-  if (typeof resource === 'number') {
-    return {
-      current: resource,
-      max: fallbackMax,
-    }
-  }
-
-  return {
-    current: resource?.current ?? fallbackCurrent,
-    max: resource?.max ?? fallbackMax,
-  }
-}
-
-export function buildReferenceGroups({
-  blueprint,
-  character,
-  derivedStatDetails,
-  pairingCategoryDetails,
-}) {
-  const checkStats = getCharacterCheckStats(character, blueprint)
-  const legacyDetails = {
-    ...derivedStatDetails,
-  }
-
-  return getCheckGroups(blueprint)
-    .map((group) => ({
-      key: group.key,
-      ...pairingCategoryDetails[group.key],
-      label: pairingCategoryDetails[group.key]?.label ?? group.label,
-      entries: group.checks.map((check) => {
-        const score = checkStats[check.key] ?? 10
-        const legacyDetail = legacyDetails[check.key]
-        const investment = character.progression?.coreCheckInvestments?.[check.key] ?? 0
-
-        return {
-          key: check.key,
-          label: check.name,
-          value: score,
-          modifier: getRollModifier(score),
-          detail: [
-            check.summary ?? legacyDetail?.description ?? 'A core gameplay check available to every character.',
-            `Formula: ${check.formulaLabel}`,
-            investment ? `Core Training: +${investment}` : null,
-            `Roll Modifier: ${getRollModifier(score)}`,
-            check.examples?.length ? `Examples: ${check.examples.join(', ')}` : null,
-            'Specialties do not replace this check; they modify, unlock, or bend options when the fiction fits.',
-          ]
-            .filter(Boolean)
-            .join('\n\n'),
-        }
-      }),
-    }))
-    .filter((group) => group.entries.length)
+export function getTrackerValue(resource) {
+  return Number.isFinite(resource?.current) && Number.isFinite(resource?.max)
+    ? { current: resource.current, max: resource.max }
+    : { current: null, max: null }
 }
 
 export function buildReputationEntries(character, blueprint) {

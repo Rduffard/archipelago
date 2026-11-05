@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Vertical vs Horizontal Progression
 
 Sanguine Archipelago separates numerical competence from expressive mastery.

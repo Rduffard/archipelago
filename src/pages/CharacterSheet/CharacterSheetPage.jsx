@@ -5,14 +5,10 @@ import PageHeader from '../../components/layout/PageHeader'
 import CharacterSheetHeader from './CharacterSheetHeader/CharacterSheetHeader'
 import CharacterSheetLoadout from './CharacterSheetLoadout/CharacterSheetLoadout'
 import CharacterSheetOverview from './CharacterSheetOverview/CharacterSheetOverview'
-import CharacterSheetReferenceGroups from './CharacterSheetReferenceGroups/CharacterSheetReferenceGroups'
 import CharacterSheetSkills from './CharacterSheetSkills/CharacterSheetSkills'
 import {
   getAttributeDetails,
-  getDerivedStatDetails,
-  getPairingCategoryDetails,
 } from '../../data/characterSheetData'
-import { resolveCharacterChecks } from '../../data/archipelagoChecks'
 import {
   getSystemCallings,
   getSystemOrigins,
@@ -22,7 +18,6 @@ import { useAuth } from '../../hooks/useAuth'
 import { useSystem } from '../../hooks/useSystem'
 import '../shared/PageShell.css'
 import {
-  buildReferenceGroups,
   buildReputationEntries,
   getAbilityEntries,
   getCatalogGroups,
@@ -31,8 +26,8 @@ import {
   getProgressionEntries,
   getTrackerValue,
   getTraitEntries,
-  getSkillGroups,
 } from './characterSheetHelpers'
+import { getTrainingOptions } from '../../data/training.js'
 import './CharacterSheetPage.css'
 
 function CharacterSheetPage() {
@@ -187,8 +182,6 @@ function CharacterSheetPage() {
   const callings = getSystemCallings(blueprint)
   const origins = getSystemOrigins(blueprint)
   const attributeDetails = getAttributeDetails(blueprint)
-  const derivedStatDetails = getDerivedStatDetails(blueprint)
-  const pairingCategoryDetails = getPairingCategoryDetails(blueprint)
   const calling = callings.find((entry) => entry.id === character.calling) ?? null
   const origin = origins.find((entry) => entry.id === character.origin) ?? null
   const characterRank = character.progression?.rank ?? 1
@@ -198,44 +191,15 @@ function CharacterSheetPage() {
   const identityEntries = getIdentityEntries(character)
   const progressionEntries = getProgressionEntries(character, blueprint)
   const abilities = getAbilityEntries(character, calling)
-  const checkStats = resolveCharacterChecks(character, blueprint)
-  const vitality = checkStats.vitality ?? character.derivedStats?.vitality ?? 0
-  const health = getTrackerValue(
-    character.resources?.health ?? character.health,
-    vitality,
-    character.resources?.health?.max ?? vitality,
-  )
-  const stamina = getTrackerValue(character.resources?.stamina, 0, character.resources?.stamina?.max ?? 0)
-  const focus = getTrackerValue(
-    character.resources?.focus ?? character.spellSlots,
-    checkStats.focus ?? character.derivedStats?.focus ?? 0,
-    character.resources?.focus?.max ?? checkStats.focus ?? character.derivedStats?.focus ?? 0,
-  )
-  const corruption = getTrackerValue(
-    character.resources?.corruption ?? character.corruption,
-    0,
-    character.resources?.corruption?.max ?? character.corruption?.max ?? 6,
-  )
-  const woundTrack = character.resources?.wounds
-    ? {
-        current: character.resources.wounds.current ?? character.resources.wounds.active?.length ?? 0,
-        max: character.resources.wounds.max ?? 3,
-      }
-    : {
-        current: 0,
-        max: character.woundCapacity ?? 3,
-      }
+  const health = getTrackerValue(character.resources?.health)
+  const stamina = getTrackerValue(character.resources?.stamina)
+  const focus = getTrackerValue(character.resources?.focus)
+  const corruption = getTrackerValue(character.resources?.corruption)
+  const woundTrack = getTrackerValue(character.resources?.wounds)
   const catalogGroups = getCatalogGroups(character)
   const visibleCatalogGroups = catalogGroups.filter(
     (group) => group.entries.length || (group.key === 'notes' && character.notes),
   )
-  const skillGroups = getSkillGroups(character, blueprint?.specialties ?? blueprint?.expandedSkillList ?? {})
-  const referenceGroups = buildReferenceGroups({
-    blueprint,
-    character,
-    derivedStatDetails,
-    pairingCategoryDetails,
-  })
 
   return (
     <main className="page-shell">
@@ -272,8 +236,7 @@ function CharacterSheetPage() {
             woundTrack={woundTrack}
           />
 
-          <CharacterSheetSkills skillGroups={skillGroups} />
-          <CharacterSheetReferenceGroups referenceGroups={referenceGroups} />
+          <CharacterSheetSkills character={character} trainingOptions={getTrainingOptions(blueprint)} />
           <CharacterSheetLoadout character={character} visibleCatalogGroups={visibleCatalogGroups} />
         </section>
       </section>

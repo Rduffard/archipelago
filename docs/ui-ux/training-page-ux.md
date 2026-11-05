@@ -1,3 +1,5 @@
+> Historical design material: Core Checks and ranked Specialties are retired. See [current Training rules](../training.md) for implemented behavior. Path progression proposals here are not implemented.
+
 # Training Page UX
 
 The Training page is the player's main progression surface. It must clearly separate vertical growth from horizontal mastery.
