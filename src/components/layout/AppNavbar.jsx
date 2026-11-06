@@ -4,6 +4,7 @@ import './AppNavbar.css'
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/map', label: 'Lore Map' },
+  { to: '/combat-test', label: 'Combat test' },
   { to: '/characters', label: 'Characters' },
   { to: '/campaigns/new', label: 'Campaigns' },
   { to: '/achievements', label: 'Achievements' },

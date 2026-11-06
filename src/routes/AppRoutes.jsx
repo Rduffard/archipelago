@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from '../components/ProtectedRoute/ProtectedRoute'
+import CombatTestPage from '../pages/CombatTest/CombatTestPage'
 import AppLayout from '../components/layout/AppLayout'
 import CharacterCreatorPage from '../pages/CharacterCreator/CharacterCreatorPage'
 import CharacterSheetPage from '../pages/CharacterSheet/CharacterSheetPage'
@@ -18,6 +19,8 @@ function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/combat-test" element={<CombatTestPage />} />
+          <Route path="/combat-test/:encounterId" element={<CombatTestPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/characters" element={<CharactersPage />} />
           <Route path="/characters/new" element={<CharacterCreatorPage />} />
