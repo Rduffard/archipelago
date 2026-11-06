@@ -188,6 +188,9 @@ function useCreatorController({
             JSON.stringify(hydratedState?.attributeValues) &&
           identity.originId === hydratedState?.identity.originId,
         validTraining,
+        loadout,
+        callingId: identity.callingId,
+        blueprint,
       }),
     [
       identity,
@@ -198,6 +201,8 @@ function useCreatorController({
       isEditing,
       attributeValues,
       hydratedState,
+      loadout,
+      blueprint,
     ]
   );
 
@@ -218,20 +223,19 @@ function useCreatorController({
     [activeSpecialization, resourceMaximums]
   );
   const {
-    handleAddCustomAbility,
     handleAddWound,
     handleAttributeChange,
-    handleCustomAbilityChange,
     handleDetailsChange,
     handleIdentityChange: mutateIdentity,
     handleLoadoutChange,
     handleProgressionChange,
-    handleRemoveCustomAbility,
     handleRemoveWound,
     handleResourceChange,
     handleWoundChange,
   } = mutations;
   function handleIdentityChange(field, value) {
+    if (field === "callingId")
+      setLoadout({ abilitySelections: {}, startingEquipment: null });
     mutateIdentity(field, value);
   }
   const handleTrainingToggle = useCallback(
@@ -385,13 +389,20 @@ function useCreatorController({
       startingPackage:
         blueprint?.startingProficiencies?.callings?.[identity.callingId],
     },
+    abilities: {
+      callingId: identity.callingId,
+      training,
+      loadout,
+      onLoadoutChange: handleLoadoutChange,
+    },
     loadout: {
+      callingId: identity.callingId,
+      origin: identity.originId,
+      attributes: attributeValues,
+      training,
       characterId: initialCharacter?._id,
       loadout,
       onLoadoutChange: handleLoadoutChange,
-      onCustomAbilityChange: handleCustomAbilityChange,
-      onAddCustomAbility: handleAddCustomAbility,
-      onRemoveCustomAbility: handleRemoveCustomAbility,
     },
     details: {
       isEditing,
@@ -439,10 +450,8 @@ function useCreatorController({
     details,
     finalAttributes,
     getStepValidity,
-    handleAddCustomAbility,
     handleAddWound,
     handleAttributeChange,
-    handleCustomAbilityChange,
     handleDetailsChange,
     handleGoToStep,
     handleIdentityChange,
@@ -450,7 +459,6 @@ function useCreatorController({
     handleNextStep,
     handlePreviousStep,
     handleProgressionChange,
-    handleRemoveCustomAbility,
     handleRemoveWound,
     handleResourceChange,
     handleSaveCharacter,

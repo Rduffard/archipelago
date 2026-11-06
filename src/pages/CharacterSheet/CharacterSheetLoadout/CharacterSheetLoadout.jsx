@@ -3,7 +3,7 @@ import "./CharacterSheetLoadout.css";
 export default function CharacterSheetLoadout({ character }) {
   return (
     <section className="character-sheet__panel">
-      <EquipmentPanel characterId={character._id} />
+      <EquipmentPanel characterId={character._id} editable />
       <h3>Wounds</h3>
       <ul>
         {(character.resources?.wounds?.active ?? []).map((w, i) => (

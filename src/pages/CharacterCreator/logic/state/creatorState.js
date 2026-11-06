@@ -10,23 +10,10 @@ export function createEmptyDetails() {
   };
 }
 
-export function createEmptyCustomAbility() {
-  return {
-    name: "",
-    source: "custom",
-    type: "active",
-    costResource: "",
-    costAmount: 0,
-    scalingAttribute: "",
-    scalingSkill: "",
-    tagsText: "",
-    effect: "",
-  };
-}
-
 export function createEmptyLoadout() {
   return {
-    customAbilities: [createEmptyCustomAbility()],
+    abilitySelections: {},
+    startingEquipment: null,
   };
 }
 

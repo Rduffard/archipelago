@@ -3,7 +3,6 @@ import {
   formatCustomTraitsText,
   getCreatorIdentity,
   getGeneratedTraitKeys,
-  normalizeCustomAbilities,
   normalizeWounds,
   removeOriginBonus,
 } from "../transforms/creatorTransforms";
@@ -31,11 +30,7 @@ export function hydrateCreatorState({ initialCharacter, origins }) {
       initialOrigin?.bonus
     ),
     training: initialCharacter.training ?? [],
-    loadout: {
-      customAbilities: normalizeCustomAbilities(
-        initialCharacter.abilities ?? []
-      ),
-    },
+    loadout: { abilitySelections: {}, startingEquipment: null },
     details: {
       pastRole: initialCharacter.identity?.background?.pastRole ?? "",
       definingEvent: initialCharacter.identity?.background?.definingEvent ?? "",

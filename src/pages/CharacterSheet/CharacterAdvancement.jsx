@@ -1,218 +1,68 @@
 import { useState } from "react";
-import { unspentRewards, advancementRequest } from "../../lib/advancement";
-
-const attributes = ["might", "agility", "wit", "spirit", "resolve", "instinct"];
-
-function AttributeReward({ reward, busy, canExchange, onAdvance }) {
-  const [first, setFirst] = useState("might");
-  const [second, setSecond] = useState("");
-  return (
-    <fieldset disabled={busy}>
-      <legend>Level {reward.level} attribute milestone</legend>
-      <label>
-        Improve attribute{" "}
-        <select value={first} onChange={(e) => setFirst(e.target.value)}>
-          {attributes.map((key) => (
-            <option key={key}>{key}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Second attribute{" "}
-        <select value={second} onChange={(e) => setSecond(e.target.value)}>
-          <option value="">None: +2 to the first</option>
-          {attributes
-            .filter((key) => key !== first)
-            .map((key) => (
-              <option key={key}>{key}</option>
-            ))}
-        </select>
-      </label>
-      <button
-        type="button"
-        disabled={second === first}
-        onClick={() =>
-          onAdvance({
-            spends: [
-              {
-                rewardId: reward.id,
-                kind: "attribute",
-                increases: second
-                  ? { [first]: 1, [second]: 1 }
-                  : { [first]: 2 },
-              },
-            ],
-          })
-        }
-      >
-        Apply improvement
-      </button>
-      {canExchange ? (
-        <>
-          <button
-            type="button"
-            onClick={() =>
-              onAdvance({
-                exchanges: [{ rewardId: reward.id, kind: "calling" }],
-              })
-            }
-          >
-            Exchange for Calling selection
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              onAdvance({ exchanges: [{ rewardId: reward.id, kind: "path" }] })
-            }
-          >
-            Exchange for Path investment
-          </button>
-        </>
-      ) : null}
-    </fieldset>
-  );
-}
-
+import { useSystem } from "../../hooks/useSystem";
+import Legacy from "./CharacterAdvancementLegacy";
+import ProgressionView from "../../components/progression/ProgressionView";
 export default function CharacterAdvancement({ character, rules, onAdvance }) {
-  const [selectedLevel, setSelectedLevel] = useState("");
+  const { blueprint } = useSystem();
+  const [level, setLevel] = useState(character.progression.rank);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const ledger = character.advancement;
-  async function submit(changes) {
-    if (busy) return;
+  if (character.advancement?.version !== 2)
+    return (
+      <Legacy
+        character={character}
+        rules={rules?.legacy ?? rules}
+        onAdvance={onAdvance}
+      />
+    );
+  const summary = character.progressionDerived;
+  async function change(values) {
     setBusy(true);
     setError("");
     try {
-      await onAdvance(advancementRequest(character, changes));
-      setSelectedLevel("");
-    } catch (err) {
-      setError(err.message);
+      await onAdvance({
+        advancementOperation: {
+          expectedRevision: character.advancement.revision,
+          ...values,
+        },
+      });
+    } catch (e) {
+      setError(e.message);
     } finally {
       setBusy(false);
     }
   }
-  if (!ledger)
-    return (
-      <section className="review-card character-sheet__panel--wide">
-        <h2>Advancement</h2>
-        <p>
-          Historical progression is preserved. A reviewed upgrade is required
-          before using the new reward system.
-        </p>
-      </section>
-    );
-  const rewards = unspentRewards(character, rules);
-  const level = character.progression.rank;
   return (
-    <section className="review-card character-sheet__panel--wide">
-      <h2>Advancement · Level {level}</h2>
-      <p>
-        Defining passive: {ledger.passive.name}. Original combat text awaits
-        review; no converted combat effect is applied.
-      </p>
-      <p>
-        Unspent rewards: {rewards.length}. Milestone exchanges:{" "}
-        {ledger.exchanges.length} / 2. Exchanges require an explicit respec to
-        reverse.
-      </p>
-      <p>
-        Calling selections await reviewed ability definitions. Path investments
-        await reviewed four-tier content. Rewards remain available.
-      </p>
-      <details>
-        <summary>
-          Acquired improvements and selections ({ledger.spends.length})
-        </summary>
-        {ledger.spends.length ? (
-          <ul>
-            {ledger.spends.map((spend) => (
-              <li key={spend.rewardId}>
-                {spend.rewardId}:{" "}
-                {spend.kind === "attribute"
-                  ? Object.entries(spend.increases ?? {})
-                      .map(([key, value]) => key + " +" + value)
-                      .join(", ")
-                  : spend.kind === "calling"
-                  ? "Calling ability: " + spend.abilityId
-                  : "Specialized Path: " +
-                    spend.pathId +
-                    " · tier " +
-                    spend.tier}{" "}
-                · acquired
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No rewards spent.</p>
-        )}
-        {ledger.exchanges.map((exchange) => (
-          <p key={exchange.rewardId}>
-            {exchange.rewardId} exchanged for {exchange.kind}
-          </p>
-        ))}
-      </details>
-      <details>
-        <summary>Locked future rewards</summary>
-        {[
-          ["Calling selection", rules?.callingLevels],
-          ["Path investment", rules?.pathLevels],
-          ["Attribute milestone", rules?.attributeLevels],
-        ].map(([name, levels]) => (
-          <p key={name}>
-            {name}:{" "}
-            {(levels ?? [])
-              .filter((value) => value > level)
-              .map((value) => "Level " + value)
-              .join(", ") || "None remaining"}
-          </p>
-        ))}
-      </details>
-      <fieldset disabled={busy || level === 20}>
-        <legend>Record a level increase</legend>
-        <label>
-          New level{" "}
-          <select
-            value={selectedLevel}
-            onChange={(e) => setSelectedLevel(e.target.value)}
-          >
-            <option value="">Choose level</option>
-            {Array.from({ length: 20 - level }, (_, i) => level + i + 1).map(
-              (n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              )
-            )}
-          </select>
-        </label>
-        <button
-          type="button"
-          disabled={!selectedLevel}
-          onClick={() => submit({ level: Number(selectedLevel) })}
-        >
-          Record level
-        </button>
-      </fieldset>
-      {rewards.map((reward) =>
-        reward.kind === "attribute" ? (
-          <AttributeReward
-            key={reward.id}
-            reward={reward}
-            busy={busy}
-            canExchange={ledger.exchanges.length < 2}
-            onAdvance={submit}
-          />
-        ) : (
-          <p key={reward.id}>
-            Level {reward.level}: unspent{" "}
-            {reward.kind === "calling"
-              ? "Calling selection"
-              : "Path investment"}{" "}
-            · content pending review
-          </p>
-        )
-      )}
+    <section>
+      <h2>Calling progression</h2>
       {error ? <p role="alert">{error}</p> : null}
+      <label>
+        Level
+        <select
+          value={level}
+          onChange={(e) => setLevel(Number(e.target.value))}
+        >
+          {Array.from({ length: 20 }, (_, i) => i + 1)
+            .filter((n) => n >= character.progression.rank)
+            .map((n) => (
+              <option key={n}>{n}</option>
+            ))}
+        </select>
+      </label>
+      <button disabled={busy} onClick={() => change({ level })}>
+        Record level
+      </button>
+      {summary ? (
+        <ProgressionView
+          summary={summary}
+          catalog={blueprint.abilityCatalog}
+          training={character.training}
+          busy={busy}
+          onSpend={(spend) => change({ spends: [spend] })}
+        />
+      ) : (
+        <p>Reload to resolve progression.</p>
+      )}
     </section>
   );
 }

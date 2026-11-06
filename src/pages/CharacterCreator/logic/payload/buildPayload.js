@@ -4,12 +4,8 @@ import {
   createResources,
 } from "../state/creatorState";
 import {
-  formatAbilitySource,
-  mapAbilityType,
-  parseCustomAbilities,
   parseCustomTraitsText,
   parseWounds,
-  toSlug,
 } from "../transforms/creatorTransforms";
 
 function createIdentityTags(selectedPath, selectedOrigin, selectedCalling) {
@@ -45,34 +41,6 @@ function createIdentityTags(selectedPath, selectedOrigin, selectedCalling) {
   ].filter(Boolean);
 }
 
-function createStarterAbilities(selectedCalling) {
-  if (!selectedCalling) {
-    return [];
-  }
-
-  return [
-    {
-      id: `ability-${selectedCalling.id}-${toSlug(
-        selectedCalling.starterAbility
-      )}`,
-      name: selectedCalling.starterAbility,
-      type: mapAbilityType(selectedCalling.starterAbilityType),
-      description: `${selectedCalling.starterAbilityType}. ${selectedCalling.starterAbilityRule}`,
-      source: formatAbilitySource("calling"),
-      cost: {
-        resource: "",
-        amount: 0,
-      },
-      scaling: {
-        attribute: selectedCalling.primaryStats?.[0]?.toLowerCase() ?? "",
-        skill: "",
-      },
-      tags: ["calling", "starter", selectedCalling.id],
-      effect: selectedCalling.starterAbilityRule,
-    },
-  ];
-}
-
 export function buildCharacterPayload({
   details,
   finalAttributes,
@@ -98,11 +66,6 @@ export function buildCharacterPayload({
   );
   const customTraits = parseCustomTraitsText(details.customTraitsText);
   const traits = [...generatedTraits, ...customTraits];
-  const customAbilities = parseCustomAbilities(loadout.customAbilities);
-  const abilities = [
-    ...(initialCharacter?._id ? createStarterAbilities(selectedCalling) : []),
-    ...customAbilities,
-  ];
   const isEditing = Boolean(initialCharacter?._id);
   const baseResources = isEditing
     ? Object.fromEntries(
@@ -174,7 +137,12 @@ export function buildCharacterPayload({
     attributes: isEditing ? finalAttributes : attributeValues,
     reputation: startingReputation,
     training,
-    abilities,
+    ...(!isEditing
+      ? {
+          abilitySelections: loadout.abilitySelections ?? {},
+          startingEquipment: loadout.startingEquipment,
+        }
+      : {}),
     resources: isEditing
       ? resources
       : { wounds: resources.wounds, corruption: resources.corruption },

@@ -3,8 +3,8 @@ import { test, after } from "node:test";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createServer } from "vite";
-import engine from "../../crossworld_backend/src/modules/archipelago/system/advancement.js";
-import rules from "../../crossworld_backend/src/modules/archipelago/system/blueprints/progression.js";
+import engine from "../../crossworld_backend/src/modules/archipelago/system/advancementLegacy.js";
+import rules from "../../crossworld_backend/src/modules/archipelago/system/blueprints/progressionLegacy.js";
 import packages from "../../crossworld_backend/src/modules/archipelago/system/blueprints/startingProficiencies.js";
 import training from "../../crossworld_backend/src/modules/archipelago/system/blueprints/training.js";
 import legacyTraining from "../../crossworld_backend/src/modules/archipelago/system/blueprints/legacyTraining.js";
@@ -18,7 +18,7 @@ const server = await createServer({
 });
 after(() => server.close());
 const { default: Advancement } = await server.ssrLoadModule(
-  "/src/pages/CharacterSheet/CharacterAdvancement.jsx"
+  "/src/pages/CharacterSheet/CharacterAdvancementLegacy.jsx"
 );
 const { default: Skills } = await server.ssrLoadModule(
   "/src/components/creator/SkillsStep/SkillsStep.jsx"

@@ -1,15 +1,15 @@
-import { NavLink } from 'react-router-dom'
-import './AppNavbar.css'
+import { NavLink } from "react-router-dom";
+import "./AppNavbar.css";
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/map', label: 'Lore Map' },
-  { to: '/combat-test', label: 'Combat test' },
-  { to: '/characters', label: 'Characters' },
-  { to: '/campaigns/new', label: 'Campaigns' },
-  { to: '/achievements', label: 'Achievements' },
-  { to: '/settings', label: 'Settings' },
-]
+  { to: "/dashboard", label: "Dashboard" },
+  { to: "/map", label: "Lore Map" },
+  { to: "/combat-test", label: "Combat test" },
+  { to: "/characters", label: "Characters" },
+  { to: "/campaigns/new", label: "Campaigns" },
+  { to: "/achievements", label: "Achievements" },
+  { to: "/settings", label: "Settings" },
+];
 
 function AppNavbar({ onSignOut }) {
   return (
@@ -25,7 +25,7 @@ function AppNavbar({ onSignOut }) {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `app-navbar__link ${isActive ? 'is-active' : ''}`
+              `app-navbar__link ${isActive ? "is-active" : ""}`
             }
           >
             {item.label}
@@ -37,7 +37,7 @@ function AppNavbar({ onSignOut }) {
         Sign Out
       </button>
     </header>
-  )
+  );
 }
 
-export default AppNavbar
+export default AppNavbar;

@@ -1,217 +1,191 @@
-import EquipmentPanel from "../../equipment/EquipmentPanel";
-import {
-  ABILITY_SOURCE_OPTIONS,
-  ABILITY_TYPE_OPTIONS,
-  ATTRIBUTE_OPTIONS,
-  RESOURCE_OPTIONS,
-  titleCase,
-} from "./loadoutStepHelpers";
-import CreatorStepFrame from "../shared/CreatorStepFrame/CreatorStepFrame";
-import "../shared/CreatorChoiceStyles/CreatorChoiceStyles.css";
-import "../shared/CreatorSurfaceStyles/CreatorSurfaceStyles.css";
-import {
-  CreatorField,
-  CreatorInput,
-  CreatorLabel,
-  CreatorSectionHeader,
-  CreatorTextarea,
-} from "../shared/CreatorForm/CreatorForm";
-import CreatorRecordCardHeader from "../shared/CreatorRecordCardHeader/CreatorRecordCardHeader";
-import "./LoadoutStep.css";
-
-function AbilitySelectField({ id, label, onChange, options, value }) {
-  return (
-    <CreatorField>
-      <CreatorLabel htmlFor={id}>{label}</CreatorLabel>
-      <select id={id} value={value} onChange={onChange}>
-        {options.map((option) => (
-          <option key={option || "none"} value={option}>
-            {option ? titleCase(option) : "None"}
-          </option>
-        ))}
-      </select>
-    </CreatorField>
-  );
-}
-
-function CustomAbilityCard({
-  ability,
-  index,
-  onCustomAbilityChange,
-  onRemoveCustomAbility,
-}) {
-  return (
-    <article className="review-card">
-      <CreatorRecordCardHeader
-        title={ability.name || `Custom Ability ${index + 1}`}
-        meta={`${titleCase(ability.source)} | ${titleCase(ability.type)}`}
-        onRemove={() => onRemoveCustomAbility(index)}
-      />
-
-      <div className="creator-grid">
-        <CreatorField>
-          <CreatorLabel htmlFor={`ability-name-${index}`}>Name</CreatorLabel>
-          <CreatorInput
-            id={`ability-name-${index}`}
-            type="text"
-            value={ability.name}
-            onChange={(event) =>
-              onCustomAbilityChange(index, "name", event.target.value)
-            }
-          />
-        </CreatorField>
-
-        <AbilitySelectField
-          id={`ability-source-${index}`}
-          label="Source"
-          options={ABILITY_SOURCE_OPTIONS}
-          value={ability.source}
-          onChange={(event) =>
-            onCustomAbilityChange(index, "source", event.target.value)
-          }
-        />
-
-        <AbilitySelectField
-          id={`ability-type-${index}`}
-          label="Type"
-          options={ABILITY_TYPE_OPTIONS}
-          value={ability.type}
-          onChange={(event) =>
-            onCustomAbilityChange(index, "type", event.target.value)
-          }
-        />
-
-        <AbilitySelectField
-          id={`ability-cost-resource-${index}`}
-          label="Cost Resource"
-          options={RESOURCE_OPTIONS}
-          value={ability.costResource}
-          onChange={(event) =>
-            onCustomAbilityChange(index, "costResource", event.target.value)
-          }
-        />
-
-        <CreatorField>
-          <CreatorLabel htmlFor={`ability-cost-amount-${index}`}>
-            Cost Amount
-          </CreatorLabel>
-          <CreatorInput
-            id={`ability-cost-amount-${index}`}
-            type="number"
-            min="0"
-            value={ability.costAmount}
-            onChange={(event) =>
-              onCustomAbilityChange(index, "costAmount", event.target.value)
-            }
-          />
-        </CreatorField>
-
-        <AbilitySelectField
-          id={`ability-scaling-attribute-${index}`}
-          label="Scaling Attribute"
-          options={ATTRIBUTE_OPTIONS}
-          value={ability.scalingAttribute}
-          onChange={(event) =>
-            onCustomAbilityChange(index, "scalingAttribute", event.target.value)
-          }
-        />
-
-        <CreatorField>
-          <CreatorLabel htmlFor={`ability-scaling-skill-${index}`}>
-            Scaling Skill
-          </CreatorLabel>
-          <CreatorInput
-            id={`ability-scaling-skill-${index}`}
-            type="text"
-            placeholder="Channel, Negotiate, etc."
-            value={ability.scalingSkill}
-            onChange={(event) =>
-              onCustomAbilityChange(index, "scalingSkill", event.target.value)
-            }
-          />
-        </CreatorField>
-
-        <CreatorField>
-          <CreatorLabel htmlFor={`ability-tags-${index}`}>Tags</CreatorLabel>
-          <CreatorInput
-            id={`ability-tags-${index}`}
-            type="text"
-            placeholder="combat, utility, arcane"
-            value={ability.tagsText}
-            onChange={(event) =>
-              onCustomAbilityChange(index, "tagsText", event.target.value)
-            }
-          />
-        </CreatorField>
-      </div>
-
-      <CreatorField className="creator-field--wide">
-        <CreatorLabel htmlFor={`ability-effect-${index}`}>Effect</CreatorLabel>
-        <CreatorTextarea
-          id={`ability-effect-${index}`}
-          rows="4"
-          value={ability.effect}
-          onChange={(event) =>
-            onCustomAbilityChange(index, "effect", event.target.value)
-          }
-        />
-      </CreatorField>
-    </article>
-  );
-}
-
-function LoadoutStep({
-  loadout,
+import { useEffect, useState } from "react";
+import { useSystem } from "../../../hooks/useSystem";
+import { useAuth } from "../../../hooks/useAuth";
+import { request } from "../../../lib/api";
+import { EquipmentView } from "../../equipment/EquipmentPanel";
+export default function LoadoutStep({
   characterId,
-  onCustomAbilityChange,
-  onAddCustomAbility,
-  onRemoveCustomAbility,
+  callingId,
+  origin,
+  attributes,
+  training,
+  loadout,
+  onLoadoutChange,
 }) {
+  const { blueprint } = useSystem();
+  const { token } = useAuth();
+  const [preview, setPreview] = useState(null);
+  const [error, setError] = useState("");
+  const p = blueprint.startingEquipment?.[callingId];
+  const selection = loadout.startingEquipment ?? {
+    packageId: callingId,
+    version: 1,
+    choices: {},
+  };
+  const body = JSON.stringify({
+    calling: callingId,
+    origin,
+    attributes,
+    training,
+    abilitySelections: loadout.abilitySelections ?? {},
+    startingEquipment: selection,
+  });
+  useEffect(() => {
+    let current = true;
+    if (characterId) return;
+    request("/archipelago/system/draft-preview", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + token },
+      body,
+    })
+      .then((value) => {
+        if (current) {
+          setPreview(value);
+          setError("");
+        }
+      })
+      .catch((err) => {
+        if (current) {
+          setPreview(null);
+          setError(err.message);
+        }
+      });
+    return () => {
+      current = false;
+    };
+  }, [body, token, characterId]);
+  if (characterId)
+    return (
+      <p>
+        Starting equipment is not reissued during editing. Manage saved
+        inventory on the character sheet.
+      </p>
+    );
+  if (!p) return <p>Choose a Calling.</p>;
+  function change(next) {
+    onLoadoutChange("startingEquipment", next);
+  }
   return (
-    <CreatorStepFrame
-      step="Step 5"
-      title="Pack the sheet"
-      description="Add the custom abilities, gear, and carried items that should already exist on this character before play begins."
-    >
-      <div className="choice-group">
-        <CreatorSectionHeader
-          title="Custom Abilities"
-          description="Give non-calling abilities a proper shape so the sheet can show source, cost, scaling, and effect."
-          action={
-            <button
-              type="button"
-              className="creator-inline-back"
-              onClick={onAddCustomAbility}
-            >
-              Add Ability
-            </button>
-          }
-        />
-
-        <div className="creator-stack creator-stack--cards">
-          {loadout.customAbilities.map((ability, index) => (
-            <CustomAbilityCard
-              key={`custom-ability-${index}`}
-              ability={ability}
-              index={index}
-              onCustomAbilityChange={onCustomAbilityChange}
-              onRemoveCustomAbility={onRemoveCustomAbility}
-            />
+    <section className="choice-group">
+      <h2>Starting equipment</h2>
+      <p>
+        Owned and equipped are separate. Training comes from Calling. No
+        purchasing system is active.
+      </p>
+      {Object.entries(p.choices).map(([key, options]) => (
+        <label key={key}>
+          {key}
+          <select
+            value={selection.choices[key] ?? ""}
+            onChange={(e) =>
+              change({
+                ...selection,
+                choices: { ...selection.choices, [key]: e.target.value },
+                equipped: undefined,
+              })
+            }
+          >
+            <option value="">Choose…</option>
+            {Object.entries(options).map(([id, grants]) => (
+              <option key={id} value={id}>
+                {Object.values(grants)
+                  .map(
+                    (d) =>
+                      blueprint.equipment.items.find((i) => i.id === d)?.name ??
+                      d
+                  )
+                  .join(" + ")}
+              </option>
+            ))}
+          </select>
+        </label>
+      ))}
+      {error ? (
+        <>
+          <p role="status">Preview: {error}</p>
+          <button
+            type="button"
+            onClick={() => change({ ...selection, equipped: undefined })}
+          >
+            Reset equipped slots to package defaults
+          </button>
+        </>
+      ) : null}
+      {preview ? (
+        <>
+          <EquipmentView data={preview.equipment} />
+          {["mainHand", "offHand", "armor"].map((slot) => (
+            <label key={slot}>
+              {slot}
+              <select
+                value={
+                  selection.equipped?.[slot] ??
+                  preview.equipment.loadout[slot]?.replace("preview:", "") ??
+                  ""
+                }
+                onChange={(e) => {
+                  const current = Object.fromEntries(
+                    ["mainHand", "offHand", "armor"].map((k) => [
+                      k,
+                      preview.equipment.loadout[k]?.replace("preview:", "") ??
+                        null,
+                    ])
+                  );
+                  change({
+                    ...selection,
+                    equipped: {
+                      ...current,
+                      grip: preview.equipment.loadout.grip,
+                      ...selection.equipped,
+                      [slot]: e.target.value || null,
+                    },
+                  });
+                }}
+              >
+                <option value="">Empty</option>
+                {preview.equipment.inventory.map((i) => (
+                  <option
+                    key={i.instanceId}
+                    value={i.instanceId.replace("preview:", "")}
+                  >
+                    {
+                      blueprint.equipment.items.find(
+                        (d) => d.id === i.definitionId
+                      )?.name
+                    }
+                  </option>
+                ))}
+              </select>
+            </label>
           ))}
-        </div>
-      </div>
-
-      {characterId ? (
-        <EquipmentPanel characterId={characterId} editable />
-      ) : (
-        <p>
-          Development starting equipment: the server will issue one cutlass and
-          equip it in your main hand. Training depends on Calling. After saving,
-          edit owned equipment here.
-        </p>
-      )}
-    </CreatorStepFrame>
+          <label>
+            Grip
+            <select
+              value={selection.equipped?.grip ?? preview.equipment.loadout.grip}
+              onChange={(e) => {
+                const current = Object.fromEntries(
+                  ["mainHand", "offHand", "armor"].map((k) => [
+                    k,
+                    preview.equipment.loadout[k]?.replace("preview:", "") ??
+                      null,
+                  ])
+                );
+                change({
+                  ...selection,
+                  equipped: {
+                    ...current,
+                    ...selection.equipped,
+                    grip: e.target.value,
+                  },
+                });
+              }}
+            >
+              <option value="one">One / required two-handed</option>
+              <option value="two">Two-handed versatile</option>
+            </select>
+          </label>
+        </>
+      ) : null}
+    </section>
   );
 }
-
-export default LoadoutStep;

@@ -1,99 +1,12 @@
 import { parseAttributeBonus } from "../../../../lib/character";
 import { createEmptyAttributes } from "../../../../lib/creatorAttributes.js";
-import {
-  createEmptyCustomAbility,
-  removeAttributeBonus,
-} from "../state/creatorState";
+import { removeAttributeBonus } from "../state/creatorState";
 
 export function toSlug(value = "") {
   return value
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
-
-export function mapAbilityType(typeLabel = "") {
-  const normalized = typeLabel.trim().toLowerCase();
-
-  if (normalized === "reaction") {
-    return "reaction";
-  }
-
-  if (normalized === "passive") {
-    return "passive";
-  }
-
-  return "active";
-}
-
-export function formatAbilitySource(source = "") {
-  const normalized = source.trim().toLowerCase();
-
-  if (["calling", "origin", "relic", "custom"].includes(normalized)) {
-    return normalized;
-  }
-
-  return "custom";
-}
-
-export function normalizeCustomAbilities(abilities = []) {
-  const normalizedAbilities = abilities
-    .filter((ability) => ability?.source !== "calling")
-    .map((ability) => ({
-      name: ability.name ?? "",
-      source: formatAbilitySource(ability.source),
-      type: mapAbilityType(ability.type),
-      costResource: ability.cost?.resource ?? "",
-      costAmount: ability.cost?.amount ?? 0,
-      scalingAttribute: ability.scaling?.attribute ?? "",
-      scalingSkill: ability.scaling?.skill ?? "",
-      tagsText: Array.isArray(ability.tags) ? ability.tags.join(", ") : "",
-      effect: ability.effect || ability.description || "",
-    }));
-
-  return normalizedAbilities.length
-    ? normalizedAbilities
-    : [createEmptyCustomAbility()];
-}
-
-export function parseCustomAbilityTags(tagsText = "") {
-  const parsedTags = tagsText
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter(Boolean);
-
-  return parsedTags.length ? parsedTags : ["custom"];
-}
-
-export function parseCustomAbilities(customAbilities = []) {
-  return customAbilities
-    .map((ability, index) => {
-      const name = ability.name.trim();
-      const effect = ability.effect.trim();
-
-      if (!name && !effect) {
-        return null;
-      }
-
-      return {
-        id: `ability-custom-${toSlug(name || `entry-${index + 1}`)}`,
-        name: name || `Custom Ability ${index + 1}`,
-        type: mapAbilityType(ability.type),
-        description: effect,
-        source: formatAbilitySource(ability.source),
-        cost: {
-          resource: ability.costResource ?? "",
-          amount: Math.max(0, Number(ability.costAmount) || 0),
-        },
-        scaling: {
-          attribute: ability.scalingAttribute ?? "",
-          skill: ability.scalingSkill?.trim() ?? "",
-        },
-        tags: parseCustomAbilityTags(ability.tagsText),
-        effect,
-      };
-    })
-    .filter(Boolean);
 }
 
 export function normalizeWounds(wounds = []) {

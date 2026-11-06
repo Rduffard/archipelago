@@ -54,8 +54,11 @@ export function createRoll(
       ? skillIsTrained(character, skillId)
       : type === "save" &&
         (character.advancement?.savingThrows ?? []).includes(attribute);
+  const expertise =
+    type === "skill" &&
+    character.progressionDerived?.expertise?.includes(skillId);
   const proficiency = proficient
-    ? proficiencyBonus(character.progression?.rank)
+    ? proficiencyBonus(character.progression?.rank) * (expertise ? 2 : 1)
     : 0;
   const restrictions = character.equipmentDerived?.restrictions;
   const disadvantage =

@@ -32,7 +32,6 @@ function ReviewStep({
   attributeValues,
   reputation,
   details,
-  loadout,
   resources,
   resourceMaximums,
   training,
@@ -221,59 +220,8 @@ function ReviewStep({
           <h3>Loadout</h3>
           <dl>
             <ReviewDataRow
-              label="Custom Abilities"
-              value={
-                loadout?.customAbilities?.filter(
-                  (ability) => ability.name?.trim() || ability.effect?.trim()
-                ).length
-                  ? `${
-                      loadout.customAbilities.filter(
-                        (ability) =>
-                          ability.name?.trim() || ability.effect?.trim()
-                      ).length
-                    } recorded`
-                  : "None"
-              }
-              detail={
-                loadout?.customAbilities?.filter(
-                  (ability) => ability.name?.trim() || ability.effect?.trim()
-                ).length
-                  ? loadout.customAbilities
-                      .filter(
-                        (ability) =>
-                          ability.name?.trim() || ability.effect?.trim()
-                      )
-                      .map((ability) =>
-                        [
-                          ability.name || "Unnamed ability",
-                          `${ability.source || "custom"} | ${
-                            ability.type || "active"
-                          }`,
-                          ability.costResource
-                            ? `Cost ${ability.costAmount || 0} ${
-                                ability.costResource
-                              }`
-                            : null,
-                          ability.scalingAttribute || ability.scalingSkill
-                            ? `Scaling ${[
-                                ability.scalingAttribute,
-                                ability.scalingSkill,
-                              ]
-                                .filter(Boolean)
-                                .join(" + ")}`
-                            : null,
-                          ability.effect || null,
-                        ]
-                          .filter(Boolean)
-                          .join("\n")
-                      )
-                      .join("\n\n")
-                  : undefined
-              }
-            />
-            <ReviewDataRow
               label="Equipment"
-              value="Server-issued starting cutlass for new characters; saved inventory for existing characters"
+              value="Selected Calling package for new characters; saved inventory for existing characters"
               detail="Equipment changes save separately in the Equipment step."
             />
           </dl>

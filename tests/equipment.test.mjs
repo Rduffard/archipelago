@@ -67,14 +67,31 @@ test("sheet separates equipped and carried items, Guard, Training and unsupporte
   );
   assert.match(other, /Untrained/);
 });
-test("creator advertises server-issued cutlass without obsolete equipment textareas", () => {
-  const html = renderToStaticMarkup(
-    React.createElement(LoadoutStep, {
-      loadout: { customAbilities: [] },
-      onAddCustomAbility: () => {},
-    })
+test("creator selects Calling packages without obsolete equipment textareas", async () => {
+  const { default: SystemContext } = await server.ssrLoadModule(
+    "/src/contexts/SystemContext.jsx"
   );
-  assert.match(html, /server will issue one cutlass/);
+  const { default: AuthContext } = await server.ssrLoadModule(
+    "/src/contexts/AuthContext.jsx"
+  );
+  const blueprint = require("../../crossworld_backend/src/modules/archipelago/system");
+  const html = renderToStaticMarkup(
+    React.createElement(
+      SystemContext.Provider,
+      { value: { blueprint } },
+      React.createElement(
+        AuthContext.Provider,
+        { value: { token: "test" } },
+        React.createElement(LoadoutStep, {
+          callingId: "corsair",
+          loadout: { abilitySelections: {}, startingEquipment: null },
+          onLoadoutChange: () => {},
+        })
+      )
+    )
+  );
+  assert.match(html, /Starting equipment/);
+  assert.match(html, /Shield/);
   assert.doesNotMatch(html, /creator-loadout-textarea/);
 });
 test("real-character combat presents explicit finesse attribute choice and no proficiency checkbox", () => {

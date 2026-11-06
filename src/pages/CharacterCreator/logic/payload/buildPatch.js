@@ -54,22 +54,6 @@ export function buildCharacterPatch(current, baseline, existing) {
     }
     if (!Object.keys(patch.resources).length) delete patch.resources;
   }
-  if (patch.abilities) {
-    const saved = (existing.abilities ?? []).filter(
-      (ability) => ability.source !== "calling"
-    );
-    patch.abilities = [
-      ...(existing.abilities ?? []).filter(
-        (ability) => ability.source === "calling"
-      ),
-      ...preserveEntries(
-        current.abilities.filter((ability) => ability.source !== "calling"),
-        saved,
-        baseline.abilities.filter((ability) => ability.source !== "calling"),
-        ["name", "type", "source", "cost", "scaling", "tags", "effect"]
-      ),
-    ];
-  }
   if (patch.identity?.tags) {
     patch.identity.tags = preserveEntries(
       current.identity.tags,

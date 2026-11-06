@@ -83,7 +83,7 @@ export function CombatPanel({ encounter, busy, onCommand }) {
           busy ||
           encounter.status !== "active" ||
           actor.id === "enemy" ||
-          !actor.actions ||
+          (!actor.actions && !(actor.attacksRemaining > 0)) ||
           !option?.supported
         }
         onClick={() =>

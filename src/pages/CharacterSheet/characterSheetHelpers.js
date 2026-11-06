@@ -154,47 +154,18 @@ export function getProgressionEntries(character, blueprint) {
   ];
 }
 
-export function getAbilityEntries(character, calling) {
-  if (character.abilities?.length) {
-    return character.abilities.map((ability) => ({
-      label: ability.name,
-      source: titleCase(ability.source),
-      detail: [
-        ability.type ? `Type: ${titleCase(ability.type)}` : null,
-        ability.cost?.resource
-          ? `Cost: ${ability.cost.amount ?? 0} ${titleCase(
-              ability.cost.resource
-            )}`
-          : null,
-        ability.scaling?.skill || ability.scaling?.attribute
-          ? `Scaling: ${[ability.scaling?.attribute, ability.scaling?.skill]
-              .filter(Boolean)
-              .map(titleCase)
-              .join(" + ")}`
-          : null,
-        ability.tags?.length
-          ? `Tags: ${ability.tags.map(titleCase).join(", ")}`
-          : null,
-        ability.effect || ability.description || "No ability description yet.",
-      ]
-        .filter(Boolean)
-        .join("\n\n"),
-    }));
-  }
-
-  if (character.advancement || !calling?.starterAbility) {
-    return [];
-  }
-
-  return [
-    {
-      label: calling.starterAbility,
-      source: "Calling",
-      detail: `${calling.starterAbilityType}. ${calling.starterAbilityRule}`,
-    },
-  ];
+export function getAbilityEntries(character) {
+  return (character.progressionDerived?.abilities ?? []).map((a) => ({
+    label: a.name,
+    source: a.source.type + " · " + a.timing + " · " + a.implementationStatus,
+    detail:
+      a.description +
+      " · level " +
+      a.minimumLevel +
+      " · " +
+      a.missingDependencies.join(", "),
+  }));
 }
-
 export function getCatalogGroups(character) {
   const woundEntries = character.resources?.wounds?.active ?? [];
   return [
