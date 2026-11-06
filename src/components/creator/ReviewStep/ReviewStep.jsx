@@ -1,19 +1,16 @@
-import { calculateCheckModifier } from '../../../lib/checkModifier.js'
-import { useSystem } from '../../../hooks/useSystem'
-import HoverInfo from '../../ui/HoverInfo/HoverInfo'
+import { calculateCheckModifier } from "../../../lib/checkModifier.js";
+import { useSystem } from "../../../hooks/useSystem";
+import HoverInfo from "../../ui/HoverInfo/HoverInfo";
+import { getAttributeLabel } from "../../../lib/character";
+import "../shared/CreatorSurfaceStyles/CreatorSurfaceStyles.css";
+import "./ReviewStep.css";
 import {
-  getAttributeLabel,
-} from '../../../lib/character'
-import '../shared/CreatorSurfaceStyles/CreatorSurfaceStyles.css'
-import './ReviewStep.css'
-import {
-  getLoadoutItemCount,
   getReputationEntries,
   getReviewContext,
   getStartingFeatures,
   getUnlockedNodeDetail,
-} from './reviewHelpers'
-import CreatorStepFrame from '../shared/CreatorStepFrame/CreatorStepFrame'
+} from "./reviewHelpers";
+import CreatorStepFrame from "../shared/CreatorStepFrame/CreatorStepFrame";
 
 function ReviewDataRow({ detail, label, value }) {
   return (
@@ -25,11 +22,9 @@ function ReviewDataRow({ detail, label, value }) {
       placement="bottom-end"
     >
       <dt>{label}</dt>
-      <dd>
-        {value}
-      </dd>
+      <dd>{value}</dd>
     </HoverInfo>
-  )
+  );
 }
 
 function ReviewStep({
@@ -45,7 +40,7 @@ function ReviewStep({
   wounds,
   progression,
 }) {
-  const { blueprint } = useSystem()
+  const { blueprint } = useSystem();
   const {
     activeReputation,
     advancementSpent,
@@ -62,10 +57,15 @@ function ReviewStep({
     progression,
     reputation,
     training,
-  trainingOptions,
-  })
-  const startingFeatures = getStartingFeatures({ calling, origin, parsedOriginBonus, path })
-  const reputationEntries = getReputationEntries(activeReputation, blueprint)
+    trainingOptions,
+  });
+  const startingFeatures = getStartingFeatures({
+    calling,
+    origin,
+    parsedOriginBonus,
+    path,
+  });
+  const reputationEntries = getReputationEntries(activeReputation, blueprint);
 
   return (
     <CreatorStepFrame
@@ -73,19 +73,18 @@ function ReviewStep({
       title="Read the shape of your legend"
       description="Before the Vale learns your name, it reads your roots, your calling, your island, and only then the numbers that follow you into the storm."
     >
-
       <section className="review-strip">
         <div className="review-strip__item">
           <span>Name</span>
-          <strong>{identity.name || 'Unnamed'}</strong>
+          <strong>{identity.name || "Unnamed"}</strong>
         </div>
         <div className="review-strip__item">
           <span>Path</span>
-          <strong>{path?.name || 'Unset'}</strong>
+          <strong>{path?.name || "Unset"}</strong>
         </div>
         <div className="review-strip__item">
           <span>Calling</span>
-          <strong>{calling?.name || 'Unset'}</strong>
+          <strong>{calling?.name || "Unset"}</strong>
         </div>
         <div className="review-strip__item">
           <span>Training</span>
@@ -93,7 +92,7 @@ function ReviewStep({
         </div>
         <div className="review-strip__item">
           <span>Loadout</span>
-          <strong>{getLoadoutItemCount(loadout)} items</strong>
+          <strong>Inventory managed in Equipment</strong>
         </div>
         <div className="review-strip__item">
           <span>Progression</span>
@@ -105,15 +104,33 @@ function ReviewStep({
         <article className="review-card">
           <h3>Identity</h3>
           <dl>
-            <ReviewDataRow label="Name" value={identity.name || 'Unnamed'} />
-            <ReviewDataRow label="Pronouns" value={identity.pronouns || 'Unspecified'} />
-            <ReviewDataRow label="World Path" value={path?.name || 'Choose one'} detail={path?.description} />
-            <ReviewDataRow label="Calling" value={calling?.name || 'Choose one'} detail={calling?.description} />
-            <ReviewDataRow label="Origin" value={origin?.name || 'Choose one'} detail={origin?.summary} />
-            <ReviewDataRow label="Past Role" value={details?.pastRole || calling?.name || 'Unwritten'} />
+            <ReviewDataRow label="Name" value={identity.name || "Unnamed"} />
+            <ReviewDataRow
+              label="Pronouns"
+              value={identity.pronouns || "Unspecified"}
+            />
+            <ReviewDataRow
+              label="World Path"
+              value={path?.name || "Choose one"}
+              detail={path?.description}
+            />
+            <ReviewDataRow
+              label="Calling"
+              value={calling?.name || "Choose one"}
+              detail={calling?.description}
+            />
+            <ReviewDataRow
+              label="Origin"
+              value={origin?.name || "Choose one"}
+              detail={origin?.summary}
+            />
+            <ReviewDataRow
+              label="Past Role"
+              value={details?.pastRole || calling?.name || "Unwritten"}
+            />
             <ReviewDataRow
               label="Defining Event"
-              value={details?.definingEvent ? 'Recorded' : 'Unwritten'}
+              value={details?.definingEvent ? "Recorded" : "Unwritten"}
               detail={details?.definingEvent || undefined}
             />
           </dl>
@@ -126,10 +143,21 @@ function ReviewStep({
               <ReviewDataRow
                 key={key}
                 label={getAttributeLabel(key)}
-                value={`${value} (${value >= 1 && calculateCheckModifier(finalAttributes, key) >= 0 ? '+' : ''}${value >= 1 ? calculateCheckModifier(finalAttributes, key) : '—'})`}
+                value={`${value} (${
+                  value >= 1 &&
+                  calculateCheckModifier(finalAttributes, key) >= 0
+                    ? "+"
+                    : ""
+                }${
+                  value >= 1
+                    ? calculateCheckModifier(finalAttributes, key)
+                    : "—"
+                })`}
                 detail={
                   parsedOriginBonus?.key === key
-                    ? `Allocated: ${attributeValues[key] ?? 0}\nOrigin Bonus: +${parsedOriginBonus.amount}`
+                    ? `Allocated: ${
+                        attributeValues[key] ?? 0
+                      }\nOrigin Bonus: +${parsedOriginBonus.amount}`
                     : undefined
                 }
               />
@@ -141,17 +169,31 @@ function ReviewStep({
           <h3>Starting Features</h3>
           <dl>
             {startingFeatures.map((feature) => (
-              <ReviewDataRow key={feature.label} label={feature.label} value={feature.value} detail={feature.detail} />
+              <ReviewDataRow
+                key={feature.label}
+                label={feature.label}
+                value={feature.value}
+                detail={feature.detail}
+              />
             ))}
           </dl>
         </article>
 
         <article className="review-card">
           <h3>Training</h3>
-          <dl>{training.map((id) => {
-            const option = trainingOptions.find((entry) => entry.id === id)
-            return <ReviewDataRow key={id} label={option?.name ?? id} value="Trained" detail={option?.description} />
-          })}</dl>
+          <dl>
+            {training.map((id) => {
+              const option = trainingOptions.find((entry) => entry.id === id);
+              return (
+                <ReviewDataRow
+                  key={id}
+                  label={option?.name ?? id}
+                  value="Trained"
+                  detail={option?.description}
+                />
+              );
+            })}
+          </dl>
         </article>
 
         <article className="review-card">
@@ -159,12 +201,18 @@ function ReviewStep({
           {reputationEntries.length ? (
             <dl>
               {reputationEntries.map((entry) => (
-                <ReviewDataRow key={entry.key} label={entry.label} value={entry.value} detail={entry.detail} />
+                <ReviewDataRow
+                  key={entry.key}
+                  label={entry.label}
+                  value={entry.value}
+                  detail={entry.detail}
+                />
               ))}
             </dl>
           ) : (
             <p className="review-card__empty">
-              This origin starts politically neutral until campaign choices reshape it.
+              This origin starts politically neutral until campaign choices
+              reshape it.
             </p>
           )}
         </article>
@@ -176,70 +224,57 @@ function ReviewStep({
               label="Custom Abilities"
               value={
                 loadout?.customAbilities?.filter(
-                  (ability) => ability.name?.trim() || ability.effect?.trim(),
+                  (ability) => ability.name?.trim() || ability.effect?.trim()
                 ).length
                   ? `${
                       loadout.customAbilities.filter(
-                        (ability) => ability.name?.trim() || ability.effect?.trim(),
+                        (ability) =>
+                          ability.name?.trim() || ability.effect?.trim()
                       ).length
                     } recorded`
-                  : 'None'
+                  : "None"
               }
               detail={
                 loadout?.customAbilities?.filter(
-                  (ability) => ability.name?.trim() || ability.effect?.trim(),
+                  (ability) => ability.name?.trim() || ability.effect?.trim()
                 ).length
                   ? loadout.customAbilities
-                      .filter((ability) => ability.name?.trim() || ability.effect?.trim())
+                      .filter(
+                        (ability) =>
+                          ability.name?.trim() || ability.effect?.trim()
+                      )
                       .map((ability) =>
                         [
-                          ability.name || 'Unnamed ability',
-                          `${ability.source || 'custom'} | ${ability.type || 'active'}`,
+                          ability.name || "Unnamed ability",
+                          `${ability.source || "custom"} | ${
+                            ability.type || "active"
+                          }`,
                           ability.costResource
-                            ? `Cost ${ability.costAmount || 0} ${ability.costResource}`
+                            ? `Cost ${ability.costAmount || 0} ${
+                                ability.costResource
+                              }`
                             : null,
                           ability.scalingAttribute || ability.scalingSkill
-                            ? `Scaling ${[ability.scalingAttribute, ability.scalingSkill]
+                            ? `Scaling ${[
+                                ability.scalingAttribute,
+                                ability.scalingSkill,
+                              ]
                                 .filter(Boolean)
-                                .join(' + ')}`
+                                .join(" + ")}`
                             : null,
                           ability.effect || null,
                         ]
                           .filter(Boolean)
-                          .join('\n')
+                          .join("\n")
                       )
-                      .join('\n\n')
+                      .join("\n\n")
                   : undefined
               }
             />
             <ReviewDataRow
-              label="Weapons"
-              value={loadout?.weaponsText ? `${loadout.weaponsText.split('\n').filter(Boolean).length} recorded` : 'None'}
-              detail={loadout?.weaponsText || undefined}
-            />
-            <ReviewDataRow
-              label="Armor"
-              value={loadout?.armorText ? `${loadout.armorText.split('\n').filter(Boolean).length} recorded` : 'None'}
-              detail={loadout?.armorText || undefined}
-            />
-            <ReviewDataRow
-              label="Tech / Relics"
-              value={
-                loadout?.techRelicsText ? `${loadout.techRelicsText.split('\n').filter(Boolean).length} recorded` : 'None'
-              }
-              detail={loadout?.techRelicsText || undefined}
-            />
-            <ReviewDataRow
-              label="Inventory"
-              value={
-                loadout?.inventoryText ? `${loadout.inventoryText.split('\n').filter(Boolean).length} recorded` : 'None'
-              }
-              detail={loadout?.inventoryText || undefined}
-            />
-            <ReviewDataRow
-              label="Relics"
-              value={loadout?.relicsText ? `${loadout.relicsText.split('\n').filter(Boolean).length} recorded` : 'None'}
-              detail={loadout?.relicsText || undefined}
+              label="Equipment"
+              value="Server-issued starting cutlass for new characters; saved inventory for existing characters"
+              detail="Equipment changes save separately in the Equipment step."
             />
           </dl>
         </article>
@@ -249,36 +284,59 @@ function ReviewStep({
           <dl>
             <ReviewDataRow
               label="Health"
-              value={resourceMaximums?.health == null ? 'Unavailable' : `${resources?.health ?? 0}/${resourceMaximums.health}`}
+              value={
+                resourceMaximums?.health == null
+                  ? "Unavailable"
+                  : `${resources?.health ?? 0}/${resourceMaximums.health}`
+              }
             />
             <ReviewDataRow
               label="Stamina"
-              value={resourceMaximums?.stamina == null ? 'Unavailable' : `${resources?.stamina ?? 0}/${resourceMaximums.stamina}`}
+              value={
+                resourceMaximums?.stamina == null
+                  ? "Unavailable"
+                  : `${resources?.stamina ?? 0}/${resourceMaximums.stamina}`
+              }
             />
             <ReviewDataRow
               label="Focus"
-              value={resourceMaximums?.focus == null ? 'Unavailable' : `${resources?.focus ?? 0}/${resourceMaximums.focus}`}
+              value={
+                resourceMaximums?.focus == null
+                  ? "Unavailable"
+                  : `${resources?.focus ?? 0}/${resourceMaximums.focus}`
+              }
             />
             <ReviewDataRow
               label="Corruption"
-              value={`${resources?.corruption ?? 0}/${resourceMaximums?.corruption ?? 0}`}
+              value={`${resources?.corruption ?? 0}/${
+                resourceMaximums?.corruption ?? 0
+              }`}
             />
             <ReviewDataRow
               label="Wounds"
-              value={`${resources?.wounds ?? 0}/${resourceMaximums?.wounds ?? 0}`}
+              value={`${resources?.wounds ?? 0}/${
+                resourceMaximums?.wounds ?? 0
+              }`}
             />
             <ReviewDataRow
               label="Active Wound Entries"
-              value={wounds?.length ? `${wounds.length} recorded` : 'None'}
+              value={wounds?.length ? `${wounds.length} recorded` : "None"}
               detail={
                 wounds?.length
                   ? wounds
                       .map((wound) =>
-                        [wound.name, wound.severity, wound.statPenalty ? `Penalty: ${wound.statPenalty}` : null, wound.description]
+                        [
+                          wound.name,
+                          wound.severity,
+                          wound.statPenalty
+                            ? `Penalty: ${wound.statPenalty}`
+                            : null,
+                          wound.description,
+                        ]
                           .filter(Boolean)
-                          .join('\n'),
+                          .join("\n")
                       )
-                      .join('\n\n')
+                      .join("\n\n")
                   : undefined
               }
             />
@@ -286,14 +344,17 @@ function ReviewStep({
               label="Custom Traits"
               value={
                 details?.customTraitsText
-                  ? `${details.customTraitsText.split('\n').filter(Boolean).length} recorded`
-                  : 'None'
+                  ? `${
+                      details.customTraitsText.split("\n").filter(Boolean)
+                        .length
+                    } recorded`
+                  : "None"
               }
               detail={details?.customTraitsText || undefined}
             />
             <ReviewDataRow
               label="Notes"
-              value={details?.notes ? 'Recorded' : 'None'}
+              value={details?.notes ? "Recorded" : "None"}
               detail={details?.notes || undefined}
             />
           </dl>
@@ -303,20 +364,32 @@ function ReviewStep({
           <h3>Progression</h3>
           <dl>
             <ReviewDataRow label="Rank" value={progression?.rank ?? 1} />
-            <ReviewDataRow label="Advancement Points" value={progression?.advancementPoints ?? 0} />
-            <ReviewDataRow label="Advancement Invested" value={advancementSpent} />
+            <ReviewDataRow
+              label="Advancement Points"
+              value={progression?.advancementPoints ?? 0}
+            />
+            <ReviewDataRow
+              label="Advancement Invested"
+              value={advancementSpent}
+            />
             <ReviewDataRow
               label="Specialization Path"
-              value={specialization?.name || progression?.specializationPath || 'Unchosen'}
+              value={
+                specialization?.name ||
+                progression?.specializationPath ||
+                "Unchosen"
+              }
               detail={
                 [
                   specialization?.summary,
                   specialization?.recommendationReasons?.length
-                    ? `Why it fits: ${specialization.recommendationReasons.join(', ')}`
+                    ? `Why it fits: ${specialization.recommendationReasons.join(
+                        ", "
+                      )}`
                     : null,
                 ]
                   .filter(Boolean)
-                  .join('\n\n') || undefined
+                  .join("\n\n") || undefined
               }
             />
             <ReviewDataRow
@@ -324,15 +397,19 @@ function ReviewStep({
               value={
                 progression?.unlockedNodes?.length
                   ? `${progression.unlockedNodes.length} recorded`
-                  : 'None'
+                  : "None"
               }
-              detail={getUnlockedNodeDetail(progression?.unlockedNodes, progression, blueprint)}
+              detail={getUnlockedNodeDetail(
+                progression?.unlockedNodes,
+                progression,
+                blueprint
+              )}
             />
           </dl>
         </article>
       </div>
     </CreatorStepFrame>
-  )
+  );
 }
 
-export default ReviewStep
+export default ReviewStep;

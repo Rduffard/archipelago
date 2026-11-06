@@ -2,32 +2,30 @@ import {
   clampTrackValue,
   createProgression,
   createResources,
-} from '../state/creatorState'
+} from "../state/creatorState";
 import {
   formatAbilitySource,
   mapAbilityType,
   parseCustomAbilities,
   parseCustomTraitsText,
-  parseEquipmentText,
-  parseInventoryText,
-  parseRelicsText,
   parseWounds,
   toSlug,
-} from '../transforms/creatorTransforms'
+} from "../transforms/creatorTransforms";
 
 function createIdentityTags(selectedPath, selectedOrigin, selectedCalling) {
   return [
     selectedPath
       ? {
-          type: 'tag',
+          type: "tag",
           key: `path-${selectedPath.id}`,
           label: selectedPath.name,
-          mechanicalImpact: selectedPath.description ?? selectedPath.summary ?? '',
+          mechanicalImpact:
+            selectedPath.description ?? selectedPath.summary ?? "",
         }
       : null,
     selectedOrigin
       ? {
-          type: 'trait',
+          type: "trait",
           key: `origin-${selectedOrigin.id}`,
           label: selectedOrigin.identityTag || `${selectedOrigin.name} Born`,
           mechanicalImpact:
@@ -37,39 +35,42 @@ function createIdentityTags(selectedPath, selectedOrigin, selectedCalling) {
       : null,
     selectedCalling
       ? {
-          type: 'tag',
+          type: "tag",
           key: `calling-${selectedCalling.id}`,
           label: selectedCalling.name,
-          mechanicalImpact: `${selectedCalling.focus}. ${selectedCalling.description}`.trim(),
+          mechanicalImpact:
+            `${selectedCalling.focus}. ${selectedCalling.description}`.trim(),
         }
       : null,
-  ].filter(Boolean)
+  ].filter(Boolean);
 }
 
 function createStarterAbilities(selectedCalling) {
   if (!selectedCalling) {
-    return []
+    return [];
   }
 
   return [
     {
-      id: `ability-${selectedCalling.id}-${toSlug(selectedCalling.starterAbility)}`,
+      id: `ability-${selectedCalling.id}-${toSlug(
+        selectedCalling.starterAbility
+      )}`,
       name: selectedCalling.starterAbility,
       type: mapAbilityType(selectedCalling.starterAbilityType),
       description: `${selectedCalling.starterAbilityType}. ${selectedCalling.starterAbilityRule}`,
-      source: formatAbilitySource('calling'),
+      source: formatAbilitySource("calling"),
       cost: {
-        resource: '',
+        resource: "",
         amount: 0,
       },
       scaling: {
-        attribute: selectedCalling.primaryStats?.[0]?.toLowerCase() ?? '',
-        skill: '',
+        attribute: selectedCalling.primaryStats?.[0]?.toLowerCase() ?? "",
+        skill: "",
       },
-      tags: ['calling', 'starter', selectedCalling.id],
+      tags: ["calling", "starter", selectedCalling.id],
       effect: selectedCalling.starterAbilityRule,
     },
-  ]
+  ];
 }
 
 export function buildCharacterPayload({
@@ -89,18 +90,30 @@ export function buildCharacterPayload({
   trimmedName,
   wounds,
 }) {
-  const rank = progressionValues.rank
-  const generatedTraits = createIdentityTags(selectedPath, selectedOrigin, selectedCalling)
-  const customTraits = parseCustomTraitsText(details.customTraitsText)
-  const traits = [...generatedTraits, ...customTraits]
-  const customAbilities = parseCustomAbilities(loadout.customAbilities)
-  const abilities = [...(initialCharacter?._id ? createStarterAbilities(selectedCalling) : []), ...customAbilities]
-  const isEditing = Boolean(initialCharacter?._id)
+  const rank = progressionValues.rank;
+  const generatedTraits = createIdentityTags(
+    selectedPath,
+    selectedOrigin,
+    selectedCalling
+  );
+  const customTraits = parseCustomTraitsText(details.customTraitsText);
+  const traits = [...generatedTraits, ...customTraits];
+  const customAbilities = parseCustomAbilities(loadout.customAbilities);
+  const abilities = [
+    ...(initialCharacter?._id ? createStarterAbilities(selectedCalling) : []),
+    ...customAbilities,
+  ];
+  const isEditing = Boolean(initialCharacter?._id);
   const baseResources = isEditing
-    ? Object.fromEntries(['health', 'stamina', 'focus', 'wounds', 'corruption'].map((key) => [key, initialCharacter.resources?.[key] ?? { current: null, max: null }]))
-    : createResources(finalAttributes, 1)
-  const activeWounds = parseWounds(wounds)
-  const savedWoundCount = Math.max(resourceValues.wounds, activeWounds.length)
+    ? Object.fromEntries(
+        ["health", "stamina", "focus", "wounds", "corruption"].map((key) => [
+          key,
+          initialCharacter.resources?.[key] ?? { current: null, max: null },
+        ])
+      )
+    : createResources(finalAttributes, 1);
+  const activeWounds = parseWounds(wounds);
+  const savedWoundCount = Math.max(resourceValues.wounds, activeWounds.length);
   const resources = {
     ...baseResources,
     health: {
@@ -113,7 +126,10 @@ export function buildCharacterPayload({
       active: activeWounds,
     },
     stamina: {
-      current: clampTrackValue(resourceValues.stamina, baseResources.stamina.max),
+      current: clampTrackValue(
+        resourceValues.stamina,
+        baseResources.stamina.max
+      ),
       max: baseResources.stamina.max,
     },
     focus: {
@@ -121,17 +137,22 @@ export function buildCharacterPayload({
       max: baseResources.focus.max,
     },
     corruption: {
-      current: clampTrackValue(resourceValues.corruption, baseResources.corruption.max),
+      current: clampTrackValue(
+        resourceValues.corruption,
+        baseResources.corruption.max
+      ),
       max: baseResources.corruption.max,
     },
-  }
+  };
   const progression = {
     ...createProgression(rank),
     rank: isEditing ? rank : 1,
     advancementPoints: progressionValues.advancementPoints,
-    specializationPath: isEditing ? progressionValues.specializationPath.trim() : '',
+    specializationPath: isEditing
+      ? progressionValues.specializationPath.trim()
+      : "",
     unlockedNodes: isEditing ? progressionValues.unlockedNodes : [],
-  }
+  };
 
   return {
     name: trimmedName,
@@ -140,10 +161,13 @@ export function buildCharacterPayload({
     origin: identity.originId,
     identity: {
       background: {
-        origin: selectedOrigin?.name ?? '',
-        pastRole: details.pastRole.trim() || selectedCalling?.name || '',
+        origin: selectedOrigin?.name ?? "",
+        pastRole: details.pastRole.trim() || selectedCalling?.name || "",
         definingEvent:
-          details.definingEvent.trim() || selectedPath?.summary || selectedOrigin?.summary || '',
+          details.definingEvent.trim() ||
+          selectedPath?.summary ||
+          selectedOrigin?.summary ||
+          "",
       },
       tags: traits,
     },
@@ -151,19 +175,13 @@ export function buildCharacterPayload({
     reputation: startingReputation,
     training,
     abilities,
-    resources: isEditing ? resources : { wounds: resources.wounds, corruption: resources.corruption },
-    inventory: parseInventoryText(loadout.inventoryText),
-    relics: parseRelicsText(loadout.relicsText),
-    equipment: {
-      weapons: parseEquipmentText(loadout.weaponsText, 'weapon'),
-      armor: parseEquipmentText(loadout.armorText, 'armor'),
-      techRelics: parseEquipmentText(loadout.techRelicsText, 'tech'),
-      cargo: parseEquipmentText(loadout.cargoText, 'cargo'),
-    },
+    resources: isEditing
+      ? resources
+      : { wounds: resources.wounds, corruption: resources.corruption },
     progression,
     notes: details.notes.trim(),
-    portraitUrl: initialCharacter?.portraitUrl ?? '',
+    portraitUrl: initialCharacter?.portraitUrl ?? "",
     campaignId: initialCharacter?.campaignId ?? null,
-    status: initialCharacter?.status ?? 'active',
-  }
+    status: initialCharacter?.status ?? "active",
+  };
 }

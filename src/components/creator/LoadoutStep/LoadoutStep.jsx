@@ -1,23 +1,23 @@
+import EquipmentPanel from "../../equipment/EquipmentPanel";
 import {
   ABILITY_SOURCE_OPTIONS,
   ABILITY_TYPE_OPTIONS,
   ATTRIBUTE_OPTIONS,
-  GEAR_SECTIONS,
   RESOURCE_OPTIONS,
   titleCase,
-} from './loadoutStepHelpers'
-import CreatorStepFrame from '../shared/CreatorStepFrame/CreatorStepFrame'
-import '../shared/CreatorChoiceStyles/CreatorChoiceStyles.css'
-import '../shared/CreatorSurfaceStyles/CreatorSurfaceStyles.css'
+} from "./loadoutStepHelpers";
+import CreatorStepFrame from "../shared/CreatorStepFrame/CreatorStepFrame";
+import "../shared/CreatorChoiceStyles/CreatorChoiceStyles.css";
+import "../shared/CreatorSurfaceStyles/CreatorSurfaceStyles.css";
 import {
   CreatorField,
   CreatorInput,
   CreatorLabel,
   CreatorSectionHeader,
   CreatorTextarea,
-} from '../shared/CreatorForm/CreatorForm'
-import CreatorRecordCardHeader from '../shared/CreatorRecordCardHeader/CreatorRecordCardHeader'
-import './LoadoutStep.css'
+} from "../shared/CreatorForm/CreatorForm";
+import CreatorRecordCardHeader from "../shared/CreatorRecordCardHeader/CreatorRecordCardHeader";
+import "./LoadoutStep.css";
 
 function AbilitySelectField({ id, label, onChange, options, value }) {
   return (
@@ -25,13 +25,13 @@ function AbilitySelectField({ id, label, onChange, options, value }) {
       <CreatorLabel htmlFor={id}>{label}</CreatorLabel>
       <select id={id} value={value} onChange={onChange}>
         {options.map((option) => (
-          <option key={option || 'none'} value={option}>
-            {option ? titleCase(option) : 'None'}
+          <option key={option || "none"} value={option}>
+            {option ? titleCase(option) : "None"}
           </option>
         ))}
       </select>
     </CreatorField>
-  )
+  );
 }
 
 function CustomAbilityCard({
@@ -55,7 +55,9 @@ function CustomAbilityCard({
             id={`ability-name-${index}`}
             type="text"
             value={ability.name}
-            onChange={(event) => onCustomAbilityChange(index, 'name', event.target.value)}
+            onChange={(event) =>
+              onCustomAbilityChange(index, "name", event.target.value)
+            }
           />
         </CreatorField>
 
@@ -64,7 +66,9 @@ function CustomAbilityCard({
           label="Source"
           options={ABILITY_SOURCE_OPTIONS}
           value={ability.source}
-          onChange={(event) => onCustomAbilityChange(index, 'source', event.target.value)}
+          onChange={(event) =>
+            onCustomAbilityChange(index, "source", event.target.value)
+          }
         />
 
         <AbilitySelectField
@@ -72,7 +76,9 @@ function CustomAbilityCard({
           label="Type"
           options={ABILITY_TYPE_OPTIONS}
           value={ability.type}
-          onChange={(event) => onCustomAbilityChange(index, 'type', event.target.value)}
+          onChange={(event) =>
+            onCustomAbilityChange(index, "type", event.target.value)
+          }
         />
 
         <AbilitySelectField
@@ -80,17 +86,23 @@ function CustomAbilityCard({
           label="Cost Resource"
           options={RESOURCE_OPTIONS}
           value={ability.costResource}
-          onChange={(event) => onCustomAbilityChange(index, 'costResource', event.target.value)}
+          onChange={(event) =>
+            onCustomAbilityChange(index, "costResource", event.target.value)
+          }
         />
 
         <CreatorField>
-          <CreatorLabel htmlFor={`ability-cost-amount-${index}`}>Cost Amount</CreatorLabel>
+          <CreatorLabel htmlFor={`ability-cost-amount-${index}`}>
+            Cost Amount
+          </CreatorLabel>
           <CreatorInput
             id={`ability-cost-amount-${index}`}
             type="number"
             min="0"
             value={ability.costAmount}
-            onChange={(event) => onCustomAbilityChange(index, 'costAmount', event.target.value)}
+            onChange={(event) =>
+              onCustomAbilityChange(index, "costAmount", event.target.value)
+            }
           />
         </CreatorField>
 
@@ -99,17 +111,23 @@ function CustomAbilityCard({
           label="Scaling Attribute"
           options={ATTRIBUTE_OPTIONS}
           value={ability.scalingAttribute}
-          onChange={(event) => onCustomAbilityChange(index, 'scalingAttribute', event.target.value)}
+          onChange={(event) =>
+            onCustomAbilityChange(index, "scalingAttribute", event.target.value)
+          }
         />
 
         <CreatorField>
-          <CreatorLabel htmlFor={`ability-scaling-skill-${index}`}>Scaling Skill</CreatorLabel>
+          <CreatorLabel htmlFor={`ability-scaling-skill-${index}`}>
+            Scaling Skill
+          </CreatorLabel>
           <CreatorInput
             id={`ability-scaling-skill-${index}`}
             type="text"
             placeholder="Channel, Negotiate, etc."
             value={ability.scalingSkill}
-            onChange={(event) => onCustomAbilityChange(index, 'scalingSkill', event.target.value)}
+            onChange={(event) =>
+              onCustomAbilityChange(index, "scalingSkill", event.target.value)
+            }
           />
         </CreatorField>
 
@@ -120,7 +138,9 @@ function CustomAbilityCard({
             type="text"
             placeholder="combat, utility, arcane"
             value={ability.tagsText}
-            onChange={(event) => onCustomAbilityChange(index, 'tagsText', event.target.value)}
+            onChange={(event) =>
+              onCustomAbilityChange(index, "tagsText", event.target.value)
+            }
           />
         </CreatorField>
       </div>
@@ -131,31 +151,18 @@ function CustomAbilityCard({
           id={`ability-effect-${index}`}
           rows="4"
           value={ability.effect}
-          onChange={(event) => onCustomAbilityChange(index, 'effect', event.target.value)}
+          onChange={(event) =>
+            onCustomAbilityChange(index, "effect", event.target.value)
+          }
         />
       </CreatorField>
     </article>
-  )
-}
-
-function GearSectionCard({ loadout, onLoadoutChange, section }) {
-  return (
-    <article className="review-card">
-      <h3>{section.title}</h3>
-      <p className="creator-loadout-hint">{section.hint}</p>
-      <CreatorTextarea
-        className="creator-loadout-textarea"
-        rows="6"
-        value={loadout[section.key]}
-        onChange={(event) => onLoadoutChange(section.key, event.target.value)}
-      />
-    </article>
-  )
+  );
 }
 
 function LoadoutStep({
   loadout,
-  onLoadoutChange,
+  characterId,
   onCustomAbilityChange,
   onAddCustomAbility,
   onRemoveCustomAbility,
@@ -166,13 +173,16 @@ function LoadoutStep({
       title="Pack the sheet"
       description="Add the custom abilities, gear, and carried items that should already exist on this character before play begins."
     >
-
       <div className="choice-group">
         <CreatorSectionHeader
           title="Custom Abilities"
           description="Give non-calling abilities a proper shape so the sheet can show source, cost, scaling, and effect."
           action={
-            <button type="button" className="creator-inline-back" onClick={onAddCustomAbility}>
+            <button
+              type="button"
+              className="creator-inline-back"
+              onClick={onAddCustomAbility}
+            >
               Add Ability
             </button>
           }
@@ -191,18 +201,17 @@ function LoadoutStep({
         </div>
       </div>
 
-      <div className="review-grid">
-        {GEAR_SECTIONS.map((section) => (
-          <GearSectionCard
-            key={section.key}
-            loadout={loadout}
-            onLoadoutChange={onLoadoutChange}
-            section={section}
-          />
-        ))}
-      </div>
+      {characterId ? (
+        <EquipmentPanel characterId={characterId} editable />
+      ) : (
+        <p>
+          Development starting equipment: the server will issue one cutlass and
+          equip it in your main hand. Training depends on Calling. After saving,
+          edit owned equipment here.
+        </p>
+      )}
     </CreatorStepFrame>
-  )
+  );
 }
 
-export default LoadoutStep
+export default LoadoutStep;

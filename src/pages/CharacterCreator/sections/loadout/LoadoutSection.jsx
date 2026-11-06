@@ -1,21 +1,21 @@
-import LoadoutStep from '../../../../components/creator/LoadoutStep/LoadoutStep'
+import LoadoutStep from "../../../../components/creator/LoadoutStep/LoadoutStep";
 
 function LoadoutSection({
   loadout,
   onAddCustomAbility,
   onCustomAbilityChange,
-  onLoadoutChange,
+  characterId,
   onRemoveCustomAbility,
 }) {
   return (
     <LoadoutStep
       loadout={loadout}
-      onLoadoutChange={onLoadoutChange}
+      characterId={characterId}
       onCustomAbilityChange={onCustomAbilityChange}
       onAddCustomAbility={onAddCustomAbility}
       onRemoveCustomAbility={onRemoveCustomAbility}
     />
-  )
+  );
 }
 
-export default LoadoutSection
+export default LoadoutSection;
