@@ -9,7 +9,7 @@ const {
   createFixture,
   applyCommand,
 } = require("../../crossworld_backend/src/modules/archipelago/combat/state.js");
-const server = await createServer({
+const server = await createServer({configFile:false,resolve:{preserveSymlinks:true},
   cacheDir: ".test-cache/combat",
   server: { middlewareMode: true, watch: null, hmr: false },
   appType: "custom",

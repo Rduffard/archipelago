@@ -6,6 +6,7 @@ const navItems = [
   { to: "/map", label: "Lore Map" },
   { to: "/combat-test", label: "Combat test" },
   { to: "/characters", label: "Characters" },
+  { to: "/rules-2024", label: "Calling rules" },
   { to: "/campaigns/new", label: "Campaigns" },
   { to: "/achievements", label: "Achievements" },
   { to: "/settings", label: "Settings" },

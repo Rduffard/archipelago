@@ -14,7 +14,7 @@ function CharactersPage() {
       <PageHeader
         eyebrow="Characters"
         title="Your Roster"
-        description="Every saved sheet lives here, independent from campaigns so you can reuse builds across stories."
+        description="Open a saved sheet or register an unassigned character from its campaign page."
       />
 
       <section className="characters-toolbar">
@@ -31,7 +31,7 @@ function CharactersPage() {
       <section className="dashboard-card">
         <div className="dashboard-card__header">
           <h2>Roster</h2>
-          <p>Eventually this page can support search, filters, and campaign assignment.</p>
+          <p><Link to="/campaigns/open">Open your campaigns</Link></p>
         </div>
 
         <CharacterRoster characters={characters} />

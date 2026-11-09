@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createServer } from "vite";
-const server = await createServer({
+const server = await createServer({configFile:false,resolve:{preserveSymlinks:true},
   cacheDir: ".test-cache/character-combat",
   server: { middlewareMode: true, watch: null, hmr: false },
   appType: "custom",

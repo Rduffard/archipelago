@@ -33,8 +33,7 @@ function CharacterRoster({ characters = [], limit }) {
           </div>
           <div className="roster-item__stats">
             <span>Health {resourceSummary(character.resources?.health)}</span>
-            <span>Stamina {resourceSummary(character.resources?.stamina)}</span>
-            <span>Focus {resourceSummary(character.resources?.focus)}</span>
+            <span>Level {character.progression?.rank} · SRD 5.2.1</span>
           </div>
         </Link>
       ))}

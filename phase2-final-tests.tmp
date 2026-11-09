@@ -1,0 +1,664 @@
+TAP version 13
+# Subtest: roster loading, empty, error and selection states
+ok 1 - roster loading, empty, error and selection states
+  ---
+  duration_ms: 54.9543
+  type: 'test'
+  ...
+# Subtest: authenticated character loading, initialization, reload, fixture fallback, and API errors
+ok 2 - authenticated character loading, initialization, reload, fixture fallback, and API errors
+  ---
+  duration_ms: 6.9833
+  type: 'test'
+  ...
+# Subtest: panel displays saved player identity and snapshot boundary
+ok 3 - panel displays saved player identity and snapshot boundary
+  ---
+  duration_ms: 12.3449
+  type: 'test'
+  ...
+# Subtest: current and historical characters use canonical resources without mutation
+ok 4 - current and historical characters use canonical resources without mutation
+  ---
+  duration_ms: 17.0208
+  type: 'test'
+  ...
+# Subtest: missing tracks and loading lists render safely
+ok 5 - missing tracks and loading lists render safely
+  ---
+  duration_ms: 15.0826
+  type: 'test'
+  ...
+# Subtest: frontend/backend parity across all keys and scores 1 through 30
+ok 6 - frontend/backend parity across all keys and scores 1 through 30
+  ---
+  duration_ms: 1.3977
+  type: 'test'
+  ...
+# Subtest: specified scores and odd scores for every attribute
+ok 7 - specified scores and odd scores for every attribute
+  ---
+  duration_ms: 0.6423
+  type: 'test'
+  ...
+# Subtest: reject invalid identifiers
+ok 8 - reject invalid identifiers
+  ---
+  duration_ms: 4.2516
+  type: 'test'
+  ...
+# Subtest: reject missing and malformed scores without coercion
+ok 9 - reject missing and malformed scores without coercion
+  ---
+  duration_ms: 1.1271
+  type: 'test'
+  ...
+# Subtest: only selected score matters and input stays unchanged
+ok 10 - only selected score matters and input stays unchanged
+  ---
+  duration_ms: 1.0769
+  type: 'test'
+  ...
+# Subtest: combat panel displays authoritative state and disables spent attack
+ok 11 - combat panel displays authoritative state and disables spent attack
+  ---
+  duration_ms: 51.4226
+  type: 'test'
+  ...
+# Subtest: Corsair: saved equipment renders owned inventory, loadout, Guard and mastery
+ok 12 - Corsair: saved equipment renders owned inventory, loadout, Guard and mastery
+  ---
+  duration_ms: 201.7507
+  type: 'test'
+  ...
+# Subtest: Gunslinger: saved equipment renders owned inventory, loadout, Guard and mastery
+ok 13 - Gunslinger: saved equipment renders owned inventory, loadout, Guard and mastery
+  ---
+  duration_ms: 158.9422
+  type: 'test'
+  ...
+# Subtest: Navigator: saved equipment renders owned inventory, loadout, Guard and mastery
+ok 14 - Navigator: saved equipment renders owned inventory, loadout, Guard and mastery
+  ---
+  duration_ms: 167.3344
+  type: 'test'
+  ...
+# Subtest: Tidecaller: saved equipment renders owned inventory, loadout, Guard and mastery
+ok 15 - Tidecaller: saved equipment renders owned inventory, loadout, Guard and mastery
+  ---
+  duration_ms: 123.3507
+  type: 'test'
+  ...
+# Subtest: Warden: saved equipment renders owned inventory, loadout, Guard and mastery
+ok 16 - Warden: saved equipment renders owned inventory, loadout, Guard and mastery
+  ---
+  duration_ms: 102.6249
+  type: 'test'
+  ...
+# Subtest: Reaver: saved equipment renders owned inventory, loadout, Guard and mastery
+ok 17 - Reaver: saved equipment renders owned inventory, loadout, Guard and mastery
+  ---
+  duration_ms: 158.2686
+  type: 'test'
+  ...
+# Subtest: Doctor: saved equipment renders owned inventory, loadout, Guard and mastery
+ok 18 - Doctor: saved equipment renders owned inventory, loadout, Guard and mastery
+  ---
+  duration_ms: 113.8649
+  type: 'test'
+  ...
+# Subtest: Shipwright: saved equipment renders owned inventory, loadout, Guard and mastery
+ok 19 - Shipwright: saved equipment renders owned inventory, loadout, Guard and mastery
+  ---
+  duration_ms: 97.4627
+  type: 'test'
+  ...
+# Subtest: attack and Gray Net controls expose first-attack decisions, off-turn records and actual source weapons
+ok 20 - attack and Gray Net controls expose first-attack decisions, off-turn records and actual source weapons
+  ---
+  duration_ms: 321.5653
+  type: 'test'
+  ...
+# Subtest: healing and object controls expose native source identity, accepted recovery and actual item costs
+ok 21 - healing and object controls expose native source identity, accepted recovery and actual item costs
+  ---
+  duration_ms: 91.6763
+  type: 'test'
+  ...
+# Subtest: utility and damage riders expose the required triggers and conflict recovery retains proposed choices
+ok 22 - utility and damage riders expose the required triggers and conflict recovery retains proposed choices
+  ---
+  duration_ms: 307.9688
+  type: 'test'
+  ...
+# Subtest: magic item controls expose identified scroll costs and full Short Rest attunement
+ok 23 - magic item controls expose identified scroll costs and full Short Rest attunement
+  ---
+  duration_ms: 118.214
+  type: 'test'
+  ...
+# Subtest: rebuild offers complete ledger choices and explicit resource consequences without editing raw JSON
+ok 24 - rebuild offers complete ledger choices and explicit resource consequences without editing raw JSON
+  ---
+  duration_ms: 57.2665
+  type: 'test'
+  ...
+# Subtest: Gunslinger controls distinguish spent ammunition, voluntary movement and secondary control
+ok 25 - Gunslinger controls distinguish spent ammunition, voluntary movement and secondary control
+  ---
+  duration_ms: 954.3793
+  type: 'test'
+  ...
+# Subtest: Navigator controls expose mark, cover, guided ally and distinct teleport destination requirements
+ok 26 - Navigator controls expose mark, cover, guided ally and distinct teleport destination requirements
+  ---
+  duration_ms: 691.203
+  type: 'test'
+  ...
+# Subtest: Caster Path controls expose saved casting provenance and unresolved save choices
+ok 27 - Caster Path controls expose saved casting provenance and unresolved save choices
+  ---
+  duration_ms: 818.5468
+  type: 'test'
+  ...
+# Subtest: Reaver controls distinguish enemy turns, source escape DCs and supporting leap spaces
+ok 28 - Reaver controls distinguish enemy turns, source escape DCs and supporting leap spaces
+  ---
+  duration_ms: 189.7951
+  type: 'test'
+  ...
+# Subtest: Free Port and Vigil controls expose source-specific cures, original saves and timed hit events
+ok 29 - Free Port and Vigil controls expose source-specific cures, original saves and timed hit events
+  ---
+  duration_ms: 1347.9567
+  type: 'test'
+  ...
+# Subtest: campaign player controls cannot expose GM award buttons
+ok 30 - campaign player controls cannot expose GM award buttons
+  ---
+  duration_ms: 72.7881
+  type: 'test'
+  ...
+# Subtest: folio controls display approved source and real-time transcription and rebuilding requirements
+ok 31 - folio controls display approved source and real-time transcription and rebuilding requirements
+  ---
+  duration_ms: 50.1453
+  type: 'test'
+  ...
+# Subtest: Covenant controls expose held Shields, before-roll Sentinel and ally-turn Standard grants
+ok 32 - Covenant controls expose held Shields, before-roll Sentinel and ally-turn Standard grants
+  ---
+  duration_ms: 1164.8114
+  type: 'test'
+  ...
+# Subtest: Conduit controls expose source damage evidence, health costs and damage-bound Unbroken Current
+ok 33 - Conduit controls expose source damage evidence, health costs and damage-bound Unbroken Current
+  ---
+  duration_ms: 673.8021
+  type: 'test'
+  ...
+# Subtest: audit history offers explicit refresh without fetching during render
+ok 34 - audit history offers explicit refresh without fetching during render
+  ---
+  duration_ms: 0.9249
+  type: 'test'
+  ...
+# Subtest: identity fields expose bounded pronouns, appearance, portrait and separate narrative notes
+ok 35 - identity fields expose bounded pronouns, appearance, portrait and separate narrative notes
+  ---
+  duration_ms: 1.6611
+  type: 'test'
+  ...
+# Subtest: Envoy controls expose command identity, reaction eligibility, condition saves and parley boundaries
+ok 36 - Envoy controls expose command identity, reaction eligibility, condition saves and parley boundaries
+  ---
+  duration_ms: 262.7445
+  type: 'test'
+  ...
+# Subtest: Hollow Lantern controls use saved study-linked damage and display source-specific sensory limits
+ok 37 - Hollow Lantern controls use saved study-linked damage and display source-specific sensory limits
+  ---
+  duration_ms: 344.4159
+  type: 'test'
+  ...
+# Subtest: Saltglass controls distinguish incoming natural rolls and attack-event follow-ups
+ok 38 - Saltglass controls distinguish incoming natural rolls and attack-event follow-ups
+  ---
+  duration_ms: 251.3851
+  type: 'test'
+  ...
+# Subtest: tool sheet exposes owned tools, adjudicated pairings and server-saved checks
+ok 39 - tool sheet exposes owned tools, adjudicated pairings and server-saved checks
+  ---
+  duration_ms: 31.5923
+  type: 'test'
+  ...
+# Subtest: feat sheet exposes Inspiration, saved Initiative, scene light and its known triggered feat
+ok 40 - feat sheet exposes Inspiration, saved Initiative, scene light and its known triggered feat
+  ---
+  duration_ms: 61.2802
+  type: 'test'
+  ...
+# Subtest: strike sheet exposes Cunning costs and later Devious choices; Brutal uses own turn and no Advantage
+ok 41 - strike sheet exposes Cunning costs and later Devious choices; Brutal uses own turn and no Advantage
+  ---
+  duration_ms: 647.0529
+  type: 'test'
+  ...
+# Subtest: Triage and Ghost Patch show the current roll and adjudication requirements
+ok 42 - Triage and Ghost Patch show the current roll and adjudication requirements
+  ---
+  duration_ms: 394.5657
+  type: 'test'
+  ...
+# Subtest: Spell picker disables save-based Metamagic only for spells without a saving throw
+ok 43 - Spell picker disables save-based Metamagic only for spells without a saving throw
+  ---
+  duration_ms: 639.9305
+  type: 'test'
+  ...
+# Subtest: Doctor sheet offers unprepared Intervention choices and shows level-twenty Wish cooldown
+ok 44 - Doctor sheet offers unprepared Intervention choices and shows level-twenty Wish cooldown
+  ---
+  duration_ms: 477.5977
+  type: 'test'
+  ...
+# Subtest: saved spell rerolls expose original dice, triggered-roll confirmation and actual saved outcomes
+ok 45 - saved spell rerolls expose original dice, triggered-roll confirmation and actual saved outcomes
+  ---
+  duration_ms: 520.6648
+  type: 'test'
+  ...
+# Subtest: saved casting presentation shows effective range, duration, target scaling and protected targets
+ok 46 - saved casting presentation shows effective range, duration, target scaling and protected targets
+  ---
+  duration_ms: 1.5332
+  type: 'test'
+  ...
+# Subtest: shared character-state controls expose damage, conditions, Concentration, death saves and world time
+ok 47 - shared character-state controls expose damage, conditions, Concentration, death saves and world time
+  ---
+  duration_ms: 66.5209
+  type: 'test'
+  ...
+# Subtest: rest planner exposes interruption cause, resumed-rest timing and nourishment
+ok 48 - rest planner exposes interruption cause, resumed-rest timing and nourishment
+  ---
+  duration_ms: 45.7138
+  type: 'test'
+  ...
+# Subtest: Cinder controls expose distinct Grand Battery areas, target overlap, tools, costs and exemption limit
+ok 49 - Cinder controls expose distinct Grand Battery areas, target overlap, tools, costs and exemption limit
+  ---
+  duration_ms: 341.9488
+  type: 'test'
+  ...
+# Subtest: saved Tactical Mind outcome shows its check total and refunded expenditure
+ok 50 - saved Tactical Mind outcome shows its check total and refunded expenditure
+  ---
+  duration_ms: 0.8573
+  type: 'test'
+  ...
+# Subtest: charge resolution table shows each overlapping target once and separates save advantage and exemptions
+ok 51 - charge resolution table shows each overlapping target once and separates save advantage and exemptions
+  ---
+  duration_ms: 2.7427
+  type: 'test'
+  ...
+# Subtest: relay sheet exposes placement, movement, proximity and object damage controls at their feature boundaries
+ok 52 - relay sheet exposes placement, movement, proximity and object damage controls at their feature boundaries
+  ---
+  duration_ms: 354.872
+  type: 'test'
+  ...
+# Subtest: advancement exposes optional source-bound Magic Initiate and Calling cantrip replacements
+ok 53 - advancement exposes optional source-bound Magic Initiate and Calling cantrip replacements
+  ---
+  duration_ms: 72.4979
+  type: 'test'
+  ...
+# Subtest: inventory sheet offers catalog purchases and presets without unchecked item or currency grants
+ok 54 - inventory sheet offers catalog purchases and presets without unchecked item or currency grants
+  ---
+  duration_ms: 159.9919
+  type: 'test'
+  ...
+# Subtest: deadeye: sheet exposes source-owned activation controls, full rules and spell costs
+ok 55 - deadeye: sheet exposes source-owned activation controls, full rules and spell costs
+  ---
+  duration_ms: 103.7847
+  type: 'test'
+  ...
+# Subtest: memory-echo: sheet exposes source-owned activation controls, full rules and spell costs
+ok 56 - memory-echo: sheet exposes source-owned activation controls, full rules and spell costs
+  ---
+  duration_ms: 85.5423
+  type: 'test'
+  ...
+# Subtest: field-surgeon: sheet exposes source-owned activation controls, full rules and spell costs
+ok 57 - field-surgeon: sheet exposes source-owned activation controls, full rules and spell costs
+  ---
+  duration_ms: 119.3763
+  type: 'test'
+  ...
+# Subtest: breakwater: sheet exposes source-owned activation controls, full rules and spell costs
+ok 58 - breakwater: sheet exposes source-owned activation controls, full rules and spell costs
+  ---
+  duration_ms: 98.0117
+  type: 'test'
+  ...
+# Subtest: frontend/backend parity across every legal score for every key
+ok 59 - frontend/backend parity across every legal score for every key
+  ---
+  duration_ms: 2.7709
+  type: 'test'
+  ...
+# Subtest: frontend/backend invalid and over-budget parity
+ok 60 - frontend/backend invalid and over-budget parity
+  ---
+  duration_ms: 1.6198
+  type: 'test'
+  ...
+# Subtest: fresh defaults cost zero and have 27 remaining
+ok 61 - fresh defaults cost zero and have 27 remaining
+  ---
+  duration_ms: 3.0808
+  type: 'test'
+  ...
+# Subtest: exact budget and nonlinear costs
+ok 62 - exact budget and nonlinear costs
+  ---
+  duration_ms: 0.5824
+  type: 'test'
+  ...
+# Subtest: over budget is rejected; remaining exposes deficit
+ok 63 - over budget is rejected; remaining exposes deficit
+  ---
+  duration_ms: 0.6026
+  type: 'test'
+  ...
+# Subtest: illegal scores rejected
+ok 64 - illegal scores rejected
+  ---
+  duration_ms: 0.534
+  type: 'test'
+  ...
+# Subtest: missing, inherited, extra and malformed allocations rejected
+ok 65 - missing, inherited, extra and malformed allocations rejected
+  ---
+  duration_ms: 0.6654
+  type: 'test'
+  ...
+# Subtest: Silent Keel grants Stealth Advantage and cancels with Poisoned
+ok 66 - Silent Keel grants Stealth Advantage and cancels with Poisoned
+  ---
+  duration_ms: 0.8898
+  type: 'test'
+  ...
+# Subtest: Reliable Talent floors the chosen natural roll while Indomitable Might floors the total
+ok 67 - Reliable Talent floors the chosen natural roll while Indomitable Might floors the total
+  ---
+  duration_ms: 0.3498
+  type: 'test'
+  ...
+# Subtest: sheet checks apply Exhaustion once to attributes, skills and saves and Poisoned only to checks
+ok 68 - sheet checks apply Exhaustion once to attributes, skills and saves and Poisoned only to checks
+  ---
+  duration_ms: 0.4125
+  type: 'test'
+  ...
+# Subtest: Path task Advantage is scoped to checks, cancels Poisoned and requires the unlocked feature
+ok 69 - Path task Advantage is scoped to checks, cancels Poisoned and requires the unlocked feature
+  ---
+  duration_ms: 0.6613
+  type: 'test'
+  ...
+# Subtest: Danger Sense and restrained cancel on Agility saves, and Primal Knowledge does not double Exhaustion
+ok 70 - Danger Sense and restrained cancel on Agility saves, and Primal Knowledge does not double Exhaustion
+  ---
+  duration_ms: 0.3197
+  type: 'test'
+  ...
+# Subtest: Barometer Instinct Advantage requires the chosen discipline, matching attribute, and a check
+ok 71 - Barometer Instinct Advantage requires the chosen discipline, matching attribute, and a check
+  ---
+  duration_ms: 0.6598
+  type: 'test'
+  ...
+# Subtest: sheet rolls apply authoritative modifiers and cancel advantage against disadvantage
+ok 72 - sheet rolls apply authoritative modifiers and cancel advantage against disadvantage
+  ---
+  duration_ms: 0.9534
+  type: 'test'
+  ...
+# Subtest: Reef Knife: frontend renders the persisted level-twenty grants and choices
+ok 73 - Reef Knife: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 593.2837
+  type: 'test'
+  ...
+# Subtest: Deadeye: frontend renders the persisted level-twenty grants and choices
+ok 74 - Deadeye: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 528.8716
+  type: 'test'
+  ...
+# Subtest: Gray Net: frontend renders the persisted level-twenty grants and choices
+ok 75 - Gray Net: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 645.7997
+  type: 'test'
+  ...
+# Subtest: Omen Diver: frontend renders the persisted level-twenty grants and choices
+ok 76 - Omen Diver: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 596.579
+  type: 'test'
+  ...
+# Subtest: Leviathan Anchor: frontend renders the persisted level-twenty grants and choices
+ok 77 - Leviathan Anchor: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 628.2266
+  type: 'test'
+  ...
+# Subtest: Bloodwake: frontend renders the persisted level-twenty grants and choices
+ok 78 - Bloodwake: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 556.6355
+  type: 'test'
+  ...
+# Subtest: Sanctuary Hand: frontend renders the persisted level-twenty grants and choices
+ok 79 - Sanctuary Hand: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 578.9841
+  type: 'test'
+  ...
+# Subtest: Powder Saint: frontend renders the persisted level-twenty grants and choices
+ok 80 - Powder Saint: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 593.1573
+  type: 'test'
+  ...
+# Subtest: Drydock Ghost: frontend renders the persisted level-twenty grants and choices
+ok 81 - Drydock Ghost: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 529.1537
+  type: 'test'
+  ...
+# Subtest: Storm Broker: frontend renders the persisted level-twenty grants and choices
+ok 82 - Storm Broker: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 686.9184
+  type: 'test'
+  ...
+# Subtest: Field Surgeon: frontend renders the persisted level-twenty grants and choices
+ok 83 - Field Surgeon: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 486.2394
+  type: 'test'
+  ...
+# Subtest: Breakwater: frontend renders the persisted level-twenty grants and choices
+ok 84 - Breakwater: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 620.7086
+  type: 'test'
+  ...
+# Subtest: Black Flag Envoy: frontend renders the persisted level-twenty grants and choices
+ok 85 - Black Flag Envoy: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 560.2215
+  type: 'test'
+  ...
+# Subtest: Hollow Lantern: frontend renders the persisted level-twenty grants and choices
+ok 86 - Hollow Lantern: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 493.7933
+  type: 'test'
+  ...
+# Subtest: Saltglass Duelist: frontend renders the persisted level-twenty grants and choices
+ok 87 - Saltglass Duelist: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 427.575
+  type: 'test'
+  ...
+# Subtest: Iron Suppressor: frontend renders the persisted level-twenty grants and choices
+ok 88 - Iron Suppressor: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 486.1733
+  type: 'test'
+  ...
+# Subtest: Brass Outrider: frontend renders the persisted level-twenty grants and choices
+ok 89 - Brass Outrider: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 526.3044
+  type: 'test'
+  ...
+# Subtest: Cinder Artillerist: frontend renders the persisted level-twenty grants and choices
+ok 90 - Cinder Artillerist: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 451.9184
+  type: 'test'
+  ...
+# Subtest: Starwake Pilot: frontend renders the persisted level-twenty grants and choices
+ok 91 - Starwake Pilot: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 669.5378
+  type: 'test'
+  ...
+# Subtest: Mangrove Stalker: frontend renders the persisted level-twenty grants and choices
+ok 92 - Mangrove Stalker: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 765.2133
+  type: 'test'
+  ...
+# Subtest: Memory Echo: frontend renders the persisted level-twenty grants and choices
+ok 93 - Memory Echo: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 638.821
+  type: 'test'
+  ...
+# Subtest: Tempest Heart: frontend renders the persisted level-twenty grants and choices
+ok 94 - Tempest Heart: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 646.2288
+  type: 'test'
+  ...
+# Subtest: Sanguine Conduit: frontend renders the persisted level-twenty grants and choices
+ok 95 - Sanguine Conduit: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 508.4425
+  type: 'test'
+  ...
+# Subtest: Oath of the Free Port: frontend renders the persisted level-twenty grants and choices
+ok 96 - Oath of the Free Port: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 525.7762
+  type: 'test'
+  ...
+# Subtest: Iron Covenant: frontend renders the persisted level-twenty grants and choices
+ok 97 - Iron Covenant: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 546.0511
+  type: 'test'
+  ...
+# Subtest: Lantern Vigil: frontend renders the persisted level-twenty grants and choices
+ok 98 - Lantern Vigil: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 456.2481
+  type: 'test'
+  ...
+# Subtest: Thunderhide: frontend renders the persisted level-twenty grants and choices
+ok 99 - Thunderhide: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 291.4312
+  type: 'test'
+  ...
+# Subtest: Chainbreaker: frontend renders the persisted level-twenty grants and choices
+ok 100 - Chainbreaker: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 254.1935
+  type: 'test'
+  ...
+# Subtest: Reef Colossus: frontend renders the persisted level-twenty grants and choices
+ok 101 - Reef Colossus: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 259.3376
+  type: 'test'
+  ...
+# Subtest: Plaguewarden: frontend renders the persisted level-twenty grants and choices
+ok 102 - Plaguewarden: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 320.215
+  type: 'test'
+  ...
+# Subtest: Keeper of Last Breaths: frontend renders the persisted level-twenty grants and choices
+ok 103 - Keeper of Last Breaths: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 319.5045
+  type: 'test'
+  ...
+# Subtest: Sparkwrite Aetherist: frontend renders the persisted level-twenty grants and choices
+ok 104 - Sparkwrite Aetherist: frontend renders the persisted level-twenty grants and choices
+  ---
+  duration_ms: 380.7485
+  type: 'test'
+  ...
+# Subtest: frontend renders all eight backend-owned twenty-level timelines and original Paths
+ok 105 - frontend renders all eight backend-owned twenty-level timelines and original Paths
+  ---
+  duration_ms: 95.5488
+  type: 'test'
+  ...
+# Subtest: temporary sheet consumes authoritative Health, Training, resources and preparation without formulas
+ok 106 - temporary sheet consumes authoritative Health, Training, resources and preparation without formulas
+  ---
+  duration_ms: 16.9777
+  type: 'test'
+  ...
+# Subtest: required Path UI only displays available owner-specific options supplied by backend
+ok 107 - required Path UI only displays available owner-specific options supplied by backend
+  ---
+  duration_ms: 1.8879
+  type: 'test'
+  ...
+# Subtest: saved sheets render server-owned modifiers and every Calling without universal Stamina or Focus
+ok 108 - saved sheets render server-owned modifiers and every Calling without universal Stamina or Focus
+  ---
+  duration_ms: 112.4928
+  type: 'test'
+  ...
+# Subtest: persistent resource controls render saved expenditure rather than preview maxima
+ok 109 - persistent resource controls render saved expenditure rather than preview maxima
+  ---
+  duration_ms: 2.9216
+  type: 'test'
+  ...
+1..109
+# tests 109
+# suites 0
+# pass 109
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 34105.546

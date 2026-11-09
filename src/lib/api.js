@@ -14,7 +14,7 @@ export async function request(path, options = {}) {
 
   if (!response.ok) {
     const message = payload?.message ?? 'Request failed'
-    throw new Error(message)
+    throw Object.assign(new Error(message), { status: response.status, code:payload?.code,fieldPath:payload?.fieldPath,currentRevision:payload?.currentRevision,details:payload?.details })
   }
 
   return payload

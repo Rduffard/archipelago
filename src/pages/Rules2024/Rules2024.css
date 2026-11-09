@@ -1,0 +1,45 @@
+.rules-2024 {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.rules-2024 fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.rules-2024 label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.rules-2024 input {
+  width: 5rem;
+}
+.rules-2024 select {
+  max-width: 100%;
+  padding: 0.4rem;
+}
+.rules-2024 details {
+  margin: 0.5rem 0;
+  padding: 0.6rem;
+  border: 1px solid currentColor;
+  border-radius: 0.4rem;
+}
+.rules-2024 p {
+  line-height: 1.6;
+}
+.rules-2024__table {
+  overflow-x: auto;
+}
+.rules-2024 table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.rules-2024 th,
+.rules-2024 td {
+  padding: 0.55rem;
+  text-align: left;
+  border-bottom: 1px solid currentColor;
+}
