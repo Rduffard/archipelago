@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import {contingentSlotEligible,contingentSlotAvailable,maximumContingentSpellLevel} from '@crossworld/sanguine-engine/spells/contingency';
 
 export function PendingContingency({character,rules,busy,onCommand}){
   const [confirmedId,setConfirmedId]=useState(null);
@@ -28,7 +29,7 @@ export default function ContingencyControls({choices,value,onChange,rules,invent
     {spell&&<>
       <label>Contingent spell slot <select value={value.slotLevel||''} onChange={e=>update({slotLevel:Number(e.target.value)})}>
         <option value="">Choose a second slot</option>
-        {slots.slice(0,5).map((count,i)=><option key={i} value={i+1} disabled={i+1<spell.level||count<=Number(i+1===primarySlot)}>Level {i+1}</option>)}
+        {slots.slice(0,maximumContingentSpellLevel).map((_,i)=><option key={i} value={i+1} disabled={!contingentSlotEligible(i+1,spell.level)||!contingentSlotAvailable(slots,primarySlot,i+1)}>Level {i+1}</option>)}
       </select></label>
       {(rules.spellMaterials?.[spell.id]??[]).map(r=><p key={r.kind}>Required: {r.count} {r.kind.replaceAll('-',' ')} worth at least {r.minValueCp} cp each.</p>)}
       {!!rules.spellMaterials?.[spell.id]?.length&&<label>Contingent spell priced materials <select multiple value={value.materialIds} onChange={e=>update({materialIds:Array.from(e.target.selectedOptions,o=>o.value)})}>

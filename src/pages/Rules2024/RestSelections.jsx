@@ -1,4 +1,9 @@
 import { useState } from 'react';
+import { callingCantripEligible } from '@crossworld/sanguine-engine/spells/casting-sources';
+import { weaponMasteryEligible } from '@crossworld/sanguine-engine/training';
+import { grayNetReplacementOptions, spellMasterySpellEligible, alwaysPreparedAfterMastery } from '@crossworld/sanguine-engine/callings';
+const grayNetLabels = { 'colossus-slayer': 'Colossus Slayer', 'horde-breaker': 'Horde Breaker',
+  'escape-the-horde': 'Escape the Horde', 'multiattack-defense': 'Multiattack Defense' };
 export default function RestSelections({ character, rules, busy, onOperation }) {
   const summary = character.rulesSummary;
   const [choices, setChoices] = useState({});
@@ -6,18 +11,16 @@ export default function RestSelections({ character, rules, busy, onOperation }) 
   const sections = Object.entries(summary.pathSelections).flatMap(([id, value]) => {
     const options = [];
     if (value.mastery?.length) options.push({ id, key: 'mastery', count: value.mastery.length,
-      values: rules.equipment.items.filter(w => w.kind === 'weapon' && w.mastery &&
-        (id !== 'reaver' || w.type === 'melee') && (summary.equipmentTraining.weapons.includes(w.category) ||
-        summary.equipmentTraining.weapons.includes(w.id) || (summary.equipmentTraining.weapons.includes('martial:finesse-or-light') &&
-          w.properties.some(p => ['finesse', 'light'].includes(p.id))))).map(w => ({ id: w.id, name: w.name })), selected: value.mastery });
+      values: rules.equipment.items.filter(weapon => weaponMasteryEligible(weapon,id,summary.equipmentTraining.weapons,true))
+        .map(weapon => ({ id: weapon.id, name: weapon.name })), selected: value.mastery });
     if (id === 'shipwright') {
-      options.push({ id, key: 'cantrips', count: casting.cantrips.length, values: rules.spells.filter(s => s.level === 0 && s.callings.includes(id)), selected: casting.cantrips });
+      options.push({ id, key: 'cantrips', count: casting.cantrips.length, values: rules.spells.filter(s => callingCantripEligible(s,id)), selected: casting.cantrips });
       if (casting.spellMastery.length) options.push({ id, key: 'spellMastery', count: 2, values: rules.spells.filter(s =>
-        (casting.folio.includes(s.id)||casting.spellMastery.includes(s.id)) && [1, 2].includes(s.level) && ['Action','Action or Ritual'].includes(s.castingTime)), selected: casting.spellMastery });
+        (casting.folio.includes(s.id)||casting.spellMastery.includes(s.id)) && spellMasterySpellEligible(s)), selected: casting.spellMastery });
     }
-    if(summary.paths[id]==='gray-net'){
-      options.push({id,key:'hunterPrey',count:1,values:[{id:'colossus-slayer',name:'Colossus Slayer'},{id:'horde-breaker',name:'Horde Breaker'}],selected:[value.hunterPrey],shortRest:true});
-      if(summary.callingLevels[id]>=7)options.push({id,key:'defensiveTactics',count:1,values:[{id:'escape-the-horde',name:'Escape the Horde'},{id:'multiattack-defense',name:'Multiattack Defense'}],selected:[value.defensiveTactics],shortRest:true});
+    for (const key of ['hunterPrey','defensiveTactics']) {
+      const available=grayNetReplacementOptions(summary.paths[id],summary.callingLevels[id],key);
+      if(available.length)options.push({id,key,count:1,values:available.map(optionId=>({id:optionId,name:grayNetLabels[optionId]})),selected:[value[key]],shortRest:true});
     }
     return options;
   });
@@ -27,7 +30,7 @@ export default function RestSelections({ character, rules, busy, onOperation }) 
       const key = `${section.id}:${section.key}`;
       const selected = choices[key] ?? section.selected;
       const mastery=section.key==='spellMastery';
-      const nextAlways=mastery?[...casting.alwaysPrepared.filter(id=>!casting.spellMastery.includes(id)),...selected]:[];
+      const nextAlways=mastery?alwaysPreparedAfterMastery(casting.alwaysPrepared,casting.spellMastery,selected):[];
       const ordinary=mastery?(choices['shipwright:preparations']??character.rulesRuntime.preparations.shipwright).filter(id=>!nextAlways.includes(id)):[];
       const operation={type:'long-rest',selections:{[section.id]:{[section.key]:selected}},...(mastery?{preparations:{shipwright:ordinary}}:{})};
       return <div key={key}><label>{section.id} {section.key}: choose {section.count}

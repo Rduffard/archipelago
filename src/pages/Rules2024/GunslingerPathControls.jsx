@@ -1,3 +1,4 @@
+import {firstMissingAbilityCost} from '@crossworld/sanguine-engine/callings';
 import {useState} from 'react';
 import AbilityPreview from './AbilityPreview';
 export default function GunslingerPathControls({character,rules,busy,onCommand}){
@@ -30,7 +31,7 @@ export default function GunslingerPathControls({character,rules,busy,onCommand})
     {summary.entrenchedDrill&&<p>Entrenched Drill ranged Half Cover: {summary.entrenchedDrill.halfCoverAgainstRanged?'active':'inactive'}. Moving beyond five feet ends it; general Guard is unchanged.</p>}
     {options.map(o=><article key={o.id}><h3>{o.name}</h3><p>{o.description}</p><p>{o.costs.map(c=>`${c.amount} ${c.poolId.split(':').at(-1)} (${state.pools[c.poolId]??0} remaining)`).join('; ')||'No resource cost.'}</p>
       <AbilityPreview option={o}/>
-      <button disabled={o.available===false||!confirmed||o.costs.some(c=>(state.pools[c.poolId]??0)<c.amount)} onClick={()=>activate(o)}>Use {o.name}</button>
+      <button disabled={o.available===false||!confirmed||Boolean(firstMissingAbilityCost(o.costs,state.pools))} onClick={()=>activate(o)}>Use {o.name}</button>
     </article>)}
   </fieldset></section>;
 }

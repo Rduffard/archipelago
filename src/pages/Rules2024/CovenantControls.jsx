@@ -1,3 +1,4 @@
+import {firstMissingAbilityCost} from '@crossworld/sanguine-engine/callings';
 import {useState} from 'react';
 import AbilityPreview from './AbilityPreview';
 export default function CovenantControls({character,busy,onCommand}){
@@ -16,6 +17,6 @@ export default function CovenantControls({character,busy,onCommand}){
     <label><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>GM confirms range, sight, the trigger and any available Reaction. Standard grants occur at the ally's turn start inside my active aura.</label>
     {summary.covenantAura&&<p>Aura of Resolve: {summary.covenantAura.radiusFeet} feet; allies have Advantage on saves against forced movement and being knocked Prone. {summary.covenantAura.standardTemporaryHealth?`Standard grants ${summary.covenantAura.standardTemporaryHealth} temporary Health at each ally turn start.`:''}</p>}
     {summary.preventsEnemyForcedMovement&&<p>Unyielding Standard: physical damage Resistance; enemies cannot move you against your will.</p>}
-    {options.map(o=><article key={o.id}><h3>{o.name}</h3><p>{o.description}</p><AbilityPreview option={o}/><p>{o.costs.map(c=>`${c.amount} ${c.poolId.split(':').at(-1)} (${state.pools[c.poolId]??0} remaining)`).join('; ')||'No resource cost.'}</p><button disabled={o.available===false||!confirmed||o.costs.some(c=>(state.pools[c.poolId]??0)<c.amount)} onClick={()=>activate(o)}>Use {o.name}</button></article>)}
+    {options.map(o=><article key={o.id}><h3>{o.name}</h3><p>{o.description}</p><AbilityPreview option={o}/><p>{o.costs.map(c=>`${c.amount} ${c.poolId.split(':').at(-1)} (${state.pools[c.poolId]??0} remaining)`).join('; ')||'No resource cost.'}</p><button disabled={o.available===false||!confirmed||Boolean(firstMissingAbilityCost(o.costs,state.pools))} onClick={()=>activate(o)}>Use {o.name}</button></article>)}
   </fieldset></section>;
 }

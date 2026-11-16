@@ -1,7 +1,15 @@
 import {useState} from 'react';
+import { restDuration, restInterruptionReasons } from '@crossworld/sanguine-engine/rest';
+
+const interruptionLabels = {
+  initiative: 'Rolling Initiative',
+  'non-cantrip-spell': 'Casting a non-cantrip spell',
+  damage: 'Taking damage',
+  'exertion-hour': 'One hour of exertion',
+};
 export default function RestPlanner({state,draft,busy,onCommand,onDismiss}){
   const [start,setStart]=useState(()=>new Date(state.worldTime??Date.now()).toISOString().slice(0,16));
-  const [end,setEnd]=useState(()=>new Date(state.restSession?state.restSession.startedAt+(state.restSession.kind==='long-rest'?8+(state.restSession.interruptions?.length??0):1)*3600000:state.worldTime??Date.now()).toISOString().slice(0,16));
+  const [end,setEnd]=useState(()=>new Date(state.restSession?state.restSession.startedAt+restDuration(state.restSession.kind,state.restSession.interruptions?.length):state.worldTime??Date.now()).toISOString().slice(0,16));
   const [interruption,setInterruption]=useState(start),[reason,setReason]=useState('initiative'),[resume,setResume]=useState(true),[nourished,setNourished]=useState(false);
   if(!draft&&!state.restSession)return null;
   const rest=state.restSession;
@@ -20,7 +28,7 @@ export default function RestPlanner({state,draft,busy,onCommand,onDismiss}){
         <button disabled={state.inCombat} onClick={()=>onCommand('rest.complete',{restId:rest.id,completedAt:Date.parse(end+'Z')})}>Complete rest</button>
         <button onClick={()=>onCommand('rest.cancel',{restId:rest.id})}>Cancel interrupted rest</button>
         <label>Interruption world time (UTC) <input type="datetime-local" value={interruption} onChange={e=>setInterruption(e.target.value)}/></label>
-        <label>Interruption <select value={reason} onChange={e=>setReason(e.target.value)}><option value="initiative">Rolling Initiative</option><option value="non-cantrip-spell">Casting a non-cantrip spell</option><option value="damage">Taking damage</option><option value="exertion-hour">One hour of exertion</option></select></label>
+        <label>Interruption <select value={reason} onChange={e=>setReason(e.target.value)}>{restInterruptionReasons.map(id=><option key={id} value={id}>{interruptionLabels[id]}</option>)}</select></label>
         {kind==='long-rest'&&<label><input type="checkbox" checked={resume} onChange={e=>setResume(e.target.checked)}/>Resume immediately, adding one hour</label>}
         <button onClick={()=>onCommand('rest.interrupt',{restId:rest.id,at:Date.parse(interruption+'Z'),reason,resume,confirmed:true})}>Record GM-confirmed interruption</button>
       </>}

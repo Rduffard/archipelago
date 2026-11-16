@@ -1,0 +1,37 @@
+name: Archipelago CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: archipelago
+      # Several integration suites exercise the real backend fixture builders.
+      - uses: actions/checkout@v4
+        with:
+          repository: Rduffard/crossworld_backend
+          ref: 1208ebf288e3f84a97f00529eae13afa57a940fc
+          path: crossworld_backend
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.17.1'
+          cache: npm
+          cache-dependency-path: |
+            archipelago/package-lock.json
+            crossworld_backend/package-lock.json
+      - run: npm ci
+        working-directory: crossworld_backend
+      - run: npm ci
+        working-directory: archipelago
+      - run: npm test
+        working-directory: archipelago
+      - run: npm run lint
+        working-directory: archipelago
+      - run: npm run build
+        working-directory: archipelago

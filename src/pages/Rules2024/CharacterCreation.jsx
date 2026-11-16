@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { POINT_BUY_BUDGET, POINT_BUY_MINIMUM_SCORE, POINT_BUY_MAXIMUM_SCORE, calculatePointBuyCost } from '@crossworld/sanguine-engine/point-buy';
+import { creationSizes, backgroundGoldAlternative, backgroundEquipmentEligible, maximumCreationScore,
+  creationBackgroundIncreases } from '@crossworld/sanguine-engine/progression';
 import { useAuth } from '../../hooks/useAuth';
 import { request } from '../../lib/api';
 import { CallingProgression, RequiredChoice, RulesSummary } from './Rules2024Views';
@@ -10,7 +13,6 @@ import './CharacterCreation.css';
 
 const steps = ['Identity','Origin','Background','Calling','Attributes','Training','Abilities and feats','Equipment','Spells','Review'];
 const initialScores = { might:8, agility:15, resolve:15, wit:10, instinct:10, spirit:13 };
-const pointCosts = {8:0,9:1,10:2,11:3,12:4,13:5,14:7,15:9};
 
 export default function CharacterCreation() {
   const { token, setCharacters } = useAuth();
@@ -68,12 +70,17 @@ export default function CharacterCreation() {
   const origin=rules.creation.origins.find(o=>o.id===creation.originId);
   const calling=rules.callings.find(c=>c.id===callingId);
   const eligibleAttributes=background.id==='custom'?creation.custom.attributes:background.attributes;
-  const usedPoints=Object.values(scores).reduce((sum,score)=>sum+(pointCosts[score]??100),0);
+  let usedPoints;
+  try {
+    usedPoints=calculatePointBuyCost(scores);
+  } catch (error) {
+    if (!(error instanceof TypeError || error instanceof RangeError)) throw error;
+  }
   const firstAttribute=Object.keys(creation.increases)[0];
   const secondAttribute=Object.keys(creation.increases)[1]??eligibleAttributes.find(a=>a!==firstAttribute);
   const stepChoices={5:['skills','backgroundSkills','backgroundTool','instrument','expertise','languages','callingLanguages'],6:['mastery','style','divineOrder','featTraining','initiateAttribute','initiateList'],7:['equipment'],8:['cantrips','prepared','folio','initiateCantrips','initiateSpell','styleCantrips']};
   const requiredChoice=step===9?summary?.requiredChoices[0]:summary?.requiredChoices.find(c=>stepChoices[step]?.includes(c.key));
-  function increases(first,second,isSplit=split){changeCreation({increases:isSplit?{[first]:1,[second]:1}:{[first]:2}});}
+  function increases(first,second,isSplit=split){changeCreation({increases:creationBackgroundIncreases(first,second,isSplit)});}
   return <main className="page-shell character-creation">
     <header className="character-creation__hero"><p>Sanguine Archipelago</p><h1>Create your character</h1>
       <p>Choose your roots, discipline and equipment. Your origin never restricts your Calling or Path.</p></header>
@@ -84,7 +91,7 @@ export default function CharacterCreation() {
       <h2>{step+1}. {steps[step]}</h2>
       <fieldset disabled={busy}>
         {step===0&&<><IdentityFields value={identity} onChange={setIdentity}/>
-          <label>Size <select value={creation.size} onChange={e=>changeCreation({size:e.target.value})}><option value="medium">Medium</option><option value="small">Small</option></select></label>
+          <label>Size <select value={creation.size} onChange={e=>changeCreation({size:e.target.value})}>{creationSizes.map(size=><option key={size} value={size}>{size==='medium'?'Medium':'Small'}</option>)}</select></label>
           <p>Humanoid; base walking Speed 30 feet. Narrative notes impose no automatic penalties.</p></>}
         {step===1&&<><label>Origin <select value={creation.originId} onChange={e=>changeCreation({originId:e.target.value})}>
           {rules.creation.origins.map(o=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
@@ -109,17 +116,17 @@ export default function CharacterCreation() {
         </>}
         {step===3&&<><label>Calling <select value={callingId} onChange={e=>{setCalling(e.target.value);setChoices({});setSummary(null);}}>{rules.callings.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
           <details><summary>Calling progression and four Paths</summary><CallingProgression calling={calling} rules={rules}/></details><p>Your Path is selected at level 3.</p></>}
-        {step===4&&<><p>Point buy: {usedPoints} / 27. Base scores 8–15; final creation maximum 17.</p>
-          <div className="character-creation__attributes">{Object.entries(attributeNames).map(([id,name])=><label key={id}>{name}<input type="number" min={8} max={15} value={scores[id]} onChange={e=>{setScores({...scores,[id]:Number(e.target.value)});setSummary(null);setChoices({});}}/></label>)}</div>
+        {step===4&&<><p>Point buy: {usedPoints===undefined?'enter valid base scores':`${usedPoints} / ${POINT_BUY_BUDGET}`}. Base scores {POINT_BUY_MINIMUM_SCORE}–{POINT_BUY_MAXIMUM_SCORE}; final creation maximum {maximumCreationScore}.</p>
+          <div className="character-creation__attributes">{Object.entries(attributeNames).map(([id,name])=><label key={id}>{name}<input type="number" min={POINT_BUY_MINIMUM_SCORE} max={POINT_BUY_MAXIMUM_SCORE} value={scores[id]} onChange={e=>{setScores({...scores,[id]:Number(e.target.value)});setSummary(null);setChoices({});}}/></label>)}</div>
           <p>Origin +1 {attributeNames[origin.attribute]}; background {Object.entries(creation.increases).map(([id,n])=>`+${n} ${attributeNames[id]}`).join(', ')}.</p></>}
         {step===5&&<p>Select Calling skills first, then retain background skills and replace duplicates. Training and Expertise are calculated by the server.</p>}
         {step===6&&<p>Resolve all required feat subchoices, languages and class abilities below. Passive grants apply automatically.</p>}
         {step===7&&<><label>Background equipment <select value={creation.equipment} onChange={e=>changeCreation({equipment:e.target.value})}>
-          {background.id!=='custom'&&<option value="pack">Background package</option>}<option value="gold">50 GP</option></select></label>
+          {backgroundEquipmentEligible(background.id,'pack')&&<option value="pack">Background package</option>}<option value="gold">{backgroundGoldAlternative} GP</option></select></label>
           <p>Choose a Calling equipment package or its gold alternative in the required selections below. Gear begins carried; equip it on your saved sheet.</p></>}
         {step===7&&<fieldset><legend>Optional starting purchases</legend><label>Starting item to buy <select value={purchaseId} onChange={e=>setPurchaseId(e.target.value)}>{rules.equipment.items.filter(i=>Number.isSafeInteger(i.costCp)&&!i.magic).map(i=><option key={i.id} value={i.id}>{i.name}: {i.costCp} copper{i.units?` per ${i.units}`:''}</option>)}</select></label>{rules.equipment.items.find(d=>d.id===purchaseId)?.purchaseScrollLevel!==undefined&&<label>Starting scroll spell <select value={purchaseSpell} onChange={e=>setPurchaseSpell(e.target.value)}><option value="">Choose exact spell</option>{rules.spells.filter(s=>s.level===rules.equipment.items.find(d=>d.id===purchaseId).purchaseScrollLevel).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>}<label>Starting purchase quantity <input type="number" min={1} max={100000} value={purchaseQuantity} onChange={e=>setPurchaseQuantity(Number(e.target.value))}/></label><button disabled={!choices.equipment||!Number.isSafeInteger(purchaseQuantity)||purchaseQuantity<1} onClick={()=>{const next=[...purchases,{definitionId:purchaseId,quantity:purchaseQuantity,...(rules.equipment.items.find(d=>d.id===purchaseId)?.purchaseScrollLevel!==undefined?{spellId:purchaseSpell}:{})}];setPurchases(next);setSummary(null);preview(choices,next);}}>Add starting purchase and validate price</button><ul>{purchases.map((p,i)=><li key={i}>{rules.equipment.items.find(d=>d.id===p.definitionId)?.name}: {p.quantity}<button onClick={()=>{const next=purchases.filter((_,index)=>index!==i);setPurchases(next);setSummary(null);preview(choices,next);}}>Remove purchase {i+1}</button></li>)}</ul><p>The server validates the entire basket against both starting balances; invalid purchases block saving.</p></fieldset>}
         {step===8&&<p>Select the exact number of eligible cantrips and preparations. Shipwrights also choose six initial folio spells. Feature spells do not consume ordinary preparation count.</p>}
-        {step>=5&&<><button type="button" onClick={()=>preview()} disabled={usedPoints>27}>Validate choices and preview</button>
+        {step>=5&&<><button type="button" onClick={()=>preview()} disabled={usedPoints===undefined||usedPoints>POINT_BUY_BUDGET}>Validate choices and preview</button>
           {requiredChoice&&<RequiredChoice key={requiredChoice.id} rules={rules} choice={requiredChoice}
             onChange={changes=>preview({...choices,...changes})}/>}
           {summary&&<p role="status">{summary.decisionsComplete?'All required selections are complete.':`${summary.requiredChoices.length} required selections remain.`}</p>}

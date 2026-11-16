@@ -1,19 +1,25 @@
 import {useState} from 'react';
+import {cantripStyleSpellEligible,styleCantripReplacementAvailable} from '@crossworld/sanguine-engine/callings';
+import {spellPreparationEligible} from '@crossworld/sanguine-engine/preparations';
+import {replaceMagicInitiateSpell,magicInitiateReplacementAvailable} from '@crossworld/sanguine-engine/feats';
+import {metamagicReplacementAvailable} from '@crossworld/sanguine-engine/spells/metamagic';
+import {callingCantripEligible} from '@crossworld/sanguine-engine/spells/casting-sources';
 
 export default function AdvancementReplacements({before,preview,event,rules,busy,onChange}){
   const [kind,setKind]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState('');
   const calling=Object.keys(before.callingLevels)[0],n=before.totalLevel+1;
   const sources=[];
-  if(calling==='tidecaller'&&n>2)sources.push({id:'metamagic',name:'Metamagic',known:before.pathSelections.tidecaller.metamagic,options:rules.metamagic});
-  if(before.pathSelections[calling]?.styleCantrips?.length)sources.push({id:'style',name:'Cantrip fighting style',known:before.pathSelections[calling].styleCantrips,options:rules.spells.filter(s=>s.level===0&&s.callings.includes(calling==='navigator'?'druid':'doctor'))});
-  if(['doctor','tidecaller'].includes(calling))sources.push({id:'cantrip',name:'Calling cantrip',known:before.pathSelections[calling].cantrips,options:rules.spells.filter(s=>s.level===0&&s.callings.includes(calling))});
-  if(calling==='tidecaller')sources.push({id:'prepared',name:'Prepared Tidecaller spell',known:before.spellcasting.tidecaller.prepared.filter(id=>!preview.spellcasting.tidecaller.alwaysPrepared.includes(id)),options:rules.spells.filter(s=>s.level>0&&s.level<=preview.spellSlots.length&&s.callings.includes(calling)&&!preview.spellcasting.tidecaller.alwaysPrepared.includes(s.id))});
-  for(const grant of before.featSpellcasters??[])sources.push({id:'initiate:'+grant.grantKey,name:'Magic Initiate ('+grant.list+')',known:[...grant.cantrips,grant.spell],options:rules.spells.filter(s=>s.level<=1&&s.callings.includes(grant.list)),grantKey:grant.grantKey});
+  if(metamagicReplacementAvailable(calling,n))sources.push({id:'metamagic',name:'Metamagic',known:before.pathSelections.tidecaller.metamagic,options:rules.metamagic});
+  if(styleCantripReplacementAvailable(n)&&before.pathSelections[calling]?.styleCantrips?.length)sources.push({id:'style',name:'Cantrip fighting style',known:before.pathSelections[calling].styleCantrips,options:rules.spells.filter(spell=>cantripStyleSpellEligible(calling,spell))});
+  if(['doctor','tidecaller'].includes(calling))sources.push({id:'cantrip',name:'Calling cantrip',known:before.pathSelections[calling].cantrips,options:rules.spells.filter(s=>callingCantripEligible(s,calling))});
+  if(calling==='tidecaller')sources.push({id:'prepared',name:'Prepared Tidecaller spell',known:before.spellcasting.tidecaller.prepared.filter(id=>!preview.spellcasting.tidecaller.alwaysPrepared.includes(id)),options:rules.spells.filter(spell=>spellPreparationEligible(calling,spell,preview.spellcasting.tidecaller))});
+  if(magicInitiateReplacementAvailable(n))for(const grant of before.featSpellcasters??[])sources.push({id:'initiate:'+grant.grantKey,name:'Magic Initiate ('+grant.list+')',known:[...grant.cantrips,grant.spell],options:rules.spells,grantKey:grant.grantKey,grant});
   const source=sources.find(s=>s.id===kind)??sources[0];
   if(!source)return null;
   const old=source.known.includes(from)?from:source.known[0];
-  const oldSpell=rules.spells.find(s=>s.id===old);
-  const options=source.options.filter(o=>!source.known.includes(o.id)&&(!source.grantKey||o.level===oldSpell?.level));
+  const options=source.options.filter(option=>source.grant
+    ? replaceMagicInitiateSpell(source.grant,old,option.id)
+    : !source.known.includes(option.id));
   const target=options.some(o=>o.id===to)?to:options[0]?.id;
   const name=id=>rules.spells.find(s=>s.id===id)?.name??rules.metamagic.find(s=>s.id===id)?.name??id;
   function replace(){

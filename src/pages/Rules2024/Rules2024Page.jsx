@@ -158,7 +158,7 @@ export default function Rules2024Page() {
                 <button
                   type="button"
                   disabled={
-                    !summary.decisionsComplete || summary.totalLevel >= 20
+                    !summary.decisionsComplete || summary.totalLevel >= maximumCharacterLevel
                   }
                   onClick={() =>
                     preview({
@@ -181,3 +181,4 @@ export default function Rules2024Page() {
     </main>
   );
 }
+import {maximumCharacterLevel} from '@crossworld/sanguine-engine/progression';

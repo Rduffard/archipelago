@@ -1,3 +1,4 @@
+import {firstMissingAbilityCost} from '@crossworld/sanguine-engine/callings';
 import {useState} from 'react';
 import AbilityPreview from './AbilityPreview';
 export default function NavigatorPathControls({character,rules,busy,onCommand}){
@@ -20,7 +21,7 @@ export default function NavigatorPathControls({character,rules,busy,onCommand}){
     <p>Passage grants a movement speed, not extra movement. Homeward includes you and ends Passage. Rooted Ambush requires your active Hunter’s Mark. Vanish halves the unresolved hit and its movement provokes normally; cover Hide uses a new Agility (Stealth) check against DC 15.</p>
     {options.map(o=><article key={o.id}><h3>{o.name}</h3><p>{o.description}</p><p>{o.costs.map(c=>`${c.amount} ${c.poolId.split(':').at(-1)} (${state.pools[c.poolId]??0} remaining)`).join('; ')||'No resource cost.'}</p>
       <AbilityPreview option={o}/>
-      <button disabled={o.available===false||!confirmed||o.costs.some(c=>(state.pools[c.poolId]??0)<c.amount)} onClick={()=>activate(o)}>Use {o.name}</button>
+      <button disabled={o.available===false||!confirmed||Boolean(firstMissingAbilityCost(o.costs,state.pools))} onClick={()=>activate(o)}>Use {o.name}</button>
     </article>)}
   </fieldset></section>;
 }

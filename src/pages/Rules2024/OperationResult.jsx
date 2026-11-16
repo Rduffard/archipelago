@@ -1,3 +1,5 @@
+import { damageOnSuccessfulSave } from '@crossworld/sanguine-engine/combat/save-damage';
+
 export default function OperationResult({result}){
   if(!result)return null;
   return <section className="character-creation__surface" aria-label="Saved action result"><h2>Saved action</h2>
@@ -96,7 +98,7 @@ export default function OperationResult({result}){
     {result.remainingDamage!==undefined&&<p>Remaining damage before Resistance: {result.remainingDamage}.</p>}
     {result.allyDamage!==undefined&&<p>Ally takes {result.allyDamage}; you take {result.transferredDamage}, which cannot be reduced.</p>}
     {result.discharge&&<p>Relay destroyed. Discharge targets: {result.discharge.targetIds.join(', ')||'none'}.</p>}
-    {result.save&&<p>Targets make a {result.save.attribute} save against DC {result.save.dc}. {result.damage!==undefined?`${result.damage} ${result.damageType} damage on failure; ${result.save.successDamage??(result.save.success==='half'?Math.floor(result.damage/2):0)} on success.`:''}</p>}
+    {result.save&&<p>Targets make a {result.save.attribute} save against DC {result.save.dc}. {result.damage!==undefined?`${result.damage} ${result.damageType} damage on failure; ${result.save.successDamage??damageOnSuccessfulSave(result.damage,result.save.success)} on success.`:''}</p>}
     {result.effect?.targetConditions&&<p>On failed saves: {result.effect.targetConditions.join(', ')}. {result.effect.fleeCaster?'Move away from the caster.':''} {result.effect.targetTurnRestriction??''} Ends on target damage{result.effect.endsOnCasterIncapacitated?' or caster Incapacitation':''}.</p>}
     {result.targetResolutions&&<><p>Resolve each saving throw with the GM. Overlapping charge areas affect each listed target once.</p>
       <div style={{overflowX:'auto'}}><table><thead><tr><th>Target</th><th>Area</th><th>Fire damage</th><th>Save</th><th>On success</th><th>Effects</th></tr></thead>

@@ -1,4 +1,6 @@
 import {useState} from 'react';
+import {persistentRageUnlocked,rageExtensionReasons} from '@crossworld/sanguine-engine/callings';
+import {unbrokenCurrentUnlocked,maximumExhaustionLevel,canRollDeathSave} from '@crossworld/sanguine-engine/vitality';
 import CastingTurnControls from './CastingTurnControls';
 export default function CharacterStateControls({summary,state,rules,busy,onCommand,permissions}){
   const types=rules?.damageTypes??[],conditions=rules?.conditions??[];
@@ -21,11 +23,11 @@ export default function CharacterStateControls({summary,state,rules,busy,onComma
       <label><input type="checkbox" checked={critical} onChange={e=>setCritical(e.target.checked)}/>Critical Hit</label>
       <p>Enter damage before your character's Resistance and Reef Skin; the server applies those, then temporary Health.</p>
       <label>Agility save for an effect that normally deals half damage on success <select value={agilitySave} onChange={e=>setAgilitySave(e.target.value)}><option value="none">No such save</option><option value="success">Succeeded</option><option value="failure">Failed</option></select></label><p>For that save, enter damage before its save reduction. Evasion applies automatically while available.</p>
-      {summary.paths.tidecaller==='sanguine-conduit'&&summary.callingLevels.tidecaller>=18&&<label><input type="checkbox" checked={unbroken} onChange={e=>setUnbroken(e.target.checked)}/>Use Unbroken Current Reaction if this damage would reduce me to zero without killing me outright ({state.pools['sanguine-conduit:unbroken-current']??0} remaining)</label>}
+      {unbrokenCurrentUnlocked(summary.paths.tidecaller,summary.callingLevels.tidecaller)&&<label><input type="checkbox" checked={unbroken} onChange={e=>setUnbroken(e.target.checked)}/>Use Unbroken Current Reaction if this damage would reduce me to zero without killing me outright ({state.pools['sanguine-conduit:unbroken-current']??0} remaining)</label>}
       <button disabled={!confirmed||death.dead} onClick={()=>onCommand('health.damage',{amount,damageType,attack,critical,confirmed,...(unbroken?{unbrokenCurrent:true}:{}),...(agilitySave==='none'?{}:{agilityHalfSave:agilitySave})})}>Take damage</button>
       <button disabled={!confirmed||death.dead} onClick={()=>onCommand('health.apply',{healthDelta:amount})}>Receive healing</button>
       {state.health.current===0&&<><p>Death saves: {death.successes} successes, {death.failures} failures.</p>
-        <button disabled={death.stable||death.dead||Boolean(state.pendingRelentlessRage)} onClick={()=>onCommand('death-save.roll',{})}>Roll death saving throw</button></>}
+        <button disabled={!canRollDeathSave(state.health.current,death)||Boolean(state.pendingRelentlessRage)} onClick={()=>onCommand('death-save.roll',{})}>Roll death saving throw</button></>}
       {state.pendingRelentlessRage&&<><p>Resolve Relentless Rage before falling Unconscious: Resolve DC {state.pendingRelentlessRage.dc}.</p>
         <button onClick={()=>onCommand('relentless-rage.resolve',{})}>Roll Relentless Rage save</button>
         <label>GM-recorded Resolve save total <input type="number" min={-100} max={200} value={relentlessTotal} onChange={e=>setRelentlessTotal(Number(e.target.value))}/></label>
@@ -36,7 +38,7 @@ export default function CharacterStateControls({summary,state,rules,busy,onComma
       <label>Condition <select value={condition} onChange={e=>setCondition(e.target.value)}>{conditions.map(id=><option key={id}>{id}</option>)}</select></label>
       <label><input type="checkbox" checked={active} onChange={e=>setActive(e.target.checked)}/>This condition source is active</label>
       <button disabled={!confirmed||!source.trim()} onClick={()=>onCommand('condition.record',{conditionId:condition,source,active,confirmed})}>Record condition source</button>
-      <label>Exhaustion level <input type="number" min={0} max={6} value={exhaustion} onChange={e=>setExhaustion(Number(e.target.value))}/></label>
+      <label>Exhaustion level <input type="number" min={0} max={maximumExhaustionLevel} value={exhaustion} onChange={e=>setExhaustion(Number(e.target.value))}/></label>
       <button disabled={!confirmed||!source.trim()} onClick={()=>onCommand('condition.record',{conditionId:'exhaustion',source,level:exhaustion,confirmed})}>Record Exhaustion</button>
       <label>Chosen temporary Health pool <input type="number" min={0} max={10000} value={temp} onChange={e=>setTemp(Number(e.target.value))}/></label>
       <p>Choose one pool, even if smaller; pools never add together. Zero clears the pool.</p>
@@ -44,7 +46,7 @@ export default function CharacterStateControls({summary,state,rules,busy,onComma
       <label>World time (UTC) <input type="datetime-local" value={world} onChange={e=>setWorld(e.target.value)}/></label>
       <p>Recorded world time: {state.worldTime!==undefined?new Date(state.worldTime).toISOString():'Set the GM calendar to begin explicit time tracking.'}</p>
       <button disabled={!confirmed||!world} onClick={()=>onCommand('time.advance',{worldTime:Date.parse(world+'Z'),confirmed})}>Advance world time and expire effects</button>
-      {summary.raging&&summary.callingLevels.reaver<15&&['attack-roll','forced-save','bonus-action'].map(reason=><button key={reason} disabled={!confirmed||!state.ownerTurn?.open} onClick={()=>onCommand('rage.extend',{reason,confirmed})}>Extend Rage: {reason.replaceAll('-',' ')}</button>)}
+      {summary.raging&&!persistentRageUnlocked(summary.callingLevels.reaver)&&rageExtensionReasons.map(reason=><button key={reason} disabled={!confirmed||!state.ownerTurn?.open} onClick={()=>onCommand('rage.extend',{reason,confirmed})}>Extend Rage: {reason.replaceAll('-',' ')}</button>)}
     </fieldset>
     <CastingTurnControls character={{rulesRuntime:state,permissions}} busy={busy} onCommand={onCommand}/>
   </section>;

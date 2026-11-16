@@ -90,7 +90,7 @@ export default function PersistentSheet({ editing = false }) {
   }
   function resource(operation) {
     if(['short-rest','long-rest'].includes(operation.type)){setRestDraft(operation);return;}
-    return command(['slot-to-sorcery','sorcery-to-slot','restore-feature'].includes(operation.type)?'resource.convert':'resource.adjust',operation);
+    return command(['slot-to-sorcery','sorcery-to-slot'].includes(operation.type)?'resource.convert':'resource.adjust',operation);
   }
   async function command(type,payload,retry) {
     const envelope=retry??{operationId:crypto.randomUUID(),expectedRevision:character.documentRevision,rulesVersion:'SA-CHAR-1',type,payload};
@@ -146,7 +146,7 @@ export default function PersistentSheet({ editing = false }) {
     <DamageRiderControls character={character} rules={rules} busy={busy||Boolean(pendingCommand)} onCommand={command}/>
     <HealingSpellControls character={character} rules={rules} busy={busy||Boolean(pendingCommand)} onCommand={command}/>
     <ObjectUseControls character={character} rules={rules} busy={busy||Boolean(pendingCommand)} onCommand={command}/>
-    <FeatureActions summary={summary} state={state} busy={busy||Boolean(pendingCommand)} onOperation={resource} supplemental/>
+    <FeatureActions summary={summary} state={state} busy={busy||Boolean(pendingCommand)} onCommand={command}/>
     <SpellActions character={character} rules={rules} busy={busy||Boolean(pendingCommand)} onCommand={command} />
     <SpellRerolls character={character} busy={busy||Boolean(pendingCommand)} onCommand={command} />
     <FeatControls character={character} rules={rules} busy={busy||Boolean(pendingCommand)} onCommand={command} />
@@ -162,7 +162,7 @@ export default function PersistentSheet({ editing = false }) {
       {Object.entries(level.choices ?? {}).map(([key, value]) => <p key={key}>{key}: {typeof value === 'object' ? JSON.stringify(value) : value}</p>)}
     </li>)}</ol></details>
     <button disabled={busy} onClick={() => { setError(''); request(base, { headers }).then(setCharacter).catch(e => setError(e.message)); }}>Reload saved character</button>
-    <fieldset disabled={busy || summary.totalLevel >= 20}>
+    <fieldset disabled={busy || summary.totalLevel >= maximumCharacterLevel}>
       <legend>Advancement</legend>
       <label>Next Calling <select value={callingId} onChange={e => setCallingId(e.target.value)}>
         {rules.callings.filter(c=>c.id===character.calling).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -183,3 +183,4 @@ export default function PersistentSheet({ editing = false }) {
     </fieldset>
   </main>;
 }
+import {maximumCharacterLevel} from '@crossworld/sanguine-engine/progression';

@@ -1,3 +1,4 @@
+import {firstMissingAbilityCost} from '@crossworld/sanguine-engine/callings';
 import {useState} from 'react';
 import AbilityPreview from './AbilityPreview';
 export default function StormBrokerControls({character,busy,onCommand}){
@@ -12,6 +13,6 @@ export default function StormBrokerControls({character,busy,onCommand}){
     <label>Current combat round <input type="number" min={1} max={100000} value={roundNumber} onChange={e=>setRound(Number(e.target.value))}/></label><label>External success turn ID <input value={creditTurn} onChange={e=>setCreditTurn(e.target.value)} maxLength={100}/></label>
     <label>Credit source Squall <select value={zone||squalls[0]?.id||''} onChange={e=>setZone(e.target.value)}><option value="">Choose active Squall</option>{squalls.map(e=><option key={e.id} value={e.id}>{e.zone}: {e.id}</option>)}</select></label>
     <label><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>GM confirms a center within sixty feet and visible exemptions; for credit, this ally succeeded on an attack or save inside my Squall, visible within sixty feet outside my turn in the stated combat round</label>
-    {options.map(o=><article key={o.id}><h3>{o.name}</h3><p>{o.description}</p><AbilityPreview option={o}/><button disabled={o.available===false||!confirmed||o.costs.some(cost=>(state.pools[cost.poolId]??0)<cost.amount)} onClick={()=>onCommand('ability.activate',{optionId:o.id,targetIds:o.handler==='broker-credit'?[ally.trim()]:[],note,parameters:{confirmed,...(o.handler==='squall'?{exemptTargets:exempt.split(',').map(s=>s.trim()).filter(Boolean)}:{eventId,roundNumber,objectId:zone||squalls[0]?.id})},...(o.handler==='broker-credit'?{turnId:creditTurn}:{})})}>Use {o.name}</button></article>)}
+    {options.map(o=><article key={o.id}><h3>{o.name}</h3><p>{o.description}</p><AbilityPreview option={o}/><button disabled={o.available===false||!confirmed||Boolean(firstMissingAbilityCost(o.costs,state.pools))} onClick={()=>onCommand('ability.activate',{optionId:o.id,targetIds:o.handler==='broker-credit'?[ally.trim()]:[],note,parameters:{confirmed,...(o.handler==='squall'?{exemptTargets:exempt.split(',').map(s=>s.trim()).filter(Boolean)}:{eventId,roundNumber,objectId:zone||squalls[0]?.id})},...(o.handler==='broker-credit'?{turnId:creditTurn}:{})})}>Use {o.name}</button></article>)}
   </fieldset></details>;
 }

@@ -8,7 +8,7 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import { build } from '../../crossworld_backend/tests/helpers/rules2024.mjs';
 const require = createRequire(import.meta.url);
-const engine = require("../../crossworld_backend/src/modules/archipelago/system/rules2024");
+const engine = require("../../crossworld_backend/src/modules/archipelago/system/characterSystem");
 const rules = engine.blueprint;
 const root = fileURLToPath(new URL("..", import.meta.url));
 const output = path.join(root, ".test-cache/rules2024/views.mjs");
@@ -112,10 +112,18 @@ test("persistent resource controls render saved expenditure rather than preview 
   state.slots[0] = 0;
   state.hitDice.d8 = 0;
   const html = renderToStaticMarkup(React.createElement(PersistentResources,
-    { summary, state, busy: false, onOperation: () => {} }));
+    { summary, state: JSON.parse(JSON.stringify(state)), busy: false, onOperation: () => {} }));
   assert.ok(html.includes("Health 3 / 9"));
   assert.ok(html.includes("Level 1 slots: 0 / 2"));
   assert.ok(html.includes('disabled=""'));
   assert.ok(html.includes("GM-recorded roll"));
-  assert.ok(html.includes("0d8"));
+  assert.ok(html.includes("Hit Dice remaining: 0d8"));
+  assert.ok(html.includes('<button disabled="">Short Rest and spend Hit Die</button>'));
+  assert.ok(html.includes("<button>Short Rest (no Hit Dice)</button>"));
+  assert.ok(html.includes("<button>Long Rest</button>"));
+  state.hitDice.d8 = 1;
+  const recovered = renderToStaticMarkup(React.createElement(PersistentResources,
+    { summary, state: JSON.parse(JSON.stringify(state)), busy: false, onOperation: () => {} }));
+  assert.ok(recovered.includes("Hit Dice remaining: 1d8"));
+  assert.ok(recovered.includes("<button>Short Rest and spend Hit Die</button>"));
 });

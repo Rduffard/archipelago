@@ -1,4 +1,7 @@
 import {useState} from 'react';
+import {purchaseQuote} from '@crossworld/sanguine-engine/equipment/commerce';
+import {ammunitionMatches} from '@crossworld/sanguine-engine/equipment/ammunition';
+import {equipmentSlots,equipmentSlotEligible} from '@crossworld/sanguine-engine/equipment/loadout-rules';
 
 export default function PersistentEquipment({character,rules,busy,onCommand}){
   const [definitionId,setDefinitionId]=useState(rules.equipment.items[0].id);
@@ -11,16 +14,16 @@ export default function PersistentEquipment({character,rules,busy,onCommand}){
   const equipped=id=>['armor','mainHand','offHand'].some(s=>loadout[s]===id);
   const purchase=definition(definitionId);
   const ranged=equipment.attacks.filter(a=>a.weapon.ammunitionType),weapon=ranged.find(a=>a.instanceId===weaponId)??ranged[0];
-  const ammunition=inventory.filter(i=>i.definitionId&&definition(i.definitionId)?.kind!=='weapon'&&definition(i.definitionId)?.ammunitionType===weapon?.weapon.ammunitionType);
+  const ammunition=inventory.filter(item=>item.definitionId&&ammunitionMatches(weapon?.weapon,definition(item.definitionId)));
   const ammo=ammunition.find(i=>i.instanceId===ammunitionId)??ammunition[0];
   function equip(slot,value){onCommand('equipment.equip',{loadout:{...loadout,[slot]:value||null}});}
   return <details><summary>Equipment and Guard {equipment.guard}</summary>
     <p>Available coin: {character.goldCp} cp. Purchases use catalog prices. Awards and sale prices require GM authorization.</p>
     {equipment.carrying&&<p>Known carried weight: {Number(equipment.carrying.knownWeightLb.toFixed(2))} lb; capacity {equipment.carrying.capacityLb} lb; push, drag or lift {equipment.carrying.pushDragLiftLb} lb. {equipment.carrying.unknownWeightInstances.length?`${equipment.carrying.unknownWeightInstances.length} item(s) need GM weight adjudication.`:''}</p>}
     <fieldset disabled={busy}>
-      {['mainHand','offHand','armor'].map(slot=><label key={slot}>{slot==='armor'?'Armor':slot==='mainHand'?'Main hand':'Off hand'}
+      {equipmentSlots.map(slot=><label key={slot}>{slot==='armor'?'Armor':slot==='mainHand'?'Main hand':'Off hand'}
         <select value={loadout[slot]||''} onChange={e=>equip(slot,e.target.value)}><option value="">None</option>
-          {inventory.filter(item=>{const d=definition(item.definitionId);return d&&(slot==='armor'?d.kind==='armor':['weapon','shield'].includes(d.kind)||d.profile?.held);})
+          {inventory.filter(item=>equipmentSlotEligible(slot,definition(item.definitionId)))
             .map(item=><option key={item.instanceId} value={item.instanceId}>{label(item)}</option>)}
         </select></label>)}
       <label>Grip <select value={loadout.grip} onChange={e=>onCommand('equipment.equip',{loadout:{...loadout,grip:e.target.value}})}><option value="one">One hand</option><option value="two">Two hands</option></select></label>
@@ -34,7 +37,7 @@ export default function PersistentEquipment({character,rules,busy,onCommand}){
         </li>;})}</ul>
       <label>Merge destination <select value={mergeTarget} onChange={e=>setMergeTarget(e.target.value)}><option value="">Choose a stack</option>{inventory.filter(i=>!equipped(i.instanceId)&&(!i.definitionId||definition(i.definitionId)?.stackable)).map(i=><option key={i.instanceId} value={i.instanceId}>{label(i)} ({i.quantity})</option>)}</select></label>
       <label>Item to purchase <select value={definitionId} onChange={e=>setDefinitionId(e.target.value)}>{rules.equipment.items.filter(item=>Number.isSafeInteger(item.costCp)).map(item=><option key={item.id} value={item.id}>{item.name} - {item.costCp} cp{item.units?' per '+item.units:''}</option>)}</select></label>
-      <button disabled={!Number.isSafeInteger(quantity)||quantity<1||purchase.costCp*quantity>character.goldCp} onClick={()=>onCommand('equipment.buy',{definitionId,quantity,...(purchase.purchaseScrollLevel!==undefined?{spellId:scrollSpell}:{})})}>Buy item</button>
+      <button disabled={!Number.isSafeInteger(quantity)||quantity<1||!purchaseQuote(purchase.costCp,quantity,character.goldCp)} onClick={()=>onCommand('equipment.buy',{definitionId,quantity,...(purchase.purchaseScrollLevel!==undefined?{spellId:scrollSpell}:{})})}>Buy item</button>
       {purchase.purchaseScrollLevel!==undefined&&<label>Purchased scroll spell <select value={scrollSpell} onChange={e=>setScrollSpell(e.target.value)}><option value="">Choose exact spell</option>{rules.spells.filter(s=>s.level===purchase.purchaseScrollLevel).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>}
       {purchase.description&&<p>{purchase.description}</p>}
       {purchase.contents&&<p>Pack purchases unpack automatically: {purchase.contents.map(c=>`${c.quantity} ${definition(c.definitionId)?.name}`).join(', ')}.</p>}

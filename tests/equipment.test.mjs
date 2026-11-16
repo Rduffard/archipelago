@@ -8,7 +8,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { build, rules } from '../../crossworld_backend/tests/helpers/phase2.mjs';
 const require = createRequire(import.meta.url);
-const persistence = require('../../crossworld_backend/src/modules/archipelago/characters/rules2024');
+const persistence = require('../../crossworld_backend/src/modules/archipelago/characters/persistence');
 const equipment = require('../../crossworld_backend/src/modules/archipelago/equipment');
 const root = fileURLToPath(new URL('..', import.meta.url));
 const output = path.join(root, '.test-cache/canonical-equipment.mjs');

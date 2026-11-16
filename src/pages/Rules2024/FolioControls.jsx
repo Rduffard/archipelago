@@ -1,10 +1,13 @@
 import {useState} from 'react';
+import {folioCopyEligible,folioRebuildCandidates} from '@crossworld/sanguine-engine/callings';
 export default function FolioControls({character,rules,busy,onCommand}){
   const state=character.rulesRuntime,casting=character.rulesSummary.spellcasting.shipwright;
   const [discovery,setDiscovery]=useState(''),[book,setBook]=useState(''),[remembered,setRemembered]=useState([]),[start,setStart]=useState(()=>new Date(state.worldTime??Date.now()).toISOString().slice(0,16)),[end,setEnd]=useState(''),[confirmed,setConfirmed]=useState(false);
   if(!casting)return null;
-  const sources=(state.spellDiscoveries??[]).filter(d=>!casting.folio.includes(d.spellId)&&rules.spells.find(s=>s.id===d.spellId)?.level<=casting.slots.length),selected=sources.find(d=>d.discoveryId+'|'+d.spellId===discovery);
-  const memory=[...new Set([...(state.preparations.shipwright??[]),...casting.alwaysPrepared])].filter(id=>state.folioMemory?.includes(id)&&state.folioUnavailable?.includes(id));
+  const sources=(state.spellDiscoveries??[]).filter(d=>folioCopyEligible(rules.spells.find(s=>s.id===d.spellId),casting));
+  const selected=sources.find(d=>d.discoveryId+'|'+d.spellId===discovery);
+  const memory=folioRebuildCandidates({prepared:state.preparations.shipwright??[],alwaysPrepared:casting.alwaysPrepared,
+    memorized:state.folioMemory??[],unavailable:state.folioUnavailable??[]});
   const timing={startedAt:Date.parse(start+'Z'),completedAt:Date.parse(end+'Z'),confirmed};
   return <section className="character-creation__surface" aria-label="Engineering folio"><h2>Engineering folio</h2><p>Available: {casting.folio.map(id=>rules.spells.find(s=>s.id===id)?.name).join(', ')||'None'}.</p>
     <fieldset disabled={busy}>

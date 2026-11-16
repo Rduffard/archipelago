@@ -1,3 +1,4 @@
+import {firstMissingAbilityCost,chainbreakerHitModes,chainbreakerKneelConditions} from '@crossworld/sanguine-engine/callings';
 import {useState} from 'react';
 import AbilityPreview from './AbilityPreview';
 export default function ReaverPathControls({character,rules,busy,onCommand}){
@@ -10,7 +11,7 @@ export default function ReaverPathControls({character,rules,busy,onCommand}){
     <label>Creature targets, separated by commas <input value={targets} onChange={e=>setTargets(e.target.value)} maxLength={500}/></label>
     <label>Trigger event ID <input value={eventId} onChange={e=>setEventId(e.target.value)} maxLength={100}/></label><label>Enemy turn ID for Walking Storm <input value={turn} onChange={e=>setTurn(e.target.value)} maxLength={100}/></label>
     <label>Grapple or failed-save source <input value={source} onChange={e=>setSource(e.target.value)} maxLength={100}/></label><label>Source save or grapple DC <input type="number" min={1} max={1000} value={dc} onChange={e=>setDC(Number(e.target.value))}/></label><label>Failed save total <input type="number" value={total} onChange={e=>setTotal(Number(e.target.value))}/></label>
-    <label>Chainbreaker hit or failed-save trigger <select value={mode} onChange={e=>setMode(e.target.value)}>{['grappling-ally','carrying-restraints','charmed','frightened','restrained','unarmed'].map(id=><option key={id}>{id}</option>)}</select></label>
+    <label>Chainbreaker hit or failed-save trigger <select value={mode} onChange={e=>setMode(e.target.value)}>{[...chainbreakerHitModes,...chainbreakerKneelConditions,'unarmed'].map(id=><option key={id}>{id}</option>)}</select></label>
     <label>Stormhide leap distance, feet <input type="number" min={1} max={15} value={distance} onChange={e=>setDistance(Number(e.target.value))}/></label>
     <label>Equipped weapon for Rage hit <select value={weapon||weapons[0]?.instanceId||''} onChange={e=>setWeapon(e.target.value)}><option value="">Choose weapon</option>{weapons.map(i=><option key={i.instanceId} value={i.instanceId}>{rules.equipment.items.find(d=>d.id===i.definitionId)?.name}</option>)}</select></label>
     <label><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>GM confirms trigger, sight, range, available Reaction and a visible unoccupied supporting landing space when leaping</label>
@@ -19,7 +20,7 @@ export default function ReaverPathControls({character,rules,busy,onCommand}){
     {summary.chainbreaker&&<p>Refuse the Yoke: {summary.chainbreaker.saveAdvantageAgainst.join(', ')||'unlocked at six'}; rescuer range {summary.chainbreaker.rescuerAuraFeet} feet.</p>}
     {options.map(o=><article key={o.id}><h3>{o.name}</h3><p>{o.description}</p><p>{o.costs.map(c=>`${c.amount} ${c.poolId.split(':').at(-1)} (${state.pools[c.poolId]??0} remaining)`).join('; ')||'No resource cost.'}</p>
       <AbilityPreview option={o}/>
-      <button disabled={o.available===false||!confirmed||o.costs.some(c=>(state.pools[c.poolId]??0)<c.amount)} onClick={()=>activate(o)}>Use {o.name}</button>
+      <button disabled={o.available===false||!confirmed||Boolean(firstMissingAbilityCost(o.costs,state.pools))} onClick={()=>activate(o)}>Use {o.name}</button>
     </article>)}
   </fieldset></section>;
 }

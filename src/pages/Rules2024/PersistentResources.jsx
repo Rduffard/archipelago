@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { getSpellSlotCreationTerms } from "@crossworld/sanguine-engine/spell-slots";
+import { wishInterventionUnlocked } from "@crossworld/sanguine-engine/callings";
 
 export default function PersistentResources({ summary, state, busy, onOperation }) {
   const [die, setDie] = useState(Object.keys(state.hitDice)[0]);
@@ -9,7 +11,7 @@ export default function PersistentResources({ summary, state, busy, onOperation 
     <p>Health {state.health.current} / {state.health.max}</p>
     <button onClick={() => onOperation({ type: "short-rest" })}>Short Rest (no Hit Dice)</button>
     <button onClick={() => onOperation({ type: "long-rest" })}>Long Rest</button>
-    {summary.callingLevels.doctor === 20 && <p>Divine Intervention Wish cooldown: {state.interventionCooldown?.longRestsRemaining??0} completed Long Rests remaining. Recovery is automatic when that count reaches zero.</p>}
+    {wishInterventionUnlocked(summary.callingLevels.doctor) && <p>Divine Intervention Wish cooldown: {state.interventionCooldown?.longRestsRemaining??0} completed Long Rests remaining. Recovery is automatic when that count reaches zero.</p>}
     {summary.resources['shipwright:arcane-recovery'] && <p>
       <label>Arcane Recovery slot levels (comma separated) <input value={recoverySlots} onChange={e => setRecoverySlots(e.target.value)} placeholder="1, 2" /></label>
       <button disabled={!recoverySlots.trim() || !state.pools['shipwright:arcane-recovery']} onClick={() => onOperation({ type: 'short-rest', recoverSlots: recoverySlots.split(',').map(Number) })}>Short Rest with Arcane Recovery</button>
@@ -23,7 +25,7 @@ export default function PersistentResources({ summary, state, busy, onOperation 
       <button disabled={!state.slots[i]} onClick={() => onOperation({ type: "spend-slot", slotLevel: i + 1 })}>Spend slot</button>
       {summary.resources['tidecaller:sorcery-points'] && <>
         <button disabled={!state.slots[i]} onClick={() => onOperation({ type: 'slot-to-sorcery', slotLevel: i + 1 })}>Convert slot to points</button>
-        {i < 5 && <button onClick={() => onOperation({ type: 'sorcery-to-slot', slotLevel: i + 1 })}>Create slot with points</button>}
+        {getSpellSlotCreationTerms(i + 1) && <button onClick={() => onOperation({ type: 'sorcery-to-slot', slotLevel: i + 1 })}>Create slot with points</button>}
       </>}
     </p>)}
     <p>Hit Dice remaining: {Object.entries(state.hitDice).map(([key, n]) => `${n}${key}`).join(", ")}</p>
