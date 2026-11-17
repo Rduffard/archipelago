@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: Rduffard/crossworld_backend
-          ref: f030e4257fa316d4ff06862fa92040d8144d4928
+          ref: a961751699e1bbea31669de39db235fd283742ee
           path: crossworld_backend
       - uses: actions/setup-node@v4
         with:
@@ -36,3 +36,5 @@ jobs:
         working-directory: archipelago
       - run: npm run build
         working-directory: archipelago
+        env:
+          VITE_ENABLE_LINEAGE_CREATOR: 'true'

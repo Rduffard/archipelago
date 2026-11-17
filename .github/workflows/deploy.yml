@@ -28,6 +28,7 @@ jobs:
       DEPLOY_USER: ${{ secrets.VM_USER }}
       DEPLOY_PATH: /var/www/archipelago
       VITE_API_BASE_URL: https://api.crossworldcreative.com
+      VITE_ENABLE_LINEAGE_CREATOR: 'true'
 
     steps:
       - name: Checkout repo
