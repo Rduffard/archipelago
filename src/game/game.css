@@ -270,3 +270,38 @@
 @media (prefers-reduced-motion: reduce) {
   .sa-button { transition: none; }
 }
+
+.sa-creator__surface > fieldset {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.sa-creator__surface label:not(.sa-card) {
+  display: block;
+  margin-block: 0.55rem;
+}
+
+.sa-creator__surface :is(select, textarea, input:not([type="radio"], [type="checkbox"])) {
+  background: var(--sa-background);
+  border: 1px solid var(--sa-line);
+  color: var(--sa-ink);
+  font: inherit;
+  max-width: 100%;
+  padding: 0.45rem;
+}
+
+.sa-creator__surface textarea { display: block; width: min(100%, 30rem); }
+
+.sa-creator__surface button {
+  background: var(--sa-background);
+  border: 1px solid var(--sa-line);
+  color: var(--sa-gold);
+  cursor: pointer;
+  font: inherit;
+  margin-block: 0.3rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.sa-creator__surface button:disabled { cursor: default; opacity: 0.6; }

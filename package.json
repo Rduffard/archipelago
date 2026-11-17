@@ -11,7 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@crossworld/sanguine-engine": "file:vendor/crossworld-sanguine-engine-0.68.0.tgz",
+    "@crossworld/sanguine-engine": "file:vendor/crossworld-sanguine-engine-0.69.2.tgz",
     "d3-delaunay": "^6.0.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

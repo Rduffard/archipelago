@@ -39,6 +39,7 @@ import DamageRiderControls from './DamageRiderControls';
 import HealingSpellControls from './HealingSpellControls';
 import CommandError from './CommandError';
 import ObjectUseControls from './ObjectUseControls';
+import LineageAdvancement from '../../game/creator/LineageAdvancement';
 import { LineageSummary, RequiredChoice, RulesSummary } from "./Rules2024Views";
 import "./Rules2024.css";
 import './CharacterCreation.css';
@@ -163,7 +164,7 @@ export default function PersistentSheet({ editing = false }) {
       {Object.entries(level.choices ?? {}).map(([key, value]) => <p key={key}>{key}: {typeof value === 'object' ? JSON.stringify(value) : value}</p>)}
     </li>)}</ol></details>
     <button disabled={busy} onClick={() => { setError(''); request(base, { headers }).then(setCharacter).catch(e => setError(e.message)); }}>Reload saved character</button>
-    <fieldset disabled={busy || summary.totalLevel >= maximumCharacterLevel}>
+    <fieldset disabled={busy || Boolean(pendingCommand) || summary.totalLevel >= maximumCharacterLevel}>
       <legend>Advancement</legend>
       <label>Next Calling <select value={callingId} onChange={e => setCallingId(e.target.value)}>
         {rules.callings.filter(c=>c.id===character.calling).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -171,14 +172,19 @@ export default function PersistentSheet({ editing = false }) {
       <button onClick={() => act("preview", { callingId, choices: {} }, true)}>Preview next level</button>
       {preview && <>
         <RulesSummary summary={preview} rules={rules} title="Proposed next level" />
-        {preview.requiredChoices[0] && <RequiredChoice key={preview.requiredChoices[0].id}
+        <LineageSummary lineage={preview.lineage} rules={rules} headingId="advancement-lineage" />
+        {preview.lineage?.animalForms?.pendingChoice && <LineageAdvancement
+          key={preview.totalLevel} options={preview.lineage.animalForms.pendingChoice} rules={rules}
+          onChange={lineageForm => act("preview", { ...event, lineageForm }, true)} />}
+        {preview.requiredChoices[0] && preview.requiredChoices[0].key !== 'lineageForm' && <RequiredChoice key={preview.requiredChoices[0].id}
           choice={preview.requiredChoices[0]} rules={rules}
           initialSelected={['prepared','cantrips'].includes(preview.requiredChoices[0].key)?summary.spellcasting[callingId]?.[preview.requiredChoices[0].key]??[]:[]}
           onChange={changes => act("preview", { ...event, choices: { ...event.choices, ...changes } }, true)} />}
         {preview.requiredChoices[0]?.key==='prepared'&&callingId==='tidecaller'&&<p>Your existing eligible preparations are selected. Fill the new places; you may replace at most one previously prepared spell on this level.</p>}
         {preview.decisionsComplete&&<AdvancementReplacements before={summary} preview={preview} event={event} rules={rules} busy={busy}
           onChange={choices=>act('preview',{...event,choices},true)}/>}
-        <button disabled={!preview.decisionsComplete||character.permissions?.canAdvance===false} onClick={() => command('advance', {level:preview.totalLevel,choices:event.choices})}>Save advancement</button>
+        <button disabled={!preview.decisionsComplete||character.permissions?.canAdvance===false} onClick={() => command('advance', {level:preview.totalLevel,choices:event.choices,
+          ...(event.lineageForm && { lineageForm: event.lineageForm })})}>Save advancement</button>
         <button onClick={() => { setPreview(null); setEvent(null); }}>Cancel advancement</button>
       </>}
     </fieldset>
