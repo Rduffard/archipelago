@@ -39,7 +39,7 @@ import DamageRiderControls from './DamageRiderControls';
 import HealingSpellControls from './HealingSpellControls';
 import CommandError from './CommandError';
 import ObjectUseControls from './ObjectUseControls';
-import { RequiredChoice, RulesSummary } from "./Rules2024Views";
+import { LineageSummary, RequiredChoice, RulesSummary } from "./Rules2024Views";
 import "./Rules2024.css";
 import './CharacterCreation.css';
 
@@ -128,6 +128,7 @@ export default function PersistentSheet({ editing = false }) {
         <button onClick={() => command('identity.patch',details)}>Save identity and notes</button>
       </fieldset>
     </details>
+    <LineageSummary lineage={summary.lineage} state={state} rules={rules} />
     <PersistentResources summary={summary} state={state} busy={busy} onOperation={resource} />
     <CharacterStateControls permissions={character.permissions} summary={summary} state={state} rules={rules} busy={busy||Boolean(pendingCommand)} onCommand={command}/>
     <RestPlanner key={state.restSession?state.restSession.id+':'+(state.restSession.interruptions?.length??0):String(state.worldTime)} state={state} draft={restDraft} busy={busy||Boolean(pendingCommand)} onCommand={command} onDismiss={()=>setRestDraft(null)}/>

@@ -20,9 +20,28 @@ const bundle = await rolldown({
 });
 await bundle.write({ file: output, format: "esm" });
 await bundle.close();
-const { CallingProgression, RulesSummary, RequiredChoice } = await import(
+const { CallingProgression, LineageSummary, RulesSummary, RequiredChoice } = await import(
   pathToFileURL(output).href
 );
+test("Lineage sheet shows active form and saved Health while legacy sheets omit the panel", () => {
+  const render = props => renderToStaticMarkup(React.createElement(LineageSummary, props));
+  assert.equal(render({ rules }), "");
+  const html = render({
+    rules: { creation: {
+      lineages: [{ id: "beastshifters", name: "Beastshifters" }],
+      beastshifterForms: [{ id: "dock-rat", name: "Dock Rat" }],
+    } },
+    lineage: { id: "beastshifters", animalForms: {
+      knownForms: ["dock-rat"], maximumHealth: { "dock-rat": 3, "reef-fox": 5 },
+    } },
+    state: { animalForms: {
+      activeFormId: "dock-rat", healthByForm: { "dock-rat": 2, "reef-fox": 0 },
+    } },
+  });
+  assert.match(html, /Beastshifters/);
+  assert.match(html, /Dock Rat \(active\) · Health 2\/3/);
+  assert.doesNotMatch(html, /reef-fox/);
+});
 for (const path of rules.paths) {
   test(`${path.name}: frontend renders the persisted level-twenty grants and choices`, () => {
     const fixture = build(path.callingId, 20, undefined, path.id);

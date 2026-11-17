@@ -311,3 +311,29 @@ export function RequiredChoice({ choice, rules, onChange, initialSelected=[] }) 
   );
 }
 import {cinderSafeHandlingUnlocked} from '@crossworld/sanguine-engine/callings/cinder-artillerist';
+export function LineageSummary({ lineage, state, rules }) {
+  if (!lineage) return null;
+  const definition = rules.creation.lineages?.find(entry => entry.id === lineage.id);
+  const forms = lineage.animalForms;
+  const savedForms = state?.animalForms;
+  return <section aria-labelledby="character-lineage">
+    <h2 id="character-lineage">Lineage</h2>
+    <p>{definition?.name ?? lineage.id}</p>
+    {lineage.traits?.length > 0 && <ul>
+      {lineage.traits.map(trait => <li key={trait.id}>{trait.name}</li>)}
+    </ul>}
+    {forms?.knownForms?.length > 0 && <>
+      <h3>Known animal forms</h3>
+      <ul>{forms.knownForms.map(formId => {
+        const form = rules.creation.beastshifterForms?.find(entry => entry.id === formId);
+        const health = savedForms?.healthByForm?.[formId];
+        const maximum = forms.maximumHealth?.[formId];
+        return <li key={formId}>
+          {form?.name ?? formId}
+          {savedForms?.activeFormId === formId && ' (active)'}
+          {health != null && maximum != null && ` · Health ${health}/${maximum}`}
+        </li>;
+      })}</ul>
+    </>}
+  </section>;
+}
