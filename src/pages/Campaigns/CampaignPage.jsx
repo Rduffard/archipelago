@@ -1,3 +1,4 @@
+import { characterCreationPath } from '../../game/creator/previewEnabled';
 import {useEffect, useState} from 'react';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import PageHeader from '../../components/layout/PageHeader';
@@ -106,7 +107,7 @@ export default function CampaignPage({mode}){
           </select></label>
           <button type="submit">Register character</button>
         </fieldset>
-        {!available.length&&<p><Link to="/characters/new">Create a character</Link> or open your roster.</p>}
+        {!available.length&&<p><Link to={characterCreationPath}>Create a character</Link> or open your roster.</p>}
       </form>}
       <h2>Campaign sessions</h2>
       {loaded.sessions.length?<ul>{loaded.sessions.map(session=><li key={session._id}>

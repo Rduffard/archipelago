@@ -1,3 +1,4 @@
+import { characterCreationPath } from '../../game/creator/previewEnabled';
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
@@ -66,7 +67,7 @@ export default function Rules2024Page() {
       <p>
         Explore temporary builds using SRD 5.2.1. Use the character creator for origin, background, point buy and saved characters.
       </p>
-      <Link to="/characters/new">Create a character</Link>
+      <Link to={characterCreationPath}>Create a character</Link>
       {error ? <p role="alert">{error}</p> : null}
       {!rules ? (
         <p>Loading rules…</p>

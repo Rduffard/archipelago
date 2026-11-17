@@ -1,8 +1,11 @@
+import { callingRoles, creationStages, stageIndexFor } from '../../game/creator/creationStages';
+import { attributeModifier } from '@crossworld/sanguine-engine/attributes';
+import { CatalogCards, FeatureCards, CallingPaths, CreatorReview } from '../../game/creator/CreatorViews';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { POINT_BUY_BUDGET, POINT_BUY_MINIMUM_SCORE, POINT_BUY_MAXIMUM_SCORE, calculatePointBuyCost } from '@crossworld/sanguine-engine/point-buy';
 import { creationSizes, backgroundGoldAlternative, backgroundEquipmentEligible, maximumCreationScore,
-  creationBackgroundIncreases } from '@crossworld/sanguine-engine/progression';
+  creationBackgroundIncreases, creationScores } from '@crossworld/sanguine-engine/progression';
 import { useAuth } from '../../hooks/useAuth';
 import { getCharacterRules, request } from '../../lib/api';
 import { CallingProgression, LineageSummary, RequiredChoice, RulesSummary } from './Rules2024Views';
@@ -18,7 +21,6 @@ import './CharacterCreation.css';
 
 const steps = ['Identity','Origin','Background','Calling','Attributes','Training','Abilities and feats','Equipment','Spells','Review'];
 const lineageStep = 'Lineage';
-const lineageSteps = [steps[0], lineageStep, ...steps.slice(1)];
 const previewSteps = ['Training', 'Abilities and feats', 'Equipment', 'Spells', 'Review'];
 const stepChoices = {
   Training: ['skills', 'backgroundSkills', 'backgroundTool', 'instrument', 'expertise', 'languages', 'callingLanguages'],
@@ -43,6 +45,7 @@ export default function CharacterCreation({ withLineage = false }) {
   const [creation,setCreation]=useState({originId:'yuma-core',backgroundId:'deckhand',method:'point-buy',increases:{might:2},equipment:'pack',size:'medium'});
   const [split,setSplit]=useState(false);
   const [choices,setChoices]=useState({});
+  const [pendingChoice, setPendingChoice] = useState(null);
   const [purchases,setPurchases]=useState([]),[purchaseId,setPurchaseId]=useState('dagger'),[purchaseQuantity,setPurchaseQuantity]=useState(1),[purchaseSpell,setPurchaseSpell]=useState('');
   const [summary,setSummary]=useState(null);
   const [busy,setBusy]=useState(false);
@@ -58,7 +61,7 @@ export default function CharacterCreation({ withLineage = false }) {
     .then(result=>{if(active)setRules(result);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[token,catalogAttempt]);
   function changeCreation(changes, resetChoices = true) {
     setCreation({ ...creation, ...changes });
-    if (resetChoices) setChoices({});
+    if (resetChoices) { setChoices({}); setPendingChoice(null); }
     setSummary(null);
     setError('');
   }
@@ -70,7 +73,16 @@ export default function CharacterCreation({ withLineage = false }) {
       return next;
     });
   }
-  function customChange(key,value) {changeCreation({custom:{...creation.custom,[key]:value}});}
+
+  function customChange(key, value) {
+    const custom = { ...creation.custom, [key]: value };
+    const kept = Object.keys(creation.increases).filter(id => custom.attributes.includes(id));
+    const [first, second] = [...new Set([...kept, ...custom.attributes])];
+    if (!second) setSplit(false);
+    changeCreation({ custom, ...(first && {
+      increases: creationBackgroundIncreases(first, second, split && Boolean(second)),
+    }) });
+  }
   function reportError(e){
     setError(e.message);setErrorPath(e.fieldPath);
     const field=e.fieldPath??'';
@@ -83,10 +95,10 @@ export default function CharacterCreation({ withLineage = false }) {
     else if(field.startsWith('purchases')||field==='firstLevel.choices.equipment')setStep('Equipment');
     else if(field.startsWith('attributes')||field.startsWith('baseAttributes'))setStep('Attributes');
     else if(field.startsWith('creation.origin'))setStep('Origin');
-    else if(field.startsWith('creation.background')||field.startsWith('creation.custom'))setStep('Background');
+    else if(field.startsWith('creation.background')||field.startsWith('creation.custom')||field.startsWith('creation.increases'))setStep('Background');
     else if(field==='firstLevel.callingId')setStep('Calling');
   }
-  async function preview(nextChoices = choices, nextPurchases = purchases, includeLineage = step === 'Review') {
+  async function preview(nextChoices = choices, nextPurchases = purchases, includeLineage = step === 'Review', draftCreation = creation) {
     const previewCreation = draft => request('/archipelago/characters/preview', {
       method: 'POST', headers,
       body: JSON.stringify({
@@ -99,11 +111,13 @@ export default function CharacterCreation({ withLineage = false }) {
     setBusy(true);
     setError('');
     try {
-      let result = await previewCreation(useFullCreation ? fullCreation : creationWithLineage(creation, lineageId, {}));
+      const lineageCreation = creationWithLineage(draftCreation, lineageId, lineageChoices);
+      let result = await previewCreation(!withLineage ? draftCreation : useFullCreation
+        ? lineageCreation : creationWithLineage(draftCreation, lineageId, {}));
       setChoices(nextChoices);
-      if (!useFullCreation && (step === 'Attributes' || step === 'Training') &&
+      if (!useFullCreation && (step === 'Calling' || step === 'Attributes' || step === 'Training') &&
           result.requiredChoices.find(choice => stepChoices.Training.includes(choice.key))?.key === 'expertise') {
-        result = await previewCreation(fullCreation);
+        result = await previewCreation(lineageCreation);
       }
       setSummary(result);
       return result;
@@ -147,9 +161,48 @@ export default function CharacterCreation({ withLineage = false }) {
   const firstAttribute=Object.keys(creation.increases)[0];
   const secondAttribute=Object.keys(creation.increases)[1]??eligibleAttributes.find(a=>a!==firstAttribute);
   const requiredChoice=step==='Review'?summary?.requiredChoices.find(choice => !choice.id.startsWith('creation.lineage')):summary?.requiredChoices.find(c=>stepChoices[step]?.includes(c.key));
-  function increases(first,second,isSplit=split){changeCreation({increases:creationBackgroundIncreases(first,second,isSplit)});}
-  const stepOrder = withLineage ? lineageSteps : steps;
-  const position = stepOrder.indexOf(step);
+  function increases(first, second, isSplit = split) {
+    const alternate = second === first ? eligibleAttributes.find(id => id !== first) : second;
+    changeCreation({ increases: creationBackgroundIncreases(first, alternate, isSplit) });
+  }
+  const stageIndex = stageIndexFor(step);
+  const stage = creationStages[stageIndex];
+  const position = steps.indexOf(step);
+  const active = name => withLineage ? stage.steps.includes(name) : step === name;
+  const usesPreview = withLineage ? stage.steps.some(name => previewSteps.includes(name)) : previewSteps.includes(step);
+  const displayedChoice = withLineage && step !== 'Review'
+    ? summary?.requiredChoices.find(choice => stage.steps.some(name => stepChoices[name]?.includes(choice.key)))
+    : requiredChoice;
+  const attributes = withLineage && usedPoints !== undefined
+    ? creationScores(scores, origin.attribute, Object.keys(attributeNames), eligibleAttributes, creation.increases)
+    : null;
+
+  function selectBackground(id) {
+    const entry = rules.creation.backgrounds.find(item => item.id === id);
+    setSplit(false);
+    changeCreation({
+      backgroundId: id, increases: { [entry.attributes[0]]: 2 },
+      equipment: id === 'custom' ? 'gold' : 'pack',
+      custom: id === 'custom' ? {
+        attributes: ['might', 'agility', 'resolve'], skills: ['athletics', 'survival'],
+        tool: rules.creation.tools[0], feat: 'alert',
+      } : undefined,
+    });
+  }
+
+  function selectCalling(id) {
+    setCalling(id);
+    setChoices({});
+    setPendingChoice(null);
+    setSummary(null);
+  }
+
+  function adjustScore(id, increment) {
+    setScores({ ...scores, [id]: scores[id] + increment });
+    setPendingChoice(null);
+    setSummary(null);
+    setChoices({});
+  }
   function goTo(next) {
     setError('');
     setErrorPath(null);
@@ -165,15 +218,21 @@ export default function CharacterCreation({ withLineage = false }) {
       setError('Choose a Lineage and complete its starting selections.');
       return;
     }
-    if (step === 'Attributes' && (usedPoints === undefined || usedPoints > POINT_BUY_BUDGET)) {
-      setError('Set all six base scores within the point-buy range and budget.');
+    if (active('Background') && background.id === 'custom' &&
+        (creation.custom.attributes.length !== 3 || creation.custom.skills.length !== 2)) {
+      setError('Choose three eligible attributes and two Background skills.');
       return;
     }
-    const next = stepOrder[position + 1];
-    if (previewSteps.includes(next)) {
+    if (active('Attributes') && (usedPoints === undefined || usedPoints > POINT_BUY_BUDGET || attributes?.error)) {
+      setError(attributes?.error || 'Set all six base scores within the point-buy range and budget.');
+      return;
+    }
+    const nextStage = creationStages[stageIndex + 1];
+    const next = nextStage.steps[0];
+    if (usesPreview || nextStage.steps.some(name => previewSteps.includes(name))) {
       const result = await preview(choices, purchases, next === 'Review');
       if (!result) return;
-      if (next !== 'Review' && result.requiredChoices.some(choice => stepChoices[step]?.includes(choice.key))) {
+      if (result.requiredChoices.some(choice => stage.steps.some(name => stepChoices[name]?.includes(choice.key)))) {
         setError('Complete the required selection on this step to continue.');
         return;
       }
@@ -193,28 +252,28 @@ export default function CharacterCreation({ withLineage = false }) {
       aria-current={step===name?'step':undefined} onClick={()=>setStep(name)} disabled={busy}>{index+1}. {name}</button>)}</nav>
     <CommandError message={error} fieldPath={errorPath}/>
   </>;
-  const content = <section className={withLineage ? 'sa-creator__surface' : 'character-creation__surface'} aria-label={step}>
-      <h2 ref={heading} tabIndex={withLineage ? -1 : undefined}>{withLineage ? step : (position + 1) + '. ' + step}</h2>
+  const content = <section className={withLineage ? 'sa-creator__surface' : 'character-creation__surface'} aria-label={withLineage ? stage.title : step}>
+      <h2 ref={heading} tabIndex={withLineage ? -1 : undefined}>{withLineage ? stage.title : (position + 1) + '. ' + step}</h2>
       <fieldset disabled={busy}>
         {step===lineageStep && <LineageStep rules={rules} lineage={lineage} values={lineageChoices}
-          onSelect={id => { setLineageId(id); setLineageChoices({}); clearExpertise(); setSummary(null); setError(''); }}
+          onSelect={id => { setLineageId(id); setLineageChoices({}); setPendingChoice(null); clearExpertise(); setSummary(null); setError(''); }}
           onChange={(key, value) => {
             setLineageChoices(previous => ({ ...previous, [key]: value }));
             if (['skill', 'skills', 'originFeat'].includes(key)) clearExpertise();
             setSummary(null);
             setError('');
           }} />}
-        {step==='Identity'&&<><IdentityFields value={identity} onChange={setIdentity}/>
+        {active('Identity')&&<><IdentityFields value={identity} onChange={setIdentity} storyOnly={withLineage}/>
           {!withLineage && <><label>Size <select value={creation.size} onChange={e=>changeCreation({size:e.target.value})}>{creationSizes.map(size=><option key={size} value={size}>{size==='medium'?'Medium':'Small'}</option>)}</select></label>
           <p>Humanoid; base walking Speed 30 feet. Narrative notes impose no automatic penalties.</p></>}</>}
-        {step==='Origin'&&<><label>Origin <select value={creation.originId} onChange={e=>changeCreation({originId:e.target.value})}>
-          {rules.creation.origins.map(o=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+        {active('Origin')&&<>{withLineage ? <CatalogCards label="Origin" entries={rules.creation.origins} value={creation.originId}
+          onChange={id => changeCreation({ originId: id })} describe={entry => entry.summary} /> : (<label>Origin <select value={creation.originId} onChange={e=>changeCreation({originId:e.target.value})}>
+          {rules.creation.origins.map(o=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>)}
           <p>{origin.summary}</p><p>{origin.lore}</p><p>+1 {attributeNames[origin.attribute]}; cultural language: {origin.name}.</p></>}
-        {step==='Background'&&<><label>Background <select value={creation.backgroundId} onChange={e=>{
-          const b=rules.creation.backgrounds.find(b=>b.id===e.target.value);setSplit(false);
-          changeCreation({backgroundId:b.id,increases:{[b.attributes[0]]:2},equipment:b.id==='custom'?'gold':'pack',
-            ...(b.id==='custom'?{custom:{attributes:['might','agility','resolve'],skills:['athletics','survival'],tool:rules.creation.tools[0],feat:'alert'}}:{custom:undefined})});
-        }}>{rules.creation.backgrounds.map(b=><option key={b.id} value={b.id}>{b.name}</option>)}</select></label>
+        {active('Background')&&<>{withLineage ? <CatalogCards label="Background" entries={rules.creation.backgrounds} value={creation.backgroundId}
+          onChange={selectBackground} describe={entry => rules.feats.find(feat => feat.id === entry.feat)?.name} />
+          : <label>Background <select value={creation.backgroundId} onChange={e => selectBackground(e.target.value)}>
+            {rules.creation.backgrounds.map(entry => <option key={entry.id} value={entry.id}>{entry.name}</option>)}</select></label>}
           <p>Background grants two skills, one tool, an Origin feat and a total of +2 attributes.</p>
           {background.id==='custom'?<>
             <label>Three eligible attributes <select multiple value={creation.custom.attributes} onChange={e=>customChange('attributes',Array.from(e.target.selectedOptions,o=>o.value))}>
@@ -228,56 +287,103 @@ export default function CharacterCreation({ withLineage = false }) {
           <label>First attribute <select value={firstAttribute} onChange={e=>increases(e.target.value,secondAttribute)}>{eligibleAttributes.map(id=><option key={id} value={id}>{attributeNames[id]}</option>)}</select></label>
           {split&&<label>Second attribute <select value={secondAttribute} onChange={e=>increases(firstAttribute,e.target.value)}>{eligibleAttributes.map(id=><option key={id} value={id} disabled={id===firstAttribute}>{attributeNames[id]}</option>)}</select></label>}
         </>}
-        {step==='Calling'&&<><label>Calling <select value={callingId} onChange={e=>{setCalling(e.target.value);setChoices({});setSummary(null);}}>{rules.callings.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-          <details><summary>Calling progression and four Paths</summary><CallingProgression calling={calling} rules={rules}/></details><p>Your Path is selected at level 3.</p></>}
-        {step==='Attributes'&&<><p>Point buy: {usedPoints===undefined?'enter valid base scores':`${usedPoints} / ${POINT_BUY_BUDGET}`}. Base scores {POINT_BUY_MINIMUM_SCORE}–{POINT_BUY_MAXIMUM_SCORE}; final creation maximum {maximumCreationScore}.</p>
-          <div className="character-creation__attributes">{Object.entries(attributeNames).map(([id,name])=><label key={id}>{name}<input type="number" min={POINT_BUY_MINIMUM_SCORE} max={POINT_BUY_MAXIMUM_SCORE} value={scores[id]} onChange={e=>{setScores({...scores,[id]:Number(e.target.value)});setSummary(null);setChoices({});}}/></label>)}</div>
+        {active('Calling')&&<>{withLineage ? <CatalogCards label="Calling" entries={rules.callings} value={callingId}
+          onChange={selectCalling} describe={entry => callingRoles[entry.id]} />
+          : <label>Calling <select value={callingId} onChange={e => selectCalling(e.target.value)}>
+            {rules.callings.map(entry => <option key={entry.id} value={entry.id}>{entry.name}</option>)}</select></label>}
+          {withLineage ? <><h3>Starting features</h3><FeatureCards calling={calling} />
+            <CallingPaths calling={calling} rules={rules} /></> :
+            <details><summary>Calling progression and four Paths</summary><CallingProgression calling={calling} rules={rules}/></details>}</>}
+        {active('Attributes')&&<><p>Point buy: {usedPoints===undefined?'enter valid base scores':`${usedPoints} / ${POINT_BUY_BUDGET}`}. Base scores {POINT_BUY_MINIMUM_SCORE}–{POINT_BUY_MAXIMUM_SCORE}; final creation maximum {maximumCreationScore}.</p>
+          {withLineage ? <div className="sa-attribute-grid">
+            {Object.entries(attributeNames).map(([id, name]) => {
+              const score = attributes?.scores?.[id];
+              const modifier = score === undefined ? null : attributeModifier(score);
+              return <section className="sa-attribute" key={id}>
+                <h3>{name}</h3>
+                <div>
+                  <GameButton aria-label={'Lower ' + name} disabled={scores[id] <= POINT_BUY_MINIMUM_SCORE}
+                    onClick={() => adjustScore(id, -1)}>−</GameButton>
+                  <output aria-label={name + ' base score'}>{scores[id]}</output>
+                  <GameButton aria-label={'Raise ' + name} disabled={scores[id] >= POINT_BUY_MAXIMUM_SCORE ||
+                    calculatePointBuyCost({ ...scores, [id]: scores[id] + 1 }) > POINT_BUY_BUDGET}
+                    onClick={() => adjustScore(id, 1)}>+</GameButton>
+                </div>
+                <small>{score === undefined ? 'Check bonuses' : score + ' final · ' + (modifier >= 0 ? '+' : '') + modifier + ' modifier'}</small>
+              </section>;
+            })}
+          </div> : <div className="character-creation__attributes">{Object.entries(attributeNames).map(([id,name])=><label key={id}>{name}<input type="number" min={POINT_BUY_MINIMUM_SCORE} max={POINT_BUY_MAXIMUM_SCORE} value={scores[id]} onChange={e=>{setScores({...scores,[id]:Number(e.target.value)});setSummary(null);setChoices({});}}/></label>)}</div>}
+          {withLineage && <p role="status">{attributes?.error || (POINT_BUY_BUDGET - usedPoints) + " points remaining"}</p>}
           <p>Origin +1 {attributeNames[origin.attribute]}; background {Object.entries(creation.increases).map(([id,n])=>`+${n} ${attributeNames[id]}`).join(', ')}.</p></>}
-        {step==='Training'&&<p>Select Calling skills first, then retain background skills and replace duplicates. Training and Expertise are calculated by the server.</p>}
-        {step==='Abilities and feats'&&<p>Resolve all required feat subchoices, languages and class abilities below. Passive grants apply automatically.</p>}
-        {step==='Equipment'&&<><label>Background equipment <select value={creation.equipment} onChange={e=>changeCreation({equipment:e.target.value}, !withLineage)}>
-          {backgroundEquipmentEligible(background.id,'pack')&&<option value="pack">Background package</option>}<option value="gold">{backgroundGoldAlternative} GP</option></select></label>
+        {active('Training')&&<p>Select Calling skills first, then retain background skills and replace duplicates. Training and Expertise are calculated by the server.</p>}
+        {active('Abilities and feats') && <><h3>Starting features</h3><FeatureCards calling={calling} />
+          <p>Origin feat: {rules.feats.find(feat => feat.id === (creation.custom?.feat ?? background.feat))?.name}.</p>
+          <details><summary>Future features by level</summary><FeatureCards calling={calling} future /></details></>}
+        {active('Equipment')&&<>{withLineage ? <CatalogCards label="Background equipment" value={creation.equipment}
+          onChange={equipment => { changeCreation({ equipment }, false); preview(choices, purchases, false, { ...creation, equipment }); }}
+          entries={[
+            ...(backgroundEquipmentEligible(background.id, 'pack') ? [{ id: 'pack', name: 'Background package' }] : []),
+            { id: 'gold', name: backgroundGoldAlternative + ' GP' },
+          ]} describe={entry => entry.id === 'pack' ? background.items?.join(', ') : 'Buy starting gear below'} />
+          : (<label>Background equipment <select value={creation.equipment} onChange={e=>changeCreation({equipment:e.target.value}, !withLineage)}>
+          {backgroundEquipmentEligible(background.id,'pack')&&<option value="pack">Background package</option>}<option value="gold">{backgroundGoldAlternative} GP</option></select></label>)}
           <p>Choose a Calling equipment package or its gold alternative in the required selections below. Gear begins carried; equip it on your saved sheet.</p></>}
-        {step==='Equipment'&&<fieldset><legend>Optional starting purchases</legend><label>Starting item to buy <select value={purchaseId} onChange={e=>setPurchaseId(e.target.value)}>{rules.equipment.items.filter(i=>Number.isSafeInteger(i.costCp)&&!i.magic).map(i=><option key={i.id} value={i.id}>{i.name}: {i.costCp} copper{i.units?` per ${i.units}`:''}</option>)}</select></label>{rules.equipment.items.find(d=>d.id===purchaseId)?.purchaseScrollLevel!==undefined&&<label>Starting scroll spell <select value={purchaseSpell} onChange={e=>setPurchaseSpell(e.target.value)}><option value="">Choose exact spell</option>{rules.spells.filter(s=>s.level===rules.equipment.items.find(d=>d.id===purchaseId).purchaseScrollLevel).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>}<label>Starting purchase quantity <input type="number" min={1} max={100000} value={purchaseQuantity} onChange={e=>setPurchaseQuantity(Number(e.target.value))}/></label><button disabled={!choices.equipment||!Number.isSafeInteger(purchaseQuantity)||purchaseQuantity<1} onClick={()=>{const next=[...purchases,{definitionId:purchaseId,quantity:purchaseQuantity,...(rules.equipment.items.find(d=>d.id===purchaseId)?.purchaseScrollLevel!==undefined?{spellId:purchaseSpell}:{})}];setPurchases(next);setSummary(null);preview(choices,next);}}>Add starting purchase and validate price</button><ul>{purchases.map((p,i)=><li key={i}>{rules.equipment.items.find(d=>d.id===p.definitionId)?.name}: {p.quantity}<button onClick={()=>{const next=purchases.filter((_,index)=>index!==i);setPurchases(next);setSummary(null);preview(choices,next);}}>Remove purchase {i+1}</button></li>)}</ul><p>The server validates the entire basket against both starting balances; invalid purchases block saving.</p></fieldset>}
-        {step==='Spells'&&<p>Select the exact number of eligible cantrips and preparations. Shipwrights also choose six initial folio spells. Feature spells do not consume ordinary preparation count.</p>}
-        {previewSteps.includes(step)&&<><button type="button" onClick={()=>preview()} disabled={usedPoints===undefined||usedPoints>POINT_BUY_BUDGET}>Validate choices and preview</button>
-          {requiredChoice&&<RequiredChoice key={requiredChoice.id} rules={rules} choice={requiredChoice}
-            onChange={changes=>preview({...choices,...changes})}/>}
+        {active('Equipment')&&<details className="sa-outfitter"><summary>Buy starting gear</summary><fieldset><legend>Optional starting purchases</legend><label>Starting item to buy <select value={purchaseId} onChange={e=>setPurchaseId(e.target.value)}>{rules.equipment.items.filter(i=>Number.isSafeInteger(i.costCp)&&!i.magic).map(i=><option key={i.id} value={i.id}>{i.name}: {i.costCp} copper{i.units?` per ${i.units}`:''}</option>)}</select></label>{rules.equipment.items.find(d=>d.id===purchaseId)?.purchaseScrollLevel!==undefined&&<label>Starting scroll spell <select value={purchaseSpell} onChange={e=>setPurchaseSpell(e.target.value)}><option value="">Choose exact spell</option>{rules.spells.filter(s=>s.level===rules.equipment.items.find(d=>d.id===purchaseId).purchaseScrollLevel).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>}<label>Starting purchase quantity <input type="number" min={1} max={100000} value={purchaseQuantity} onChange={e=>setPurchaseQuantity(Number(e.target.value))}/></label><button disabled={!choices.equipment||!Number.isSafeInteger(purchaseQuantity)||purchaseQuantity<1} onClick={()=>{const next=[...purchases,{definitionId:purchaseId,quantity:purchaseQuantity,...(rules.equipment.items.find(d=>d.id===purchaseId)?.purchaseScrollLevel!==undefined?{spellId:purchaseSpell}:{})}];setPurchases(next);setSummary(null);preview(choices,next);}}>Add starting purchase and validate price</button><ul>{purchases.map((p,i)=><li key={i}>{rules.equipment.items.find(d=>d.id===p.definitionId)?.name}: {p.quantity}<button onClick={()=>{const next=purchases.filter((_,index)=>index!==i);setPurchases(next);setSummary(null);preview(choices,next);}}>Remove purchase {i+1}</button></li>)}</ul><p>The server validates the entire basket against both starting balances; invalid purchases block saving.</p></fieldset></details>}
+
+        {usesPreview&&<>{(!withLineage || !summary) && <button type="button" onClick={()=>preview()} disabled={usedPoints===undefined||usedPoints>POINT_BUY_BUDGET}>Refresh choices</button>}
+          {displayedChoice&&<RequiredChoice key={displayedChoice.id} rules={rules} choice={displayedChoice} tiles={withLineage}
+            initialSelected={pendingChoice?.id === displayedChoice.id ? pendingChoice.selected : undefined}
+            onDraftChange={selected => setPendingChoice({ id: displayedChoice.id, selected })}
+            onChange={async changes => {
+              if (await preview({ ...choices, ...changes })) setPendingChoice(null);
+            }}/>}
           {summary&&<p role="status">{summary.decisionsComplete?'All required selections are complete.':`${summary.requiredChoices.length} required selections remain.`}</p>}
         </>}
-        {step==='Review'&&<><p>{identity.name||'Unnamed character'} — {lineage && lineage.name + ', '}{origin.name}, {background.name}, {calling.name} level 1.</p>
-          {summary?.creationEquipment&&<><p>Starting copper after purchases: {summary.creationEquipment.goldCp}.</p><ul>{summary.creationEquipment.items.map((i,index)=><li key={index}>{i.name}: {i.quantity}</li>)}</ul></>}
+        {(active('Equipment') || active('Review')) && summary?.creationEquipment && (
+          <section className={withLineage ? 'sa-kit' : undefined}>
+            <h3>Starting kit</h3>
+            <p>{summary.creationEquipment.goldCp} copper available</p>
+            <ul>{summary.creationEquipment.items.map((item, index) =>
+              <li key={index}>{item.name} × {item.quantity}</li>)}</ul>
+          </section>
+        )}
+        {active('Review')&&<><p>{identity.name||'Unnamed character'} — {lineage && lineage.name + ', '}{origin.name}, {background.name}, {calling.name} level 1.</p>
           {summary?.lineage && <LineageSummary lineage={summary.lineage} rules={rules} />}
-          {summary&&<RulesSummary summary={summary} rules={rules} title="Review character"/>}
-          <button type="button" disabled={!summary?.decisionsComplete||identity.name.trim().length<2} onClick={save}>Save character</button></>}
+          {summary && (withLineage
+            ? <CreatorReview summary={summary} rules={rules} identity={identity} calling={calling}
+                choices={choices} spellKeys={stepChoices.Spells} />
+            : <RulesSummary summary={summary} rules={rules} title="Review character"/> )}
+          <button type="button" data-create={withLineage || undefined} disabled={!summary?.decisionsComplete||identity.name.trim().length<2} onClick={save}>Save character</button></>}
       </fieldset>
     </section>;
 
   if (withLineage) return <main className="sa-creator">
     <header className="sa-creator__header">
-      <div><h1>Character Creator</h1><p>Step {position + 1} of {stepOrder.length}</p></div>
+      <h1>Create your character</h1>
       <GameButton to="/characters">Your roster</GameButton>
     </header>
-    <nav aria-label="Character creation steps">
-      <ol className="sa-steps">{stepOrder.map((id, index) => <li key={id}>
-        <GameButton disabled={busy || index > position}
-          aria-current={id === step ? 'step' : undefined} onClick={() => goTo(id)}>
-          {id}
-        </GameButton>
-      </li>)}</ol>
-    </nav>
     <div className="sa-creator__body">
-      <GamePanel>
+      <aside className="sa-creator__aside">
+        <CharacterPreview name={identity.name} lineage={lineage?.name} calling={calling.name}
+          appearance={{ ...defaultAppearance, lineageId: lineageId || null }} />
+      </aside>
+      <GamePanel className="sa-creator__decisions">
+        <nav aria-label="Character creation stages">
+          <ol className="sa-steps">{creationStages.map(({ title, steps: sections }, index) => <li key={title}>
+            <GameButton aria-label={title} title={title} disabled={busy || index > stageIndex}
+              aria-current={index === stageIndex ? 'step' : undefined} onClick={() => goTo(sections[0])}>
+              <span aria-hidden="true" />
+            </GameButton>
+          </li>)}</ol>
+        </nav>
         <CommandError message={error} fieldPath={errorPath}/>
         {content}
         <footer className="sa-actions">
-          <GameButton disabled={busy || position === 0} onClick={() => goTo(stepOrder[position - 1])}>Back</GameButton>
+          <GameButton disabled={busy || stageIndex === 0}
+            onClick={() => goTo(creationStages[stageIndex - 1].steps[0])}>Back</GameButton>
           {step !== 'Review' && <GameButton disabled={busy} onClick={continueDraft}>Continue</GameButton>}
         </footer>
       </GamePanel>
-      <aside className="sa-creator__aside">
-        <CharacterPreview name={identity.name} appearance={{ ...defaultAppearance, lineageId: lineageId || null }} />
-      </aside>
     </div>
   </main>;
 

@@ -3,16 +3,20 @@ import { GameButton, GamePanel } from '../ui/GameUI';
 import SceneCanvas from './SceneCanvas';
 import { buildAppearance, defaultAppearance, facings } from './appearance';
 
-export default function CharacterPreview({ appearance = defaultAppearance, name }) {
-  const [direction, setDirection] = useState(0);
-  return <GamePanel title="Character Preview" className="sa-preview">
-    <SceneCanvas build={buildAppearance} data={{ appearance, facing: facings[direction] }}
+export default function CharacterPreview({ appearance = defaultAppearance, name, lineage, calling }) {
+  const [direction, setDirection] = useState(1);
+  return <GamePanel className="sa-preview">
+    <SceneCanvas transparent build={buildAppearance} data={{ appearance, facing: facings[direction] }}
       fallback="3D character preview unavailable." />
-    <p>{name || 'Unnamed character'}</p>
+    <div className="sa-preview__identity">
+      <h2>{name || 'Unnamed character'}</h2>
+      {(lineage || calling) && <p>{[lineage, calling].filter(Boolean).join(' · ')}</p>}
+      <small>Temporary character model</small>
+    </div>
     <div className="sa-preview__rotation">
-      <GameButton aria-label="Rotate left" onClick={() => setDirection((direction + 7) % 8)}>←</GameButton>
+      <GameButton aria-label="Rotate left" onClick={() => setDirection(value => (value + 7) % 8)}>&larr;</GameButton>
       <output aria-live="polite">{facings[direction]}</output>
-      <GameButton aria-label="Rotate right" onClick={() => setDirection((direction + 1) % 8)}>→</GameButton>
+      <GameButton aria-label="Rotate right" onClick={() => setDirection(value => (value + 1) % 8)}>&rarr;</GameButton>
     </div>
   </GamePanel>;
 }

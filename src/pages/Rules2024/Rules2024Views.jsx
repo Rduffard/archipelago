@@ -216,8 +216,14 @@ export function RulesSummary({ summary, rules, title = "Temporary character shee
     </section>
   );
 }
-export function RequiredChoice({ choice, rules, onChange, initialSelected=[] }) {
-  const [selected, setSelected] = useState(()=>initialSelected.filter(id=>choice.options.includes(id)).slice(0,choice.count));
+export function RequiredChoice({ choice, rules, onChange, initialSelected=[], tiles=false, onDraftChange }) {
+  const [selected, setSelected] = useState(()=>[...new Set([...(tiles ? choice.requiredOptions ?? [] : []), ...initialSelected])].filter(id=>choice.options.includes(id)).slice(0,choice.count));
+  function toggle(id) {
+    const next = selected.includes(id) ? selected.filter(option => option !== id) : [...selected, id];
+    setSelected(next);
+    onDraftChange?.(next);
+  }
+  const [search, setSearch] = useState('');
   const [first, setFirst] = useState("might");
   const [feat, setFeat] = useState(choice.options.includes('ability-score-improvement')?'ability-score-improvement':choice.options[0]);
   const [split, setSplit] = useState(false);
@@ -283,7 +289,35 @@ export function RequiredChoice({ choice, rules, onChange, initialSelected=[] }) 
         {choice.key.replace(/([A-Z])/g, " $1")} — choose {choice.count}
       </legend>
       {choice.requiredOptions?.length>0&&<p>Keep {choice.requiredOptions.map(id=>ruleLabel(id,rules)).join(', ')}. Replace duplicate Training with another available skill.</p>}
-      <select
+      {tiles ? <>
+        {choice.options.length > 12 && <label>Filter choices <input type="search" value={search}
+          onChange={event => setSearch(event.target.value)} /></label>}
+        <div className="sa-choice-grid">
+          {choice.options.filter(id => selected.includes(id) ||
+            ruleLabel(id, rules).toLowerCase().includes(search.trim().toLowerCase())).map(id => {
+            const checked = selected.includes(id);
+            const required = choice.requiredOptions?.includes(id);
+            const spell = rules.spells.find(entry => entry.id === id);
+            const kit = choice.key === 'equipment' ? rules.startingEquipment?.[choice.callingId] : null;
+            const option = kit?.[id];
+            const equipmentTitle = id === 'gold' && kit ? kit.gold + ' GP' : option?.items ? 'Package ' + id.toUpperCase() : null;
+            const equipmentItems = option?.items?.map(item => ruleLabel(item, rules)).join(', ');
+            return <label key={id} className="sa-card">
+              <input type="checkbox" checked={checked} disabled={required || !checked && selected.length >= choice.count}
+                onChange={() => toggle(id)} />
+              <span><strong>{equipmentTitle ?? ruleLabel(id, rules)}</strong>
+                {spell && <small>{spell.level === 0 ? 'Cantrip' : 'Level ' + spell.level}{spell.school && ' · ' + spell.school}</small>}
+                {equipmentItems && <small>{equipmentItems}</small>}
+              </span>
+            </label>;
+          })}
+        </div>
+        <p role="status">{selected.length} of {choice.count} selected</p>
+        {selected.map(id => rules.spells.find(spell => spell.id === id) ?? rules.feats.find(feat => feat.id === id))
+          .filter(entry => entry?.description).map(entry => <details key={entry.id} className="sa-choice-description">
+            <summary>{entry.name} details</summary><p>{entry.description}</p>
+          </details>)}
+      </> : <select
         multiple
         size={Math.min(8, Math.max(2, choice.options.length))}
         aria-label={choice.key}
@@ -299,7 +333,7 @@ export function RequiredChoice({ choice, rules, onChange, initialSelected=[] }) 
             {ruleLabel(id, rules)}
           </option>
         ))}
-      </select>
+      </select>}
       <button
         type="button"
         disabled={selected.length !== choice.count}

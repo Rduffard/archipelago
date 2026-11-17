@@ -92,3 +92,14 @@ test('Human Origin feat selections retain their nested Training and spell option
     assert.deepEqual(validateLineageSelection(lineage, context).issues, []);
   }
 });
+
+test('creator navigation has eight stages and routes validation errors to their owning stage', async () => {
+  const { creationStages, stageIndexFor } = await import('../src/game/creator/creationStages.js');
+  assert.equal(creationStages.length, 8);
+  assert.equal(stageIndexFor('Identity'), 0);
+  assert.equal(stageIndexFor('Lineage'), 1);
+  assert.equal(stageIndexFor('Origin'), stageIndexFor('Background'));
+  assert.equal(stageIndexFor('Attributes'), stageIndexFor('Training'));
+  assert.equal(stageIndexFor('Equipment'), stageIndexFor('Spells'));
+  assert.equal(stageIndexFor('Review'), 7);
+});

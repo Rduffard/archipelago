@@ -7,7 +7,7 @@ function resourceSummary(track) {
   return `${track.current} / ${track.max}`
 }
 
-function CharacterRoster({ characters = [], limit }) {
+function CharacterRoster({ characters = [], limit, createPath = "/characters/new" }) {
   characters = characters ?? []
   const visibleCharacters = typeof limit === 'number' ? characters.slice(0, limit) : characters
   const hiddenCount = Math.max(characters.length - visibleCharacters.length, 0)
@@ -15,7 +15,7 @@ function CharacterRoster({ characters = [], limit }) {
   if (!characters.length) {
     return (
       <p className="dashboard-card__empty">
-        No characters yet. Start with <Link to="/characters/new">Create a Character</Link> and your first saved
+        No characters yet. Start with <Link to={createPath}>Create a Character</Link> and your first saved
         sheet will land here.
       </p>
     )

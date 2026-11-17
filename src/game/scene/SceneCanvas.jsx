@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-export default function SceneCanvas({ build, onSelect, data, className = '', fallback }) {
+export default function SceneCanvas({ build, onSelect, data, className = '', fallback, transparent = false }) {
   const host = useRef(null);
   const display = useRef({ data, update: null });
 
@@ -21,7 +21,7 @@ export default function SceneCanvas({ build, onSelect, data, className = '', fal
       try {
         const three = await import('./threeSceneKit.js');
         if (controller.signal.aborted) return;
-        renderer = new three.WebGLRenderer({ antialias: true, powerPreference: 'low-power' });
+        renderer = new three.WebGLRenderer({ alpha: transparent, antialias: true, powerPreference: 'low-power' });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
         renderer.toneMapping = three.ACESFilmicToneMapping;
         world = build(three);
@@ -126,7 +126,7 @@ export default function SceneCanvas({ build, onSelect, data, className = '', fal
       element.style.cursor = '';
       delete element.dataset.target;
     };
-  }, [build, onSelect]);
+  }, [build, onSelect, transparent]);
 
   return <div className={`sa-scene ${className}`}>
     <div className="sa-scene__canvas" ref={host} aria-hidden="true" />

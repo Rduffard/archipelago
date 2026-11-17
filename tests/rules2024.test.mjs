@@ -146,3 +146,26 @@ test("persistent resource controls render saved expenditure rather than preview 
   assert.ok(recovered.includes("Hit Dice remaining: 1d8"));
   assert.ok(recovered.includes("<button>Short Rest and spend Hit Die</button>"));
 });
+
+test("creator choice tiles retain required Training and pending selections", () => {
+  const choice = { id: 'doctor:1:backgroundSkills', key: 'backgroundSkills', count: 2,
+    options: ['athletics', 'stealth', 'nature'], requiredOptions: ['athletics'] };
+  const render = initialSelected => renderToStaticMarkup(React.createElement(RequiredChoice,
+    { choice, rules, tiles: true, initialSelected }));
+  const incomplete = render([]);
+  assert.match(incomplete, /1 of 2 selected/);
+  assert.match(incomplete, /disabled="" checked=""/);
+  assert.match(incomplete, /disabled="">Confirm choice/);
+  const restored = render(['stealth']);
+  assert.match(restored, /2 of 2 selected/);
+  assert.doesNotMatch(restored, /disabled="">Confirm choice/);
+  assert.doesNotMatch(restored, /<select/);
+});
+
+test("creator outfitting tiles describe canonical packages and gold", () => {
+  const choice = { key: 'equipment', callingId: 'doctor', options: ['a', 'gold'], count: 1 };
+  const html = renderToStaticMarkup(React.createElement(RequiredChoice, { choice, rules, tiles: true }));
+  assert.match(html, /Package A/);
+  assert.match(html, /Chain Shirt/i);
+  assert.match(html, /110 GP/);
+});
