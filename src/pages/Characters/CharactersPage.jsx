@@ -3,6 +3,7 @@ import CharacterRoster from '../../components/characters/CharacterRoster'
 import '../../components/dashboard/Dashboard.css'
 import PageHeader from '../../components/layout/PageHeader'
 import { useAuth } from '../../hooks/useAuth'
+import { creatorPreviewEnabled } from '../../game/creator/previewEnabled'
 import '../shared/PageShell.css'
 import './CharactersPage.css'
 
@@ -26,6 +27,9 @@ function CharactersPage() {
         <Link className="characters-toolbar__cta" to="/characters/new">
           Create a Character
         </Link>
+        {creatorPreviewEnabled && (
+          <Link className="sa-button" to="/characters/create">Try the Lineage Creator</Link>
+        )}
       </section>
 
       <section className="dashboard-card">

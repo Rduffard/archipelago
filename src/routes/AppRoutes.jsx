@@ -1,17 +1,21 @@
-import PersistentSheet from "../pages/Rules2024/PersistentSheet";
-import Rules2024Page from "../pages/Rules2024/Rules2024Page";
-import CharacterCreation from "../pages/Rules2024/CharacterCreation";
+import { lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
-import CombatTestPage from "../pages/CombatTest/CombatTestPage";
 import AppLayout from "../components/layout/AppLayout";
 
 import CharactersPage from "../pages/Characters/CharactersPage";
-import DashboardPage from "../pages/Dashboard/DashboardPage";
 import LoginPage from "../pages/Login/LoginPage";
-import MapPage from "../pages/Map/MapPage";
 import PlaceholderPage from "../pages/Placeholder/PlaceholderPage";
 import CampaignPage from "../pages/Campaigns/CampaignPage";
+import { creatorPreviewEnabled } from "../game/creator/previewEnabled";
+
+const PersistentSheet = lazy(() => import("../pages/Rules2024/PersistentSheet"));
+const Rules2024Page = lazy(() => import("../pages/Rules2024/Rules2024Page"));
+const CharacterCreation = lazy(() => import("../pages/Rules2024/CharacterCreation"));
+const CombatTestPage = lazy(() => import("../pages/CombatTest/CombatTestPage"));
+const QuartersPage = lazy(() => import("../game/QuartersPage"));
+const CreatorPage = lazy(() => import("../game/creator/CreatorPage"));
+const MapPage = lazy(() => import("../pages/Map/MapPage"));
 
 function AppRoutes() {
   return (
@@ -21,7 +25,7 @@ function AppRoutes() {
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<QuartersPage />} />
           <Route path="/rules-2024" element={<Rules2024Page />} />
           <Route path="/combat-test" element={<CombatTestPage />} />
           <Route
@@ -31,6 +35,9 @@ function AppRoutes() {
           <Route path="/map" element={<MapPage />} />
           <Route path="/characters" element={<CharactersPage />} />
           <Route path="/characters/new" element={<CharacterCreation />} />
+          <Route path="/characters/create" element={creatorPreviewEnabled
+            ? <CreatorPage />
+            : <Navigate to="/characters/new" replace />} />
           <Route
             path="/characters/:characterId/edit"
             element={<PersistentSheet editing />}

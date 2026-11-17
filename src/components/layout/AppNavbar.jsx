@@ -1,44 +1,23 @@
-import { NavLink } from "react-router-dom";
-import "./AppNavbar.css";
+import { NavLink, useLocation } from 'react-router-dom';
+import { GameButton, GameMenu } from '../../game/ui/GameUI';
 
-const navItems = [
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/map", label: "Lore Map" },
-  { to: "/combat-test", label: "Combat test" },
-  { to: "/characters", label: "Characters" },
-  { to: "/rules-2024", label: "Calling rules" },
-  { to: "/campaigns/new", label: "Campaigns" },
-  { to: "/achievements", label: "Achievements" },
-  { to: "/settings", label: "Settings" },
-];
-
-function AppNavbar({ onSignOut }) {
-  return (
-    <header className="app-navbar">
-      <div className="app-navbar__brand">
-        <p className="app-navbar__eyebrow">Crossworld Creative</p>
-        <span>Sanguine Archipelago</span>
-      </div>
-
-      <nav className="app-navbar__links" aria-label="Primary">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              `app-navbar__link ${isActive ? "is-active" : ""}`
-            }
-          >
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
-
-      <button type="button" className="app-navbar__signout" onClick={onSignOut}>
-        Sign Out
-      </button>
-    </header>
-  );
+export default function AppNavbar({ onSignOut }) {
+  const { pathname } = useLocation();
+  return <header className="sa-topbar">
+    <NavLink className="sa-brand" to="/dashboard">Sanguine Archipelago</NavLink>
+    <nav aria-label="Primary" className="sa-primary">
+      <NavLink to="/dashboard">Captain’s Quarters</NavLink>
+      <NavLink to="/characters">Characters</NavLink>
+      <NavLink to="/campaigns/new">Campaigns</NavLink>
+      <GameMenu key={pathname} label="Menu">
+        <NavLink to="/map">Lore Map</NavLink>
+        <NavLink to="/campaigns/open">Open Campaigns</NavLink>
+        <NavLink to="/rules-2024">Calling Rules</NavLink>
+        <NavLink to="/achievements">Achievements</NavLink>
+        <NavLink to="/settings">Settings</NavLink>
+        <NavLink to="/combat-test">Combat Practice</NavLink>
+        <GameButton onClick={onSignOut}>Sign out</GameButton>
+      </GameMenu>
+    </nav>
+  </header>;
 }
-
-export default AppNavbar;

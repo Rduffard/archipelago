@@ -4,7 +4,7 @@ import { POINT_BUY_BUDGET, POINT_BUY_MINIMUM_SCORE, POINT_BUY_MAXIMUM_SCORE, cal
 import { creationSizes, backgroundGoldAlternative, backgroundEquipmentEligible, maximumCreationScore,
   creationBackgroundIncreases } from '@crossworld/sanguine-engine/progression';
 import { useAuth } from '../../hooks/useAuth';
-import { request } from '../../lib/api';
+import { getCharacterRules, request } from '../../lib/api';
 import { CallingProgression, RequiredChoice, RulesSummary } from './Rules2024Views';
 import { attributeNames } from './labels';
 import IdentityFields from './IdentityFields';
@@ -32,7 +32,7 @@ export default function CharacterCreation() {
   const [errorPath,setErrorPath]=useState(null);
   const createAttempt=useRef(null);
   const headers={Authorization:`Bearer ${token}`};
-  useEffect(()=>{let active=true;request('/archipelago/system/character-rules?version=SA-CHAR-1',{headers:{Authorization:`Bearer ${token}`}})
+  useEffect(()=>{let active=true;getCharacterRules(token)
     .then(result=>{if(active)setRules(result);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[token]);
   function changeCreation(changes) { setCreation({...creation,...changes});setChoices({});setSummary(null);setError(''); }
   function customChange(key,value) {changeCreation({custom:{...creation.custom,[key]:value}});}

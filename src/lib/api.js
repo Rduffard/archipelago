@@ -76,6 +76,13 @@ export function getArchipelagoSystemBlueprint(token) {
   })
 }
 
+export function getCharacterRules(token, signal) {
+  return request('/archipelago/system/character-rules?version=SA-CHAR-1', {
+    signal,
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
 export function getCharacterById(token, characterId) {
   return request(`/archipelago/characters/${characterId}`, {
     headers: {
