@@ -13,11 +13,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: archipelago
-      # Several integration suites exercise the real backend fixture builders.
+      # Integration tests exercise the backend fixture builders from main.
       - uses: actions/checkout@v4
         with:
           repository: Rduffard/crossworld_backend
-          ref: a961751699e1bbea31669de39db235fd283742ee
+          ref: refs/heads/main
           path: crossworld_backend
       - uses: actions/setup-node@v4
         with:
