@@ -132,14 +132,14 @@ test("persistent resource controls render saved expenditure rather than preview 
   state.hitDice.d8 = 0;
   const html = renderToStaticMarkup(React.createElement(PersistentResources,
     { summary, state: JSON.parse(JSON.stringify(state)), busy: false, onOperation: () => {} }));
-  assert.ok(html.includes("Health 3 / 9"));
+  assert.match(html, /<span>Health<\/span><span>3 \/ 9<\/span>/);
   assert.ok(html.includes("Level 1 slots: 0 / 2"));
   assert.ok(html.includes('disabled=""'));
   assert.ok(html.includes("GM-recorded roll"));
   assert.ok(html.includes("Hit Dice remaining: 0d8"));
   assert.ok(html.includes('<button disabled="">Short Rest and spend Hit Die</button>'));
-  assert.ok(html.includes("<button>Short Rest (no Hit Dice)</button>"));
-  assert.ok(html.includes("<button>Long Rest</button>"));
+  assert.ok(html.includes("<button>Plan Short Rest</button>"));
+  assert.ok(html.includes("<button>Plan Long Rest</button>"));
   state.hitDice.d8 = 1;
   const recovered = renderToStaticMarkup(React.createElement(PersistentResources,
     { summary, state: JSON.parse(JSON.stringify(state)), busy: false, onOperation: () => {} }));
@@ -147,17 +147,19 @@ test("persistent resource controls render saved expenditure rather than preview 
   assert.ok(recovered.includes("<button>Short Rest and spend Hit Die</button>"));
 });
 
-test("creator choice tiles retain required Training and pending selections", () => {
+test("creator choice tiles show automatic Training separately from retained replacements", () => {
   const choice = { id: 'doctor:1:backgroundSkills', key: 'backgroundSkills', count: 2,
     options: ['athletics', 'stealth', 'nature'], requiredOptions: ['athletics'] };
   const render = initialSelected => renderToStaticMarkup(React.createElement(RequiredChoice,
     { choice, rules, tiles: true, initialSelected }));
   const incomplete = render([]);
-  assert.match(incomplete, /1 of 2 selected/);
-  assert.match(incomplete, /disabled="" checked=""/);
+  assert.match(incomplete, /Granted by Background[^<]*Athletics/);
+  assert.match(incomplete, /0 of 1 selected/);
+  assert.doesNotMatch(incomplete, /<strong>Athletics<\/strong>/);
   assert.doesNotMatch(incomplete, /Confirm choice/);
   const restored = render(['stealth']);
-  assert.match(restored, /2 of 2 selected/);
+  assert.match(restored, /1 of 1 selected/);
+  assert.match(restored, /checked=""[^>]*\/><span><strong>Stealth/);
   assert.doesNotMatch(restored, /Confirm choice/);
   assert.doesNotMatch(restored, /<select/);
 });

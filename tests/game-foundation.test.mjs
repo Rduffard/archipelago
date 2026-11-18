@@ -115,6 +115,14 @@ test('origin cards use the complete authoritative island roster and retain the L
   assert.deepEqual(islands.map(({ id }) => id), world.filter(origin => origin.path === 'archipelago').map(({ id }) => id));
 });
 
+test('creator reconciliation retains eligible choices and deduplicates automatic grants', async () => {
+  const { retainCreationOptions } = await import('../src/game/creator/creationStages.js');
+  const decision = { count: 2, options: ['track', 'perception', 'athletics'], requiredOptions: ['track'] };
+  assert.deepEqual(retainCreationOptions(decision, ['track', 'perception']), ['track', 'perception']);
+  assert.deepEqual(retainCreationOptions(decision, ['track', 'stealth']), ['track']);
+  assert.deepEqual(retainCreationOptions(decision), ['track']);
+});
+
 test('step prerequisites permit revisiting earlier choices and relock dependent stages', async () => {
   const { creationStages, prerequisiteStage, stageIndexFor } = await import('../src/game/creator/creationStages.js');
   const fields = creationStages.map(() => '');

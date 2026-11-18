@@ -971,6 +971,7 @@ test('rest planner exposes interruption cause, resumed-rest timing and nourishme
   const b = build('doctor', 3);
   const proposal = renderToStaticMarkup(
     React.createElement(Rest, {
+      summary: b.summary,
       state: b.character.rulesRuntime,
       draft: { type: 'long-rest' },
       onCommand() {},
@@ -978,6 +979,7 @@ test('rest planner exposes interruption cause, resumed-rest timing and nourishme
     })
   );
   assert.ok(proposal.includes('Appropriate food and water'));
+  assert.ok(proposal.includes('Expected recovery'));
   b.character.rulesRuntime.restSession = {
     id: 'rest',
     kind: 'long-rest',
@@ -987,6 +989,7 @@ test('rest planner exposes interruption cause, resumed-rest timing and nourishme
   };
   const active = renderToStaticMarkup(
     React.createElement(Rest, {
+      summary: b.summary,
       state: b.character.rulesRuntime,
       draft: null,
       onCommand() {},
@@ -1000,6 +1003,18 @@ test('rest planner exposes interruption cause, resumed-rest timing and nourishme
     'Record GM-confirmed interruption',
   ])
     assert.ok(active.includes(label), label);
+});
+test('Arcane Recovery previews the restored slot and spent use without mutating the sheet', () => {
+  const { summary, character } = build('shipwright', 5);
+  const state = character.rulesRuntime;
+  state.slots[0]--;
+  const before = structuredClone(state);
+  const proposal = renderToStaticMarkup(React.createElement(Rest, {
+    summary, state, draft: { type: 'short-rest', recoverSlots: [1] },
+  }));
+  assert.ok(proposal.includes('Spell slots after rest L1 ' + summary.spellSlots[0]));
+  assert.ok(proposal.includes('Arcane Recovery 1 → 0'));
+  assert.deepEqual(state, before);
 });
 test('Cinder controls expose distinct Grand Battery areas, target overlap, tools, costs and exemption limit', () => {
   const b = build('gunslinger', 18, 'cinder-artillerist');

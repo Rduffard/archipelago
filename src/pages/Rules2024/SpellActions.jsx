@@ -1,3 +1,4 @@
+import { displayName } from '../../game/creator/choiceLabels';
 import {useState} from 'react';
 import {arcaneApotheosisUnlocked,metamagicRerollOptions,metamagicNeedsSavingThrow,transmutedSpellDamageTypes} from '@crossworld/sanguine-engine/spells/metamagic';
 import {availableCastingSlots} from '@crossworld/sanguine-engine/spell-slots';
@@ -6,6 +7,7 @@ import {freeCastingTerms,ritualSourceAllowed,spellTriggerTargetsEligible,casting
 import {divineInterventionEligible,divineInterventionAvailable,dragonCompanionEligible,overchannelCastEligible,overchannelBacklash,sculptSpellsUnlocked,twinCircuitUnlocked,relayCastingEligible,relayCantripEligible} from '@crossworld/sanguine-engine/callings';
 import ContingencyControls,{PendingContingency} from './ContingencyControls';
 export default function SpellActions({character,rules,busy,onCommand}){
+  const [spellSearch, setSpellSearch] = useState('');
   const [selected,setSelected]=useState('');const [source,setSource]=useState('auto');const [slot,setSlot]=useState(1);
   const [metamagic,setMetamagic]=useState([]);const [damageType,setDamageType]=useState('fire');
   const [originalDamageType,setOriginalDamageType]=useState('fire');const [carefulTargets,setCarefulTargets]=useState('');const [heightenedTarget,setHeightenedTarget]=useState('');const [freeMetamagic,setFreeMetamagic]=useState('');
@@ -22,19 +24,47 @@ export default function SpellActions({character,rules,busy,onCommand}){
     castingSpellChoices(callingId,casting,character.rulesRuntime.preparations[callingId],spellById)
       .map(spellId=>({key:callingId+'|'+spellId,callingId,spellId})));
   for(const feat of s.featSpellcasters??[])for(const spellId of [...feat.cantrips,feat.spell])spells.push({key:feat.grantKey+'|'+spellId,callingId:Object.keys(s.callingLevels)[0],spellId,feat});
+  for (const innate of s.innateSpells ?? []) {
+    if (innate.castSupported && innate.modes.length) spells.push({
+      key: innate.grantKey, spellId: innate.spellId, innate,
+    });
+  }
   for(const spell of rules.spells.filter(spell=>divineInterventionEligible(spell,s.callingLevels.doctor)))spells.push({key:'intervention|'+spell.id,callingId:'doctor',spellId:spell.id,intervention:true});
   const choice=spells.find(item=>item.key===selected)??spells[0];
-  if(!choice)return null;
+  if(!choice && s.lineage?.spells?.some(spell => spell.unlocked)) return null;
+  if(!choice)return <div className="sa-sheet__empty">
+    <h3>No Spells Available</h3>
+    <p>Your character has no spells available to cast here. Spells granted by your Calling, Path, or other features appear as you unlock them.</p>
+  </div>;
+  const query = spellSearch.trim().toLowerCase();
+  const visibleSpells = spells.filter(item => (spellById(item.spellId)?.name ?? displayName(item.spellId)).toLowerCase().includes(query));
+  const spellGroups = Map.groupBy(visibleSpells, item => spellById(item.spellId)?.level ?? 0);
+  function selectSpell(key) {
+    setSelected(key);
+    setSource('auto');
+    setMetamagic([]);
+    setMaterials([]);
+    setFocusId('');
+    setFreeMetamagic('');
+    setOverchannel(false);
+    setTriggerEventId('');
+    setTriggerConfirmed(false);
+  }
   const spell=rules.spells.find(spell=>spell.id===choice.spellId),casting=s.spellcasting[choice.callingId];
   const dragonCompanion=dragonCompanionEligible(spell.id,choice.callingId,s.paths.tidecaller,s.callingLevels.tidecaller);
   const freeOptionEnabled=sourceKey=>{
-    if(choice.feat)return false;
+    if(choice.feat || choice.innate)return false;
     const terms=freeCastingTerms({source:sourceKey,spellId:spell.id,callingId:choice.callingId,casting,dragonCompanion});
     return Boolean(terms&&!terms.error);
   };
   const canSculpt=sculptSpellsUnlocked(s.paths.shipwright,s.callingLevels.shipwright,spell.school);
-  const mode=choice.intervention?'intervention':source==='auto'?(choice.feat?'free':'slot'):source;
-  const availableSlots=availableCastingSlots(s.spellSlots,character.rulesRuntime.slots,spell.level);
+  const innate = choice.innate;
+  const state=character.rulesRuntime,castingTurn=state.ownerTurn?.open?state.ownerTurn.id:state.inCombat?state.externalCastingTurn:null;
+  const freeCasts = state.pools[(innate ?? choice.feat)?.poolId] ?? 0;
+  const availableSlots=availableCastingSlots(s.spellSlots,state.slots,spell.level);
+  const defaultInnateMode = innate?.modes.find(mode => mode === 'cantrip' || mode === 'free' && freeCasts > 0 ||
+    mode === 'slot' && availableSlots.length) ?? innate?.modes[0];
+  const mode=choice.intervention?'intervention':source==='auto'?(defaultInnateMode ?? (choice.feat && (freeCasts || !availableSlots.length) ? 'free' : 'slot')):source;
   const slotLevel=availableSlots.includes(slot)?slot:availableSlots[0];
   const canOverchannel=spell.level>0&&mode==='slot'&&overchannelCastEligible({
     callingId:choice.callingId,path:s.paths.shipwright,level:s.callingLevels.shipwright,initiate:choice.feat,
@@ -42,14 +72,16 @@ export default function SpellActions({character,rules,busy,onCommand}){
   });
   const backlash=overchannelBacklash(character.rulesRuntime.counters.overchannel??0,slotLevel??1);
   const relays=character.rulesRuntime.effects.filter(e=>e.objectType==='relay');
-  const state=character.rulesRuntime,castingTurn=state.ownerTurn?.open?state.ownerTurn.id:state.inCombat?state.externalCastingTurn:null;
+  const castingBlocked = character.equipment?.restrictions.spellcastingBlocked ? 'Your armor prevents casting.'
+    : state.concentrationChecks?.length ? 'Resolve pending Concentration saves before casting.' : '';
+  const sourceUnavailable = mode === 'free' && !freeCasts || spell.level > 0 && mode === 'slot' && !slotLevel;
   const quickenedOffTurn=metamagic.includes('quickened-spell')&&!state.ownerTurn?.open;
   const castingTrigger=!choice.intervention&&rules.spellProfiles[spell.id]?.castingTrigger;
   const targetIds=targets.split(',').map(id=>id.trim()).filter(Boolean);
   const triggerReady=!castingTrigger||triggerConfirmed&&triggerEventId.trim()&&
     spellTriggerTargetsEligible(castingTrigger,{targetCount:targetIds.length,inCombat:state.inCombat,ownerTurnOpen:state.ownerTurn?.open});
   const isContingency=spell.id==='contingency';
-  const contingentChoices=isContingency?spells.filter(o=>!o.intervention&&contingentSpellAvailable(o.spellId,o.feat
+  const contingentChoices=isContingency?spells.filter(o=>!o.intervention&&!o.innate&&contingentSpellAvailable(o.spellId,o.feat
     ?{grant:o.feat.spell,eligible:rules.contingencySpellIds??[]}
     :{prepared:state.preparations[o.callingId],alwaysPrepared:s.spellcasting[o.callingId].alwaysPrepared,eligible:rules.contingencySpellIds??[]})):[];
   const contingentChoice=contingentChoices.find(o=>o.key===contingency?.key);
@@ -57,7 +89,8 @@ export default function SpellActions({character,rules,busy,onCommand}){
     contingentSlotAvailable(state.slots,slotLevel,contingency.slotLevel);
   function cast(){
     const sourceId=choice.feat?choice.feat.grantKey:source;
-    onCommand('spell.cast',{spellId:spell.id,callingId:choice.callingId,source:choice.feat?sourceId:mode,
+    onCommand('spell.cast',{spellId:spell.id,...(innate ? { source: innate.grantKey, mode }
+      : { callingId:choice.callingId, source:choice.feat?sourceId:mode }),
       ...(spell.level>0&&mode==='slot'?{slotLevel}:{}),
       ...(mode==='ritual'?{ritual:true}:{}),metamagic,
       parameters:{...(dragonCompanion?{dragonNoConcentration}:{}),...(!choice.feat&&s.paths.shipwright==='powder-saint'?{overchannel:canOverchannel&&overchannel}:{}),...(focusId?{focusId}:{}),damageType,originalDamageType,heightenedTarget,exemptTargets:carefulTargets.split(',').map(s=>s.trim()).filter(Boolean),...(freeMetamagic?{freeMetamagic}:{}),...(!choice.feat&&choice.callingId==='shipwright'&&spell.level===0&&originRelay?{originRelayId:originRelay,relayOriginConfirmed:relayConfirmed}:{}),
@@ -69,16 +102,41 @@ export default function SpellActions({character,rules,busy,onCommand}){
         confirmed:contingency.confirmed,materialIds:contingency.materialIds,...(contingency.focusId?{focusId:contingency.focusId}:{})}}:{}),
     });
   }
-  return <section className="character-creation__surface" aria-label="Spell casting"><h2>Spells</h2>
+  return <section className="character-creation__surface" aria-label="Spell casting"><h3>Cast a spell</h3>
     <PendingContingency character={character} rules={rules} busy={busy} onCommand={onCommand}/>
-    <fieldset disabled={busy}>
-    <label>Available spell <select value={choice.key} onChange={e=>{setSelected(e.target.value);setSource('auto');setMetamagic([]);setMaterials([]);setFocusId('');setFreeMetamagic('');setOverchannel(false);setTriggerEventId('');setTriggerConfirmed(false);}}>
-      {spells.map(item=><option key={item.key} value={item.key}>{rules.spells.find(spell=>spell.id===item.spellId)?.name} ({item.intervention?'Divine Intervention':item.feat?'Magic Initiate':item.callingId})</option>)}</select></label>
-    <p>{spell.description}</p><p>Spell attack {choice.feat?.attackModifier??casting?.attackModifier}; save DC {choice.feat?.saveDC??casting?.saveDC}.</p>
+    <fieldset disabled={busy} className="sa-grimoire">
+      <div className="sa-grimoire__browser">
+        <label>Find a spell <input type="search" value={spellSearch} onChange={event => setSpellSearch(event.target.value)} /></label>
+        <div className="sa-grimoire__index" aria-label="Available spells">
+        {!spellGroups.size && <p>No spells match your search.</p>}
+        {[...spellGroups].sort(([left], [right]) => left - right).map(([level, items]) =>
+          <div key={level} className="sa-grimoire__group">
+            <h4>{level === 0 ? 'Cantrips' : 'Level ' + level}</h4>
+            {items.map(item => {
+              const name = spellById(item.spellId)?.name ?? displayName(item.spellId);
+              const origin = item.innate ? 'Lineage' : item.intervention ? 'Divine Intervention' : item.feat
+                ? 'Magic Initiate' : rules.callings.find(calling => calling.id === item.callingId)?.name ?? displayName(item.callingId);
+              return <button type="button" key={item.key} aria-label={name + ' (' + origin + ')'}
+              aria-pressed={item.key === choice.key} onClick={() => selectSpell(item.key)}>
+                <strong>{name}</strong>
+                <small>{origin}</small>
+              </button>;
+            })}
+          </div>)}
+      </div>
+      </div>
+      <div className="sa-grimoire__inspector">
+      <h4>{spell.name}</h4>
+    <p className="sa-sheet__spell-meta">{spell.level ? 'Level ' + spell.level : 'Cantrip'} · {displayName(spell.school)} · {spell.castingTime}</p><p>{spell.description}</p><p>Spell attack {innate?.attackModifier??choice.feat?.attackModifier??casting?.attackModifier}; save DC {innate?.saveDC??choice.feat?.saveDC??casting?.saveDC}.</p>
     {canSculpt&&rules.spellProfiles[spell.id]?.savingThrow&&<><label>Sculpt Spells protected targets, included among casting targets <input value={sculptTargets} onChange={e=>setSculptTargets(e.target.value)} maxLength={1000}/></label><label><input type="checkbox" checked={sculptConfirmed} onChange={e=>setSculptConfirmed(e.target.checked)}/>GM confirms these are visible other creatures affected by this Evocation</label><p>Choose at most one plus the casting level. They automatically succeed on saves and take no damage when success normally halves it.</p></>}
     {dragonCompanion&&<><p>Dragon Companion waives Material components for free and slot castings.</p><label><input type="checkbox" checked={dragonNoConcentration} onChange={e=>setDragonNoConcentration(e.target.checked)}/>Summon without Concentration for one minute</label></>}
     {choice.intervention&&<p>Divine Intervention: Magic action, no spell slot or Material components. Uses remaining: {character.rulesRuntime.pools['doctor:intervention']??0}. Wish cooldown: {character.rulesRuntime.interventionCooldown?.longRestsRemaining??0} Long Rests.</p>}
-    {spell.level>0&&!choice.intervention&&<label>Casting source <select value={mode} onChange={e=>{setSource(e.target.value);setOverchannel(false);}}><option value="slot" disabled={!availableSlots.length}>Spell slot</option>
+    {spell.level > 0 && innate && <label>Casting source <select value={mode} onChange={e => setSource(e.target.value)}>
+      {innate.modes.map(mode => <option key={mode} value={mode} disabled={mode === 'free' ? !freeCasts : mode === 'slot' && !availableSlots.length}>
+        {mode === 'free' ? 'Lineage free cast (' + freeCasts + ' remaining)' : 'Spell slot'}
+      </option>)}
+    </select></label>}
+    {spell.level>0&&!choice.intervention&&!innate&&<label>Casting source <select value={mode} onChange={e=>{setSource(e.target.value);setOverchannel(false);}}><option value="slot" disabled={!availableSlots.length}>Spell slot</option>
       {choice.feat&&<option value="free" disabled={character.rulesRuntime.pools[choice.feat.poolId]<1}>Magic Initiate free cast ({character.rulesRuntime.pools[choice.feat.poolId]??0} remaining)</option>}
       {freeOptionEnabled('dragon-companion')&&<option value="dragon-companion">Dragon Companion free cast ({character.rulesRuntime.pools['omen-diver:companion']??0} remaining)</option>}
       {ritualSourceAllowed(spell,casting,choice.feat)&&<option value="ritual">Ritual (+10 minutes)</option>}
@@ -125,6 +183,9 @@ export default function SpellActions({character,rules,busy,onCommand}){
       {arcaneApotheosisUnlocked(s.callingLevels.tidecaller)&&<label>Arcane Apotheosis: free option this turn <select value={freeMetamagic} onChange={e=>setFreeMetamagic(e.target.value)}><option value="">Pay normal costs</option>{metamagic.map(id=><option key={id}>{id}</option>)}</select></label>}
     </>}
     {quickenedOffTurn&&<p>Quickened Spell requires a Bonus Action on your own recorded turn.</p>}
-    <button disabled={!triggerReady||quickenedOffTurn||!castingTurn&&state.inCombat||isContingency&&!contingencyReady||choice.intervention&&!divineInterventionAvailable(state.pools['doctor:intervention'],state.interventionCooldown?.longRestsRemaining)||spell.level>0&&(mode==='slot'&&!slotLevel||choice.feat&&mode==='free'&&!(character.rulesRuntime.pools[choice.feat.poolId]>0))} onClick={cast}>Cast {spell.name}</button>
-  </fieldset></section>;
+    {castingBlocked && <p role="status">{castingBlocked}</p>}
+    {sourceUnavailable && <p role="status">{mode === 'free' ? 'No free casts remaining.' : 'No eligible spell slots remaining.'}</p>}
+    <button disabled={Boolean(castingBlocked)||sourceUnavailable||!triggerReady||quickenedOffTurn||!castingTurn&&state.inCombat||isContingency&&!contingencyReady||choice.intervention&&!divineInterventionAvailable(state.pools['doctor:intervention'],state.interventionCooldown?.longRestsRemaining)} onClick={cast}>Cast {spell.name}</button>
+  </div>
+    </fieldset></section>;
 }

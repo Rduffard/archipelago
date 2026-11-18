@@ -1,0 +1,227 @@
+.sa-sheet > .sa-dossier[aria-label]:not([hidden]) {
+  --dossier-accent: #dfbb80;
+  --dossier-line: #5d5b54;
+  min-width: 0;
+  padding: clamp(1rem, 3vw, 2.5rem);
+  background: #141e25;
+  border-top: 3px solid var(--dossier-accent);
+}
+
+.sa-sheet > .sa-dossier--spells[aria-label]:not([hidden]) { --dossier-accent: #c5afe8; background: #1b1c2a; }
+.sa-sheet > .sa-dossier--vitals[aria-label]:not([hidden]) { --dossier-accent: #eaa1a5; }
+.sa-sheet > .sa-dossier--inventory[aria-label]:not([hidden]) { --dossier-accent: #dbad77; background: #211e1a; }
+.sa-sheet > .sa-dossier--journal[aria-label]:not([hidden]) { --dossier-accent: #e2c689; background: #232019; }
+.sa-sheet > .sa-dossier--advance[aria-label]:not([hidden]) { --dossier-accent: #9ed1c6; background: #162626; }
+
+.sa-sheet .sa-dossier > h2,
+.sa-dossier__heading h2 {
+  color: var(--dossier-accent);
+  font: 700 clamp(2.25rem, 5vw, 4.25rem)/1 var(--sa-heading);
+  margin: 0 0 1.25rem;
+}
+
+.sa-dossier :is(h3, h4) { font-family: var(--sa-heading); }
+.sa-dossier :is(button, select, summary) { min-height: 2.75rem; }
+.sa-dossier summary { align-content: center; cursor: pointer; }
+.sa-dossier :is(input, textarea, select) { max-width: 100%; }
+.sa-dossier textarea { resize: vertical; }
+
+.sa-combat-workspace,
+.sa-vital-workspace,
+.sa-armory__workspace,
+.sa-advancement-workspace,
+.sa-logbook {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(1rem, 3vw, 2.5rem);
+  align-items: start;
+}
+
+.sa-sheet .sa-sheet__weapons {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.sa-sheet .sa-sheet__weapons li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  padding: 1rem;
+  background: linear-gradient(110deg, #283943, #18242d);
+  border-bottom: 0;
+  border-left: 3px solid var(--dossier-accent);
+  margin-block-end: .7rem;
+}
+
+.sa-weapon-name { font: 700 clamp(1.25rem, 2.7vw, 2rem)/1.12 var(--sa-heading); overflow-wrap: anywhere; }
+.sa-weapon-modifier { grid-column: 2; grid-row: 1 / span 2; color: var(--dossier-accent); text-align: end; }
+.sa-weapon-modifier b { display: block; font-size: 1.85rem; line-height: 1; }
+.sa-sheet__weapons li > :is(small, .sa-weapon-roll) { grid-column: 1 / -1; }
+.sa-combat-workspace__abilities { border-inline-start: 1px solid var(--dossier-line); padding-inline-start: 1.2rem; min-width: 0; }
+
+.sa-armory__manifest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 2rem;
+  border-block: 1px solid var(--dossier-line);
+  margin-bottom: 1.25rem;
+  color: #f2d3ac;
+}
+
+.sa-armory__manifest p { margin: .65rem 0; }
+.sa-armory__workspace { grid-template-columns: minmax(13rem, .8fr) minmax(0, 1.5fr); }
+.sa-armory__rig { padding: 1rem; background: #332a21; border-block-start: 1px solid #af8d67; }
+.sa-armory__rig :is(label, select) { width: 100%; }
+.sa-armory__rig label { margin-block: .6rem; }
+.sa-armory__hold label { max-width: 17rem; }
+.sa-sheet .sa-armory .sa-inventory-items { display: block; }
+.sa-sheet .sa-armory :is(.sa-inventory-items, .sa-inventory-instances) li {
+  padding: .65rem .3rem;
+  background: transparent;
+  border: 0;
+  border-block-end: 1px solid var(--dossier-line);
+}
+.sa-armory .sa-inventory-items header strong { font-size: 1.12rem; }
+.sa-armory .sa-inventory-management { margin-block-start: 1rem; border-block-start: 1px solid var(--dossier-line); }
+
+.sa-slot-bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .9rem 1.4rem;
+  padding: .9rem 1rem;
+  border-block: 1px solid #706087;
+  background: #242138;
+}
+.sa-slot-bank dt { color: var(--dossier-accent); }
+.sa-slot-bank dd { display: flex; align-items: center; gap: .55rem; margin: .4rem 0 0; }
+.sa-slot-bank__pips { display: flex; flex-wrap: wrap; gap: .33rem; }
+.sa-slot-bank__pips i { width: .6rem; height: .6rem; rotate: 45deg; border: 1px solid #b8a2d8; }
+.sa-slot-bank__pips i[data-filled="true"] { background: #c9b3ee; }
+
+.sa-sheet [aria-label="Spell casting"] { background: transparent; padding-inline: 0; border: 0; }
+.sa-sheet .sa-grimoire {
+  grid-template-columns: minmax(13rem, .75fr) minmax(0, 1.65fr);
+  align-items: start;
+}
+.sa-grimoire__index { max-height: 34rem; overflow: auto; padding: 0 .45rem .45rem; }
+.sa-grimoire__group h4 { margin: .65rem 0 .35rem; color: var(--dossier-accent); font-size: 1.16rem; }
+.sa-sheet .sa-grimoire__group button {
+  display: block;
+  text-align: start;
+  width: 100%;
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid #504863;
+  background: #242338;
+  color: #f1e9ff;
+}
+.sa-sheet .sa-grimoire__group button[aria-pressed="true"] { background: #403356; box-shadow: inset 3px 0 var(--dossier-accent); }
+.sa-grimoire__group button small { display: block; color: #d0c1e4; }
+.sa-grimoire__inspector { background: #262138; border-block-start: 2px solid var(--dossier-accent); padding: clamp(.75rem, 2vw, 1.5rem); }
+.sa-grimoire__inspector h4 { margin: 0; color: #f0dfff; font-size: 1.8rem; }
+.sa-grimoire__inspector > label { margin-block: .75rem; }
+
+.sa-vital-instruments {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  padding: clamp(.8rem, 3vw, 2rem);
+  margin-bottom: 1.5rem;
+  background: linear-gradient(115deg, #442831, #212832 82%);
+  border-block: 1px solid #a16d75;
+}
+.sa-vital-instruments__health label { font-size: clamp(1.3rem, 3vw, 2.2rem); }
+.sa-vital-instruments__health meter { height: 1.35rem; }
+.sa-vital-instruments__health meter::-webkit-meter-optimum-value { background: #e78592; }
+.sa-vital-instruments__health meter::-moz-meter-bar { background: #e78592; }
+.sa-vital-instruments dl { display: flex; flex-wrap: wrap; gap: .6rem 1.35rem; margin: 0; }
+.sa-vital-instruments dd { margin: .15rem 0 0; font-weight: 700; font-size: 1.25rem; }
+.sa-rest-choices { display: grid; gap: .8rem; }
+.sa-rest-choices button { justify-self: start; }
+.sa-vital-workspace > div { min-width: 0; }
+
+.sa-dossier__heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: .3rem 1.5rem; }
+.sa-logbook { margin-bottom: 1.5rem; }
+.sa-logbook:not(:has(.sa-logbook__editor)) { grid-template-columns: minmax(0, 1fr); }
+.sa-logbook__page {
+  background: #ead9b3;
+  color: #30251b;
+  padding: clamp(1rem, 4vw, 3rem);
+  border-inline-start: .5rem solid #9d6e46;
+  box-shadow: inset .4rem 0 1rem #76522c30;
+}
+.sa-logbook__page h3 { margin: 0; border-bottom: 1px solid #9a8060; padding-bottom: .55rem; font-size: 1.8rem; }
+.sa-logbook__page p { max-width: 72ch; line-height: 1.65; }
+.sa-logbook__page .sa-sheet__notes { background: transparent; border: 0; padding: 0; margin: 1rem 0 0; }
+.sa-logbook__editor textarea { width: 100%; min-height: 12rem; line-height: 1.55; }
+
+.sa-level-course {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+  gap: 1rem;
+  background: repeating-linear-gradient(90deg, transparent 0 39px, #9ed1c61a 39px 40px), #203738;
+  border-block: 1px solid #639792;
+  padding: 1rem;
+  margin-block-end: 1.25rem;
+}
+.sa-level-course > div { display: grid; justify-items: center; text-align: center; gap: .25rem; }
+.sa-level-course > div + div { border-inline-start: 1px dashed #639792; }
+.sa-level-course strong { font: 700 clamp(2.65rem, 6vw, 5rem)/.95 var(--sa-heading); color: var(--dossier-accent); }
+.sa-sheet .sa-sheet__progression { display: block; }
+.sa-sheet .sa-sheet__progression details { padding-block: 0; }
+.sa-advancement-workspace > fieldset { border-color: #639792; }
+.sa-advancement-preview h3 { margin-block: .25rem; font-size: 1.6rem; color: var(--dossier-accent); }
+
+@media (max-width: 48rem) {
+  .sa-combat-workspace, .sa-vital-workspace, .sa-armory__workspace,
+  .sa-advancement-workspace, .sa-logbook, .sa-sheet .sa-grimoire {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sa-combat-workspace__abilities { border-inline-start: 0; padding-inline-start: 0; }
+  .sa-grimoire__index { max-height: 13rem; }
+  .sa-logbook:has(.sa-logbook__editor) .sa-logbook__page { display: none; }
+}
+
+@media (max-width: 32rem) {
+  .sa-sheet .sa-dossier { overflow-wrap: anywhere; }
+  .sa-vital-instruments { grid-template-columns: minmax(0, 1fr); }
+  .sa-armory__manifest { gap: 0; }
+  .sa-sheet .sa-sheet__weapons li { padding: .75rem; }
+}
+
+.sa-sheet > .sa-tabs {
+  gap: 0;
+  padding: 0;
+  border: 1px solid #4d5559;
+  background: #151e25;
+}
+
+.sa-sheet.character-creation > .sa-tabs .sa-button {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #e0d8cc;
+  padding-inline: clamp(.65rem, 2vw, 1.25rem);
+}
+
+.sa-sheet.character-creation > .sa-tabs .sa-button[aria-pressed="true"] {
+  color: #ffe7be;
+  background: #38302a;
+  box-shadow: inset 0 -3px #dfbb80;
+}
+
+.sa-sheet.character-creation > .sa-tabs .sa-button:hover:not([aria-pressed="true"]) { background: #263139; }
+.sa-grimoire__browser { min-width: 0; }
+.sa-grimoire__browser > label { margin: 0 .45rem .75rem; }
+.sa-armory__hold > label { display: inline-grid; width: min(100%, 16rem); margin: 0 1rem .75rem 0; }
+.sa-armory__hold h3 small { margin-inline-start: .4rem; color: var(--dossier-accent); font: 600 .85rem var(--sa-font); }
+.sa-combat-workspace__abilities > .character-creation__surface { background: transparent; border: 0; padding: 0; }
+.sa-vital-workspace fieldset, .sa-armory > fieldset { margin: 0; }
+.sa-dossier--actions .sa-action-group { border-inline-start: 2px solid #a58258; padding-inline-start: .7rem; }
+
+@media (max-width: 32rem) {
+  .sa-sheet.character-creation > .sa-tabs .sa-button { padding-inline: .3rem; }
+}

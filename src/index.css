@@ -60,6 +60,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body:has(.sa-creator, .sa-sheet) { min-width: 0; }
+
 * {
   box-sizing: border-box;
 }

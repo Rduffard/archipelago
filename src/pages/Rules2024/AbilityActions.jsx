@@ -1,4 +1,5 @@
 import {firstMissingAbilityCost,actionSurgeAdditionalActions} from '@crossworld/sanguine-engine/callings';
+import { displayName } from '../../game/creator/choiceLabels';
 import {useState} from 'react';
 import {breakwaterBarrier,searUndeadUnlocked,preserveLife,restoringTouchConditions,restoringTouchCostPerCondition,silentKeelVehicleLengthLimit} from '@crossworld/sanguine-engine/callings';
 import RelayControls from './RelayControls';
@@ -20,6 +21,13 @@ export default function AbilityActions({summary,state,busy,onCommand}){
   const [saveAttribute,setSaveAttribute]=useState('resolve'),[originalRoll,setOriginalRoll]=useState(1),[damageType,setDamageType]=useState('radiant'),[sear,setSear]=useState(true);
   const [touchConditions,setTouchConditions]=useState([]),[allocations,setAllocations]=useState({});
   const options=summary.abilityOptions??[];
+  const actionGroups = new Map();
+  for (const option of options) {
+    if (option.handler.startsWith('relay-')) continue;
+    const timing = displayName(option.action) || 'Other abilities';
+    if (!actionGroups.has(timing)) actionGroups.set(timing, []);
+    actionGroups.get(timing).push(option);
+  }
   const maximumPreserveLifeHealing=preserveLife(summary.callingLevels.doctor).maximumHealing;
   const needsAmount=options.some(o=>['lay-heal','preserve-life','burden','uncanny-dodge'].includes(o.handler));
   const needsTriage=options.some(o=>['triage','triage-antidote'].includes(o.handler));
@@ -58,7 +66,8 @@ export default function AbilityActions({summary,state,busy,onCommand}){
   }
   return <section className="character-creation__surface" aria-label="Ability management"><h2>Abilities</h2>
     <p>Declare targets and resolve positioning, saves and world effects with the GM. Resource costs and your character's state are saved by these controls.</p>
-    <fieldset disabled={busy}><legend>Targets and adjudication</legend>
+    <fieldset disabled={busy}><legend>Ability controls</legend>
+      {actionGroups.size > 0 && <details className="sa-ability-setup"><summary>Set targets and table rulings</summary>
       <label>Target names or stable table IDs, separated by commas <input value={targets} onChange={e=>setTargets(e.target.value)} maxLength={500}/></label>
       <label>Effect note <input value={note} onChange={e=>setNote(e.target.value)} maxLength={500}/></label>
       {options.some(o=>o.handler==='warden-touch')&&<fieldset><legend>Restoring Touch conditions, {restoringTouchCostPerCondition} Lay On Hands each</legend>{restoringTouchConditions.map(id=><label key={id}><input type="checkbox" checked={touchConditions.includes(id)} onChange={e=>setTouchConditions(e.target.checked?[...touchConditions,id]:touchConditions.filter(v=>v!==id))}/>{id}</label>)}</fieldset>}
@@ -90,18 +99,24 @@ export default function AbilityActions({summary,state,busy,onCommand}){
         {barrier.maximumPassers>0&&<><label>Permitted passers, stable IDs separated by commas <input value={passers} onChange={e=>setPassers(e.target.value)} maxLength={500}/></label>
           <label><input type="checkbox" checked={bend} onChange={e=>setBend(e.target.checked)}/>One right-angle bend</label></>}</>}
       {needsRevival&&<label>Seconds since death, if reviving <input type="number" min={0} max={60} value={seconds} onChange={e=>setSeconds(Number(e.target.value))}/></label>}
-      {(summary.abilityOptions??[]).filter(o=>!o.handler.startsWith('relay-')).map(option=>{
+      </details>}
+      {Array.from(actionGroups, ([timing, group]) => <section className="sa-action-group" key={timing}>
+        <h3>{timing}</h3>
+        {group.map(option=>{
         const insufficient=Boolean(firstMissingAbilityCost(option.costs,state.pools));
         const unavailable=insufficient||option.available===false;
         const unavailableReason=insufficient?'Insufficient resources':option.unavailableReason;
-        return <details key={option.id}><summary>{option.name} — {option.action}</summary><p>{option.description}</p>
+        const costLabel = option.costs.map(c => c.amount + ' ' + displayName(c.poolId.split(':').at(-1))).join(', ');
+        return <details key={option.id}><summary>{option.name}{costLabel && <small> · {costLabel}</small>}
+          {unavailable && <small> · {unavailableReason || 'Unavailable'}</small>}</summary><p>{option.description}</p>
           {option.completionRules&&<p>{option.completionRules}</p>}
           {!['measured-charge','grand-battery'].includes(option.handler)&&<AbilityPreview option={option}/>}
-          <p>{option.costs.length?option.costs.map(c=>`${c.amount} ${c.poolId.split(':').at(-1).replaceAll('-',' ')} (${state.pools[c.poolId]??0} remaining)`).join('; '):'No resource cost.'}</p>
+          <p>{option.costs.length?option.costs.map(c=>`${c.amount} ${displayName(c.poolId.split(':').at(-1))} (${state.pools[c.poolId]??0} remaining)`).join('; '):'No resource cost.'}</p>
           {!['measured-charge','grand-battery','squall','broker-credit','sacred','nimbus','nimbus-pulse'].includes(option.handler)&&!/^(rider-|corsair-|gray-defense|broker-resist|suppressor-|outrider-|echo-|tempest-|starwake-|mangrove-|stormhide-|chainbreaker-|colossus-|reaver-path-hit|bloodwake-retaliation)/.test(option.handler)&&!option.handler.startsWith('freeport-')&&!option.handler.startsWith('vigil-')&&!option.handler.startsWith('covenant-')&&!option.handler.startsWith('conduit-')&&!option.handler.startsWith('envoy-')&&!option.handler.startsWith('lantern-')&&!option.handler.startsWith('duelist-')&&<button disabled={unavailable} onClick={()=>activate(option)}>{unavailableReason||'Use '+option.name}</button>}
         </details>;
-      })}
-      <h3>Recorded effects</h3>{(state.effects??[]).map(effect=><article key={effect.id}><h4>{effect.name}</h4><p>{effect.note}</p>
+        })}
+      </section>)}
+      <h3>Recorded effects</h3>{!state.effects?.length && <p>No active effects.</p>}{(state.effects??[]).map(effect=><article key={effect.id}><h4>{effect.name}</h4><p>{effect.note}</p>
         {effect.health&&<p>Object Health {effect.health.current}/{effect.health.max}; Guard {effect.guard}; {effect.cover} cover.</p>}
         {effect.expiresAt&&<p>Expires {new Date(effect.expiresAt).toLocaleTimeString()}.</p>}
         {effect.featureId==='path:drydock-ghost:silent-keel:10'&&effect.mode==='creatures'&&<>

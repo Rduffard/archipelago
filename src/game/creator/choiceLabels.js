@@ -41,3 +41,25 @@ export const skillExamples = {
   stealth: 'Move quietly or stay out of sight.',
   survival: 'Follow tracks or find a route through the wild.',
 };
+
+export function displayName(id, rules) {
+  if (!id) return '';
+  if (id === 'thieves-cant') return "Thieves' Cant";
+  if (/[A-Z]/.test(id[0])) return id;
+  if (id.startsWith('language:')) {
+    const origin = rules?.creation?.origins.find(entry => entry.id === id.slice(9));
+    if (origin) return origin.name;
+    id = id.slice(9);
+  }
+  return id.replace(/([a-z])([A-Z])/g, '$1 $2').replaceAll('-', ' ')
+    .replace(/\b\w/g, character => character.toUpperCase());
+}
+
+export function equipmentQuantities(items, nameOf) {
+  const counts = new Map();
+  for (const item of items) {
+    const name = nameOf(item);
+    counts.set(name, (counts.get(name) ?? 0) + (item.quantity ?? 1));
+  }
+  return Array.from(counts, ([name, quantity]) => ({ name, quantity }));
+}
