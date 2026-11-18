@@ -3,7 +3,7 @@ import {purchaseQuote} from '@crossworld/sanguine-engine/equipment/commerce';
 import {ammunitionMatches} from '@crossworld/sanguine-engine/equipment/ammunition';
 import {equipmentSlots,equipmentSlotEligible} from '@crossworld/sanguine-engine/equipment/loadout-rules';
 
-export default function PersistentEquipment({character,rules,busy,onCommand}){
+export default function PersistentEquipment({character,rules,busy,onCommand,expanded=false}){
   const [definitionId,setDefinitionId]=useState(rules.equipment.items[0].id);
   const [quantity,setQuantity]=useState(1),[mergeTarget,setMergeTarget]=useState('');
   const [presetName,setPresetName]=useState(''),[scrollSpell,setScrollSpell]=useState('');
@@ -17,7 +17,7 @@ export default function PersistentEquipment({character,rules,busy,onCommand}){
   const ammunition=inventory.filter(item=>item.definitionId&&ammunitionMatches(weapon?.weapon,definition(item.definitionId)));
   const ammo=ammunition.find(i=>i.instanceId===ammunitionId)??ammunition[0];
   function equip(slot,value){onCommand('equipment.equip',{loadout:{...loadout,[slot]:value||null}});}
-  return <details><summary>Equipment and Guard {equipment.guard}</summary>
+  return <details open={expanded}><summary>Equipment and Guard {equipment.guard}</summary>
     <p>Available coin: {character.goldCp} cp. Purchases use catalog prices. Awards and sale prices require GM authorization.</p>
     {equipment.carrying&&<p>Known carried weight: {Number(equipment.carrying.knownWeightLb.toFixed(2))} lb; capacity {equipment.carrying.capacityLb} lb; push, drag or lift {equipment.carrying.pushDragLiftLb} lb. {equipment.carrying.unknownWeightInstances.length?`${equipment.carrying.unknownWeightInstances.length} item(s) need GM weight adjudication.`:''}</p>}
     <fieldset disabled={busy}>
@@ -28,8 +28,8 @@ export default function PersistentEquipment({character,rules,busy,onCommand}){
         </select></label>)}
       <label>Grip <select value={loadout.grip} onChange={e=>onCommand('equipment.equip',{loadout:{...loadout,grip:e.target.value}})}><option value="one">One hand</option><option value="two">Two hands</option></select></label>
       <label>Quantity to buy, consume or split <input type="number" min={1} max={100000} value={quantity} onChange={e=>setQuantity(Number(e.target.value))}/></label>
-      <ul>{inventory.map(item=>{const d=definition(item.definitionId),stackable=!d||d.stackable;
-        return <li key={item.instanceId}>{label(item)} x {item.quantity}{item.chargesCurrent!==undefined?' — '+item.chargesCurrent+' charges':''}
+      <ul className="sa-inventory-items">{inventory.map(item=>{const d=definition(item.definitionId),stackable=!d||d.stackable;
+        return <li key={item.instanceId}><strong>{label(item)}</strong> × {item.quantity}{item.chargesCurrent!==undefined?' — '+item.chargesCurrent+' charges':''}
           {d?.description&&<details><summary>Item rules</summary><p>{d.description}</p></details>}
           {!equipped(item.instanceId)&&(item.chargesCurrent!==undefined||!d||d.consumable||d.ammunitionType)&&<button onClick={()=>onCommand('equipment.consume',{instanceId:item.instanceId,quantity})}>Use {label(item)}</button>}
           {stackable&&!equipped(item.instanceId)&&item.quantity>1&&<button disabled={quantity>=item.quantity} onClick={()=>onCommand('equipment.split',{instanceId:item.instanceId,quantity})}>Split {label(item)}</button>}

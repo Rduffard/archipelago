@@ -155,10 +155,10 @@ test("creator choice tiles retain required Training and pending selections", () 
   const incomplete = render([]);
   assert.match(incomplete, /1 of 2 selected/);
   assert.match(incomplete, /disabled="" checked=""/);
-  assert.match(incomplete, /disabled="">Confirm choice/);
+  assert.doesNotMatch(incomplete, /Confirm choice/);
   const restored = render(['stealth']);
   assert.match(restored, /2 of 2 selected/);
-  assert.doesNotMatch(restored, /disabled="">Confirm choice/);
+  assert.doesNotMatch(restored, /Confirm choice/);
   assert.doesNotMatch(restored, /<select/);
 });
 

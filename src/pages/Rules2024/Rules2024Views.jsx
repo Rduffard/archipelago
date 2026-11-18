@@ -80,7 +80,7 @@ export function CallingProgression({ calling, rules }) {
     </section>
   );
 }
-export function RulesSummary({ summary, rules, title = "Temporary character sheet", equipment }) {
+export function RulesSummary({ summary, rules, title = "Temporary character sheet", equipment, playerChecks = false, referenceOnly = false }) {
   const [rollMode, setRollMode] = useState('normal');
   const [result, setResult] = useState(null);
   const [primalKnowledge,setPrimalKnowledge]=useState(false);
@@ -89,16 +89,40 @@ export function RulesSummary({ summary, rules, title = "Temporary character shee
     const roll = rollSheetCheck(summary,equipment,{modifier,attribute,stealth,skillId,savingThrow,rollMode,primalKnowledge,task:checkTask});
     setResult({ name, ...roll });
   }
+  const signed = value => value >= 0 ? "+" + value : value;
   return (
     <section aria-label={title}>
       <h2>{title}</h2>
+      {!referenceOnly && <>
       <label>Roll mode <select value={rollMode} onChange={e => setRollMode(e.target.value)}>
         <option value="normal">Normal</option><option value="advantage">Advantage</option><option value="disadvantage">Disadvantage</option>
       </select></label>
       {(cinderSafeHandlingUnlocked(summary.paths.gunslinger,summary.callingLevels.gunslinger)||summary.detectFalseAdvantage||summary.paths.navigator==='storm-broker')&&<label>GM-confirmed check task <select value={checkTask} onChange={e=>setCheckTask(e.target.value)}><option value="general">General check</option>{cinderSafeHandlingUnlocked(summary.paths.gunslinger,summary.callingLevels.gunslinger)&&<option value="inspect-explosives">Inspect explosives (Safe Handling)</option>}{summary.detectFalseAdvantage&&<option value="detect-false">Detect disguises, shapechanging or illusions</option>}{summary.paths.navigator==='storm-broker'&&<><option value="predict-weather">Predict natural weather (Instinct, weather discipline)</option><option value="interpret-signals">Interpret signals (Wit, signals discipline)</option></>}</select></label>}
       {summary.raging&&summary.rageSkillModifiers&&<label><input type="checkbox" checked={primalKnowledge} onChange={e=>setPrimalKnowledge(e.target.checked)}/>Use Primal Knowledge Might for eligible trained Rage checks</label>}
       {summary.poisonedSaveAdvantage&&<p>Advantage on saving throws against Poisoned. Select Advantage for that save. End a next-save-only Inoculated effect after rolling.</p>}
-      {result && <p role="status">{result.name}: {result.dice.join(' / ')}{result.naturalFloorApplied?` (treated as ${result.natural})`:''} {result.modifier >= 0 ? '+' : ''}{result.modifier} = {result.total}{result.minimumTotalApplied?' (Indomitable Might minimum)':''}</p>}
+      {result && <p className="sa-roll-result" role="status">{result.name}: {result.dice.join(' / ')}{result.naturalFloorApplied?` (treated as ${result.natural})`:''} {result.modifier >= 0 ? '+' : ''}{result.modifier} = {result.total}{result.minimumTotalApplied?' (Indomitable Might minimum)':''}</p>}
+      {playerChecks ? <>
+        <div className="sa-sheet__attributes">
+          {Object.entries(attributeNames).map(([id, name]) => <article key={id}>
+            <h3>{name}</h3><strong>{summary.attributes[id]}</strong>
+            <button aria-label={'Roll ' + name + ' check'} onClick={() => check(name, summary.attributeModifiers[id], id)}>
+              Check {signed(summary.attributeModifiers[id])}
+            </button>
+            <button aria-label={'Roll ' + name + ' save'} onClick={() => check(name + ' saving throw', summary.savingThrowModifiers[id], id, false, undefined, true)}>
+              Save {signed(summary.savingThrowModifiers[id])}
+            </button>
+            {summary.savingThrows.includes(id) && <small>Trained save</small>}
+          </article>)}
+        </div>
+        <h3>Skills</h3>
+        <div className="sa-sheet__skills">
+          {rules.skills.map(skill => <button key={skill.id} type="button" onClick={() =>
+            check(skill.name, summary.skillModifiers[skill.id], skill.attribute, skill.id === 'stealth', skill.id)}>
+            <span>{skill.name}<small>{summary.expertise.includes(skill.id) ? 'Expertise' : summary.training.includes(skill.id) ? 'Trained' : attributeNames[skill.attribute]}</small></span>
+            <strong>{signed(summary.skillModifiers[skill.id])}</strong>
+          </button>)}
+        </div>
+      </> : <>
       <table>
         <thead><tr><th>Attribute</th><th>Score</th><th>Modifier</th><th>Saving throw</th></tr></thead>
         <tbody>{Object.entries(attributeNames).map(([id, name]) => <tr key={id}>
@@ -113,6 +137,9 @@ export function RulesSummary({ summary, rules, title = "Temporary character shee
             <td><button onClick={() => check(skill.name, summary.skillModifiers[skill.id], skill.attribute, skill.id === 'stealth',skill.id)}>{summary.skillModifiers[skill.id]}</button></td><td>{summary.expertise.includes(skill.id) ? "Expertise" : summary.training.includes(skill.id) ? "Trained" : "Untrained"}</td></tr>)}</tbody>
         </table>
       </details>
+      </>}
+      </>}
+      {playerChecks ? null : <>
       <p>
         Character level {summary.totalLevel} · Training Bonus +
         {summary.trainingBonus} · Health {summary.health.max}
@@ -216,13 +243,14 @@ export function RulesSummary({ summary, rules, title = "Temporary character shee
           <small>GM-adjudicated rules; combat effects are not automated.</small>
         </details>
       ))}
+      </>}
     </section>
   );
 }
 export function RequiredChoice({ choice, rules, onChange, initialSelected=[], tiles=false, onDraftChange }) {
   const [selected, setSelected] = useState(()=>[...new Set([...(tiles ? choice.requiredOptions ?? [] : []), ...initialSelected])].filter(id=>choice.options.includes(id)).slice(0,choice.count));
   function toggle(id) {
-    const next = selected.includes(id) ? selected.filter(option => option !== id) : [...selected, id];
+    const next = selected.includes(id) ? selected.filter(option => option !== id) : choice.count === 1 ? [id] : [...selected, id];
     setSelected(next);
     onDraftChange?.(next);
   }
@@ -310,7 +338,7 @@ export function RequiredChoice({ choice, rules, onChange, initialSelected=[], ti
             const equipmentTitle = ['gold', 'starting-gold'].includes(id) && kit ? kit.gold + ' GP' : option?.items ? 'Package ' + id.replace(/^pack-/, '').toUpperCase() : null;
             const equipmentItems = option?.items?.map(item => ruleLabel(item, rules)).join(', ');
             return <div key={id} className="sa-choice-option"><label className="sa-card">
-              <input type="checkbox" checked={checked} disabled={required || !checked && selected.length >= choice.count}
+              <input type="checkbox" checked={checked} disabled={required || choice.count > 1 && !checked && selected.length >= choice.count}
                 onChange={() => toggle(id)} />
               <span><strong>{equipmentTitle ?? ruleLabel(id, rules)}</strong>
                 {required && <small>Granted by Background</small>}
@@ -344,13 +372,13 @@ export function RequiredChoice({ choice, rules, onChange, initialSelected=[], ti
           </option>
         ))}
       </select>}
-      <button
+      {onChange && <button
         type="button"
         disabled={selected.length !== choice.count}
         onClick={() => onChange({ [choice.key]: selected })}
       >
         Confirm choice
-      </button>
+      </button>}
     </fieldset>
   );
 }

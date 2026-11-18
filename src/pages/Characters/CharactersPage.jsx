@@ -3,7 +3,6 @@ import CharacterRoster from '../../components/characters/CharacterRoster'
 import '../../components/dashboard/Dashboard.css'
 import PageHeader from '../../components/layout/PageHeader'
 import { useAuth } from '../../hooks/useAuth'
-import { characterCreationPath } from '../../game/creator/previewEnabled'
 import '../shared/PageShell.css'
 import './CharactersPage.css'
 
@@ -24,7 +23,7 @@ function CharactersPage() {
           <strong>{characters.length} / 20</strong>
         </div>
 
-        <Link className="characters-toolbar__cta" to={characterCreationPath}>
+        <Link className="characters-toolbar__cta" to="/characters/new">
           Create a Character
         </Link>
       </section>
@@ -35,7 +34,7 @@ function CharactersPage() {
           <p><Link to="/campaigns/open">Open your campaigns</Link></p>
         </div>
 
-        <CharacterRoster characters={characters} createPath={characterCreationPath} />
+        <CharacterRoster characters={characters} createPath="/characters/new" />
       </section>
     </main>
   )

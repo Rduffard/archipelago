@@ -73,7 +73,7 @@ export function TrainingOverview({ rules, background, creation, choices, summary
   return <div className="sa-training-overview">
     <p>Training adds {summary ? '+' + summary.trainingBonus : 'your Training Bonus'} to checks with that skill.
       Expertise adds the bonus twice.</p>
-    <p>Choose your Calling skills, then confirm the skills your Background grants.
+    <p>Choose your Calling skills, then review the skills your Background grants.
       If a skill overlaps, choose a replacement from the available skills.</p>
     <dl className="sa-review">
       <div><dt>Background grants</dt><dd>{backgroundSkills.join(', ')} · {creation.custom?.tool ?? background.tool}</dd></div>

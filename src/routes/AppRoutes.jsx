@@ -7,14 +7,12 @@ import CharactersPage from "../pages/Characters/CharactersPage";
 import LoginPage from "../pages/Login/LoginPage";
 import PlaceholderPage from "../pages/Placeholder/PlaceholderPage";
 import CampaignPage from "../pages/Campaigns/CampaignPage";
-import { creatorPreviewEnabled } from "../game/creator/previewEnabled";
 
 const PersistentSheet = lazy(() => import("../pages/Rules2024/PersistentSheet"));
 const Rules2024Page = lazy(() => import("../pages/Rules2024/Rules2024Page"));
 const CharacterCreation = lazy(() => import("../pages/Rules2024/CharacterCreation"));
 const CombatTestPage = lazy(() => import("../pages/CombatTest/CombatTestPage"));
 const QuartersPage = lazy(() => import("../game/QuartersPage"));
-const CreatorPage = lazy(() => import("../game/creator/CreatorPage"));
 const MapPage = lazy(() => import("../pages/Map/MapPage"));
 
 function AppRoutes() {
@@ -35,9 +33,7 @@ function AppRoutes() {
           <Route path="/map" element={<MapPage />} />
           <Route path="/characters" element={<CharactersPage />} />
           <Route path="/characters/new" element={<CharacterCreation />} />
-          <Route path="/characters/create" element={creatorPreviewEnabled
-            ? <CreatorPage />
-            : <Navigate to="/characters/new" replace />} />
+          <Route path="/characters/create" element={<Navigate to="/characters/new" replace />} />
           <Route
             path="/characters/:characterId/edit"
             element={<PersistentSheet editing />}

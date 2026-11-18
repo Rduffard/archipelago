@@ -6,12 +6,12 @@ import { lineageFeatFields } from './lineageChoices';
 
 const title = id => id.replaceAll('-', ' ').replace(/^./, letter => letter.toUpperCase());
 
-function ChoiceField({ label, count = 1, options, value, onChange }) {
+function ChoiceField({ label, count = 1, options, value, onChange, showDescriptions = true }) {
   const description = option => option.attribute
     ? attributeNames[option.attribute] + ' · ' + skillExamples[option.id]
     : option.description;
   if (count === 1) return <CatalogCards label={label} entries={options} value={value}
-    onChange={onChange} describe={description} />;
+    onChange={onChange} describe={showDescriptions ? description : undefined} />;
   return <CheckCards label={label} count={count} entries={options} selected={value ?? []}
     onChange={onChange} describe={description} />;
 }
@@ -33,11 +33,21 @@ export default function LineageStep({ rules, lineage, values, onSelect, onChange
   const spells = heritage?.spells ?? lineage?.spells ?? [];
   const form = rules.creation.beastshifterForms.find(entry => entry.id === values.formId);
   const size = values.size ?? lineage?.size;
-  const controls = fields.map(({ key, options, ...field }) => <ChoiceField key={key} {...field}
-    options={options.filter(option => key === 'originFeat'
-      ? option.id !== excludedFeat || option.repeatable : !excludedSkills.includes(option.id))}
-    value={key === 'originFeat' ? feat?.id : values[key]}
-    onChange={value => onChange(key, key === 'originFeat' && value ? { id: value } : value)} />);
+  const controls = fields.map(({ key, options, ...field }) => {
+    const available = options.filter(option => key === 'originFeat'
+      ? option.id !== excludedFeat || option.repeatable : !excludedSkills.includes(option.id));
+    const value = key === 'originFeat' ? feat?.id : values[key];
+    const eligible = id => available.some(option => option.id === id);
+    const selection = Array.isArray(value) ? value.filter(eligible) : eligible(value) ? value : undefined;
+    return <div key={key}>
+      {value && (Array.isArray(value) ? selection.length < value.length : !selection) &&
+        <p role="status">A previous choice is already granted by your other selections. Choose a replacement.</p>}
+      <ChoiceField {...field} options={available} value={selection}
+        showDescriptions={key !== 'originFeat'}
+        onChange={value => onChange(key, key === 'originFeat' && value ? { id: value } : value)} />
+      {key === 'originFeat' && selection && <p>{available.find(option => option.id === selection)?.description}</p>}
+    </div>;
+  });
   if (contextual) return <section className="sa-lineage-details">
     <h3>{lineage.name} starting choices</h3>
     <p>Choose a new skill or feat from the options your Lineage grants.</p>

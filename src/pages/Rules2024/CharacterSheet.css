@@ -1,0 +1,85 @@
+.sa-sheet {
+  background: radial-gradient(ellipse at 16% 0%, #283a42, transparent 40rem), #14171d;
+  color: var(--sa-ink);
+  font-family: var(--sa-font);
+  padding: clamp(.8rem, 3vw, 2.5rem) max(3vw, calc((100% - 87rem) / 2));
+  width: 100%;
+  min-height: 100svh;
+}
+
+.sa-sheet__hero {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) minmax(0, 2.35fr);
+  min-height: 17rem;
+  background: linear-gradient(120deg, #182832, #21222a 65%, #36222a);
+  border: 1px solid #756453;
+  border-top: 2px solid var(--sa-gold);
+}
+
+.sa-sheet__hero .sa-preview { padding: 0; border: 0; box-shadow: none; background: none; display: grid; }
+.sa-sheet__hero .sa-scene { height: 15rem; }
+.sa-sheet__hero .sa-preview__rotation { padding-block: .5rem; }
+.sa-sheet__identity { padding: clamp(1rem, 3vw, 2rem); overflow-wrap: anywhere; }
+.sa-sheet__identity > .sa-button { float: right; }
+.sa-sheet__identity h1 { font: 700 clamp(2rem, 4vw, 4rem)/1.05 var(--sa-heading); margin: .25em 0; }
+.sa-sheet__identity > p { margin: .25em 0; }
+.sa-sheet__calling { font-weight: 700; color: var(--sa-gold); }
+.sa-sheet__vitals {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .35rem 1rem;
+  margin-block: 1.35rem 1rem;
+}
+.sa-sheet__vitals .sa-resource { grid-column: 1; }
+.sa-sheet__vitals small { grid-column: 1; grid-row: 2; }
+.sa-sheet__vitals button { grid-column: 2; grid-row: 1; }
+.sa-sheet__vitals meter { height: 1.15rem; }
+.sa-sheet__vitals meter::-webkit-meter-optimum-value { background: #ce6271; }
+.sa-sheet__stats { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin: 0; }
+.sa-sheet__stats dt { color: var(--sa-muted); text-transform: capitalize; }
+.sa-sheet__stats dd { color: var(--sa-gold); margin: .1rem 0 0; font-size: 1.22rem; font-weight: 700; }
+.sa-sheet .sa-tabs { display: flex; flex-wrap: wrap; gap: .35rem; margin-block: 1rem; border-bottom: 1px solid var(--sa-line); padding-bottom: .6rem; }
+.sa-sheet [aria-pressed="true"] { background: var(--sa-crimson); border-color: var(--sa-gold); }
+.sa-sheet :focus-visible { outline: 2px solid var(--sa-gold); outline-offset: 3px; }
+.sa-sheet > section[aria-label]:not([hidden]) { background: #1b222a; border-top: 1px solid #51606a; padding: clamp(.65rem, 2vw, 1.5rem); }
+.sa-sheet [hidden] { display: none; }
+.sa-sheet section[aria-label="Attributes and skills"] { padding: 0; margin: 0; background: none; border: 0; }
+.sa-sheet__attributes, .sa-sheet__skills { display: grid; gap: .6rem; }
+.sa-sheet__attributes { grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); margin: 1rem 0; }
+.sa-sheet__attributes article { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; padding: .75rem; background: #25303a; border-top: 2px solid #ad9065; }
+.sa-sheet__attributes h3, .sa-sheet__attributes article > strong, .sa-sheet__attributes small { grid-column: 1 / -1; margin: 0; }
+.sa-sheet__attributes article > strong { font: 700 2rem var(--sa-heading); }
+.sa-sheet :is(.sa-sheet__attributes, .sa-sheet__skills) button { min-height: 2.75rem; background: #16222b; color: var(--sa-ink); border: 1px solid #596975; }
+.sa-sheet :is(.sa-sheet__attributes, .sa-sheet__skills) button:hover { border-color: var(--sa-gold); background: #342d2e; }
+.sa-sheet__skills { grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); }
+.sa-sheet__skills button { display: flex; align-items: center; justify-content: space-between; text-align: left; gap: .5rem; padding: .6rem .8rem; }
+.sa-sheet__skills small { display: block; color: var(--sa-muted); }
+.sa-sheet__skills strong { color: var(--sa-gold); font-size: 1.1rem; }
+.sa-sheet [role="status"] { border-inline-start: 3px solid var(--sa-gold); padding-inline-start: .7rem; }
+
+@media (max-width: 44rem) {
+  .sa-sheet__hero { grid-template-columns: minmax(0, 1fr); }
+  .sa-sheet__hero .sa-scene { height: 10rem; }
+  .sa-sheet__identity > .sa-button { float: none; margin-bottom: .65rem; }
+}
+.sa-sheet .sa-preview__portrait { object-fit: contain; width: 100%; }
+
+.sa-sheet.character-creation { max-width: none; width: 100%; gap: 1rem; }
+.sa-sheet .sa-resource label { display: grid; grid-template-columns: 1fr auto; }
+.sa-sheet.character-creation :is(button, input, select, textarea) { background: #19242e; color: var(--sa-ink); border-color: #596975; }
+.sa-sheet.character-creation button:hover:not(:disabled) { border-color: var(--sa-gold); }
+.sa-sheet.character-creation [aria-pressed="true"] { background: var(--sa-crimson); border-color: var(--sa-gold); color: #ffe9c3; }
+.sa-sheet .character-creation__surface { background: #202a34; border-color: #596975; }
+.sa-sheet label:has(input[type="checkbox"]) { display: flex; flex-direction: row; align-items: center; }
+.sa-sheet .sa-roll-result { position: sticky; top: .5rem; z-index: 1; background: #302831; padding: .65rem .85rem; box-shadow: var(--sa-shadow); }
+.sa-sheet section[aria-label="Attributes and skills"] { overflow: visible; }
+.sa-sheet section[aria-label="Checks"] { overflow: visible; }
+.sa-sheet__attributes article { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto auto 1fr auto; }
+.sa-sheet.character-creation .sa-sheet__attributes button { min-width: 0; padding-inline: .2rem; font-size: .85rem; }
+.sa-sheet [aria-label="Attributes and skills"] > label { max-width: 14rem; }
+@media (max-width: 44rem) { .sa-sheet__hero .sa-scene { min-height: 0; } }
+
+.sa-sheet .sa-inventory-items { flex-basis: 100%; list-style: none; padding: 0; margin: .5rem 0; display: grid; gap: .5rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
+.sa-inventory-items li { background: #26313c; border-top: 1px solid #6e6256; padding: .65rem; }
+.sa-inventory-items li button { display: block; margin-top: .35rem; }

@@ -345,7 +345,6 @@
 .sa-creator .sa-rule-details summary { color: #f1cf98; text-decoration: underline dotted; text-underline-offset: .2em; }
 .sa-creator .sa-rule-details summary:focus-visible { outline: 2px solid #f1cf98; outline-offset: .2rem; }
 .sa-creator .sa-rule-details__body { font-size: .95rem; font-weight: 400; text-align: left; }
-.sa-creator .sa-rule-details:not([open]):is(:hover, :focus-within) > .sa-rule-details__body { display: block; content-visibility: visible; }
 .sa-creator .sa-training-overview { border-inline-start: 2px solid #649495; background: #192830; padding: .65rem .85rem; }
 .sa-creator .sa-lineage-details { margin-block: 1rem; }
 .sa-creator .sa-card:has(input:disabled) { opacity: .75; }
@@ -432,7 +431,6 @@
   width: min(100%, 30rem);
 }
 
-.sa-creator .sa-rule-details:not([open]):is(:hover, :focus-within)::details-content { content-visibility: visible; }
 .sa-creator .sa-choice-option { display: grid; align-content: start; gap: .2rem; }
 .sa-creator .sa-choice-option .sa-card { height: 100%; }
 .sa-creator .sa-choice-option > details { padding-inline: .5rem; }
