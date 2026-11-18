@@ -86,3 +86,8 @@ export function creationWithLineage(creation, id, values) {
     },
   };
 }
+
+export function splitLineageFields(fields) {
+  const contextual = fields.filter(field => ['skill', 'skills', 'originFeat'].includes(field.key));
+  return { contextual, structural: fields.filter(field => !contextual.includes(field)) };
+}

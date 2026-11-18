@@ -1,46 +1,49 @@
+import { CatalogCards, CheckCards, RuleDetails } from './CreatorViews';
 import { SelectionCard } from '../ui/GameUI';
-import { lineageFeatFields, lineageFields } from './lineageChoices';
+import { attributeNames } from '../../pages/Rules2024/labels';
+import { skillExamples } from './choiceLabels';
+import { lineageFeatFields } from './lineageChoices';
 
 const title = id => id.replaceAll('-', ' ').replace(/^./, letter => letter.toUpperCase());
 
 function ChoiceField({ label, count = 1, options, value, onChange }) {
-  if (count === 1) return <label className="sa-field">
-    {label}
-    <select value={value ?? ''} onChange={event => onChange(event.target.value || undefined)}>
-      <option value="">Choose {label.toLowerCase()}</option>
-      {options.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
-    </select>
-  </label>;
-  const selected = value ?? [];
-  return <fieldset className="sa-field">
-    <legend>{label} (choose {count})</legend>
-    {options.map(option => <label key={option.id}>
-      <input type="checkbox" checked={selected.includes(option.id)}
-        disabled={selected.length >= count && !selected.includes(option.id)}
-        onChange={event => onChange(event.target.checked
-          ? [...selected, option.id] : selected.filter(id => id !== option.id))} />
-      {option.name}
-    </label>)}
-  </fieldset>;
+  const description = option => option.attribute
+    ? attributeNames[option.attribute] + ' · ' + skillExamples[option.id]
+    : option.description;
+  if (count === 1) return <CatalogCards label={label} entries={options} value={value}
+    onChange={onChange} describe={description} />;
+  return <CheckCards label={label} count={count} entries={options} selected={value ?? []}
+    onChange={onChange} describe={description} />;
 }
 
 function OriginFeatOptions({ feat, rules, onChange }) {
   const options = feat.options ?? {};
-  return lineageFeatFields(feat, rules).map(field => <ChoiceField key={field.key} {...field}
-    value={options[field.key]} onChange={value => onChange({
+  return lineageFeatFields(feat, rules).map(({ key, ...field }) => <ChoiceField key={key} {...field}
+    value={options[key]} onChange={value => onChange({
       ...feat,
-      options: field.key === 'list'
+      options: key === 'list'
         ? { list: value, attribute: options.attribute }
-        : { ...options, [field.key]: value },
+        : { ...options, [key]: value },
     })} />);
 }
 
-export default function LineageStep({ rules, lineage, values, onSelect, onChange }) {
+export default function LineageStep({ rules, lineage, values, onSelect, onChange, fields, contextual = false, excludedSkills = [], excludedFeat }) {
   const heritage = lineage?.heritages?.[values.heritage];
   const feat = values.originFeat;
   const spells = heritage?.spells ?? lineage?.spells ?? [];
   const form = rules.creation.beastshifterForms.find(entry => entry.id === values.formId);
   const size = values.size ?? lineage?.size;
+  const controls = fields.map(({ key, options, ...field }) => <ChoiceField key={key} {...field}
+    options={options.filter(option => key === 'originFeat'
+      ? option.id !== excludedFeat || option.repeatable : !excludedSkills.includes(option.id))}
+    value={key === 'originFeat' ? feat?.id : values[key]}
+    onChange={value => onChange(key, key === 'originFeat' && value ? { id: value } : value)} />);
+  if (contextual) return <section className="sa-lineage-details">
+    <h3>{lineage.name} starting choices</h3>
+    <p>Choose a new skill or feat from the options your Lineage grants.</p>
+    {controls}
+    {feat && <OriginFeatOptions feat={feat} rules={rules} onChange={value => onChange('originFeat', value)} />}
+  </section>;
   return <>
     <p>Lineage determines inherited traits, movement, and starting abilities. Origin is where you come from, and Calling is your discipline.</p>
     <fieldset className="sa-lineages">
@@ -52,7 +55,7 @@ export default function LineageStep({ rules, lineage, values, onSelect, onChange
     {lineage && <div className="sa-lineage-details">
       <h3>Starting traits</h3>
       <p>{size && title(size) + ' '}{title(lineage.type)}</p>
-      <ul>{lineage.traits.map(trait => <li key={trait.id}>{trait.name}</li>)}</ul>
+      <ul>{lineage.traits.map(trait => <li key={trait.id}><RuleDetails title={trait.name}>{trait.description || trait.summary}</RuleDetails></li>)}</ul>
       <p>{Object.entries({ ...lineage.movement, walk: heritage?.walk ?? lineage.movement.walk })
         .map(([mode, speed]) => `${title(mode)} ${speed} ft`).join(' · ')}</p>
       {(heritage?.darkvision ?? lineage.darkvision) > 0 && <p>Darkvision {heritage?.darkvision ?? lineage.darkvision} ft</p>}
@@ -64,14 +67,9 @@ export default function LineageStep({ rules, lineage, values, onSelect, onChange
       {form && <p>{form.name}: {
         Object.entries(form.movement).map(([mode, speed]) => title(mode) + ' ' + speed + ' ft').join(', ')}.</p>}
       {lineage.choices?.formId && <p>Choose a level-one form. More forms become available as you advance.</p>}
-      {(lineage.choices?.skill || lineage.choices?.skills) && <p>Choose skills you won’t receive from your Calling or Background.</p>}
-      {lineageFields(lineage, rules).map(field => <ChoiceField key={field.key} {...field}
-        value={field.key === 'originFeat' ? feat?.id : values[field.key]}
-        onChange={value => onChange(field.key, field.key === 'originFeat' && value ? { id: value } : value)} />)}
-      {feat && <>
-        <p>{rules.feats.find(entry => entry.id === feat.id)?.description}</p>
-        <OriginFeatOptions feat={feat} rules={rules} onChange={value => onChange('originFeat', value)} />
-      </>}
+      {(lineage.choices?.skill || lineage.choices?.skills || lineage.choices?.originFeat) &&
+        <p>Choose additional Lineage Training or feats during Training.</p>}
+      {controls}
     </div>}
   </>;
 }

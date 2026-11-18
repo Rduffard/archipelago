@@ -103,3 +103,46 @@ test('creator navigation has eight stages and routes validation errors to their 
   assert.equal(stageIndexFor('Equipment'), stageIndexFor('Spells'));
   assert.equal(stageIndexFor('Review'), 7);
 });
+
+test('origin cards use the complete authoritative island roster and retain the Lilan ID', async () => {
+  const { originGroups } = await import('../src/game/creator/originGroups.js');
+  const { origins } = require('../../crossworld_backend/src/modules/archipelago/characters/advancement/creation');
+  const world = require('../../crossworld_backend/src/modules/archipelago/system/blueprints/characters/origins');
+  const { entries, islands } = originGroups(origins);
+  assert.deepEqual(entries.map(({ id, name }) => [id, name]), [
+    ['yuma-core', 'Yuma'], ['lilin-core', 'Lilan'], ['archipelago', 'The Archipelago'],
+  ]);
+  assert.deepEqual(islands.map(({ id }) => id), world.filter(origin => origin.path === 'archipelago').map(({ id }) => id));
+});
+
+test('step prerequisites permit revisiting earlier choices and relock dependent stages', async () => {
+  const { creationStages, prerequisiteStage, stageIndexFor } = await import('../src/game/creator/creationStages.js');
+  const fields = creationStages.map(() => '');
+  const training = stageIndexFor('Training');
+  const abilities = stageIndexFor('Abilities and feats');
+  const equipment = stageIndexFor('Equipment');
+  const review = stageIndexFor('Review');
+  const complete = [training, abilities, equipment];
+  assert.equal(prerequisiteStage(fields, complete, review), -1);
+  assert.equal(prerequisiteStage(fields, [], stageIndexFor('Origin')), -1);
+  assert.equal(prerequisiteStage(fields, [abilities, equipment], review), training);
+  fields[stageIndexFor('Origin')] = 'Choose your island.';
+  assert.equal(prerequisiteStage(fields, complete, training), stageIndexFor('Origin'));
+});
+
+test('Calling and Background Training are resolved before validation of Lineage Training and Expertise', async () => {
+  const { splitLineageFields } = await import('../src/game/creator/lineageChoices.js');
+  const catalog = { skills, feats, creation: { beastshifterForms } };
+  const human = lineages.find(lineage => lineage.id === 'human');
+  const { structural, contextual } = splitLineageFields(lineageFields(human, catalog));
+  const values = { size: 'medium', skill: 'stealth', originFeat: { id: 'alert' } };
+  assert.deepEqual(structural.map(field => field.key), ['size']);
+  assert.ok(hasLineageChoices(structural, values, catalog));
+  assert.deepEqual(contextual.map(field => field.key), ['skill', 'originFeat']);
+  const { lineage: base } = creationWithLineage({}, human.id, { size: values.size });
+  const { lineage: full } = creationWithLineage({}, human.id, values);
+  const context = { trained: ['stealth'], skillIds: skills.map(skill => skill.id) };
+  assert.ok(validateLineageSelection(base, context).issues.every(issue => issue.code === 'required'));
+  assert.ok(validateLineageSelection(full, context).issues.some(issue => issue.field === 'choices.skill' && issue.code === 'ineligible'));
+  assert.deepEqual(validateLineageSelection(full, { ...context, trained: ['athletics'] }).issues, []);
+});

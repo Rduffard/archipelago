@@ -1,3 +1,6 @@
+import startingEquipment from '@crossworld/sanguine-engine/equipment/starting-equipment';
+import { RuleDetails } from '../../game/creator/CreatorViews';
+import { choiceTitle, skillExamples } from '../../game/creator/choiceLabels';
 import { useState } from "react";
 import { attributeNames } from "./labels";
 import { rollSheetCheck } from './rolls';
@@ -286,7 +289,7 @@ export function RequiredChoice({ choice, rules, onChange, initialSelected=[], ti
   return (
     <fieldset>
       <legend>
-        {choice.key.replace(/([A-Z])/g, " $1")} — choose {choice.count}
+        {choiceTitle(choice.key)} — choose {choice.count}
       </legend>
       {choice.requiredOptions?.length>0&&<p>Keep {choice.requiredOptions.map(id=>ruleLabel(id,rules)).join(', ')}. Replace duplicate Training with another available skill.</p>}
       {tiles ? <>
@@ -298,25 +301,32 @@ export function RequiredChoice({ choice, rules, onChange, initialSelected=[], ti
             const checked = selected.includes(id);
             const required = choice.requiredOptions?.includes(id);
             const spell = rules.spells.find(entry => entry.id === id);
-            const kit = choice.key === 'equipment' ? rules.startingEquipment?.[choice.callingId] : null;
-            const option = kit?.[id];
-            const equipmentTitle = id === 'gold' && kit ? kit.gold + ' GP' : option?.items ? 'Package ' + id.toUpperCase() : null;
+            const kit = choice.key === 'equipment' ? (rules.startingEquipment ?? startingEquipment.packages)[choice.callingId] : null;
+            const option = kit?.[id.replace(/^pack-/, '')];
+            const skill = rules.skills.find(entry => entry.id === id.replace(/^skill:/, ''));
+            const item = rules.equipment.items.find(entry => entry.id === id);
+            const itemDetails = [item?.damage, ...(Array.isArray(item?.properties) ? item.properties : [])]
+              .filter(value => typeof value === 'string').join(' · ');
+            const equipmentTitle = ['gold', 'starting-gold'].includes(id) && kit ? kit.gold + ' GP' : option?.items ? 'Package ' + id.replace(/^pack-/, '').toUpperCase() : null;
             const equipmentItems = option?.items?.map(item => ruleLabel(item, rules)).join(', ');
-            return <label key={id} className="sa-card">
+            return <div key={id} className="sa-choice-option"><label className="sa-card">
               <input type="checkbox" checked={checked} disabled={required || !checked && selected.length >= choice.count}
                 onChange={() => toggle(id)} />
               <span><strong>{equipmentTitle ?? ruleLabel(id, rules)}</strong>
+                {required && <small>Granted by Background</small>}
+                {skill && <small>{attributeNames[skill.attribute]} · {skillExamples[skill.id]}</small>}
                 {spell && <small>{spell.level === 0 ? 'Cantrip' : 'Level ' + spell.level}{spell.school && ' · ' + spell.school}</small>}
                 {equipmentItems && <small>{equipmentItems}</small>}
               </span>
-            </label>;
+            </label>
+            {(spell?.description || item?.description || itemDetails) &&
+              <RuleDetails title={ruleLabel(id, rules) + ' details'}>{spell?.description || item?.description || itemDetails}</RuleDetails>}
+            </div>;
           })}
         </div>
         <p role="status">{selected.length} of {choice.count} selected</p>
-        {selected.map(id => rules.spells.find(spell => spell.id === id) ?? rules.feats.find(feat => feat.id === id))
-          .filter(entry => entry?.description).map(entry => <details key={entry.id} className="sa-choice-description">
-            <summary>{entry.name} details</summary><p>{entry.description}</p>
-          </details>)}
+        {selected.map(id => rules.feats.find(feat => feat.id === id)).filter(entry => entry?.description)
+          .map(entry => <RuleDetails key={entry.id} title={entry.name + ' details'}>{entry.description}</RuleDetails>)}
       </> : <select
         multiple
         size={Math.min(8, Math.max(2, choice.options.length))}

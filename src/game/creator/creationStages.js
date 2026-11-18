@@ -21,3 +21,8 @@ export const callingRoles = {
   doctor: 'Healing and field medicine',
   shipwright: 'Invention and magical outfitting',
 };
+
+export function prerequisiteStage(prerequisites, completed, index) {
+  return prerequisites.findIndex((message, prior) => prior < index &&
+    (message || (prior >= stageIndexFor('Training') && !completed.includes(prior))));
+}

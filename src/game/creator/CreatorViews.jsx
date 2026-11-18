@@ -1,3 +1,4 @@
+import { originGroups } from './originGroups';
 import { SelectionCard } from '../ui/GameUI';
 import { attributeNames } from '../../pages/Rules2024/labels';
 
@@ -13,10 +14,9 @@ export function CatalogCards({ label, entries, value, onChange, describe }) {
 export function FeatureCards({ calling, future = false }) {
   const rows = future ? calling.progression.slice(1) : calling.progression.slice(0, 1);
   return <div className="sa-feature-list">{rows.flatMap(row => row.features.map((feature, index) =>
-    <details key={row.callingLevel + ':' + index}>
-      <summary>{feature.rules[0]?.name ?? feature.name}{future && ' · Level ' + row.callingLevel}</summary>
+    <RuleDetails key={row.callingLevel + ':' + index} title={(feature.rules[0]?.name ?? feature.name) + (future ? ' · Level ' + row.callingLevel : '')}>
       {feature.rules.map((rule, ruleIndex) => <p key={ruleIndex}>{rule.description}</p>)}
-    </details>
+    </RuleDetails>
   ))}</div>;
 }
 
@@ -46,4 +46,56 @@ export function CreatorReview({ summary, rules, identity, calling, choices, spel
         <div key={key}><dt>{key.replace(/([A-Z])/g, ' $1')}</dt><dd>{spellNames(ids)}</dd></div>)}
     </dl>
   </>;
+}
+
+export function RuleDetails({ title, children }) {
+  if (!children) return title;
+  return <details className="sa-rule-details">
+    <summary>{title}</summary>
+    <div className="sa-rule-details__body">{children}</div>
+  </details>;
+}
+
+export function OriginCards({ origins, group, origin, onGroup, onIsland }) {
+  const { entries, islands } = originGroups(origins);
+  return <>
+    <p>Your Origin is your homeland. Your Background describes your life before taking up a Calling.</p>
+    <CatalogCards label="Homeland" entries={entries} value={group}
+      onChange={id => onGroup(id, id === 'archipelago' ? '' : id)} describe={entry => entry.summary} />
+    {group === 'archipelago' && <CatalogCards label="Island" entries={islands} value={origin?.id}
+      onChange={onIsland} describe={entry => entry.summary} />}
+  </>;
+}
+
+export function TrainingOverview({ rules, background, creation, choices, summary, onEditCallingSkills }) {
+  const skillName = id => rules.skills.find(skill => skill.id === id)?.name ?? id;
+  const backgroundSkills = (creation.custom?.skills ?? background.skills).map(skillName);
+  return <div className="sa-training-overview">
+    <p>Training adds {summary ? '+' + summary.trainingBonus : 'your Training Bonus'} to checks with that skill.
+      Expertise adds the bonus twice.</p>
+    <p>Choose your Calling skills, then confirm the skills your Background grants.
+      If a skill overlaps, choose a replacement from the available skills.</p>
+    <dl className="sa-review">
+      <div><dt>Background grants</dt><dd>{backgroundSkills.join(', ')} · {creation.custom?.tool ?? background.tool}</dd></div>
+      <div><dt>Calling choices</dt><dd>{choices.skills?.map(skillName).join(', ') || 'Choose below'}</dd></div>
+      {summary?.training?.length > 0 && <div><dt>Current Training</dt><dd>{summary.training.map(skillName).join(', ')}</dd></div>}
+    </dl>
+    {onEditCallingSkills && <button type="button" onClick={onEditCallingSkills}>Edit Calling skills</button>}
+  </div>;
+}
+
+export function CheckCards({ label, count, entries, selected, onChange, describe }) {
+  return <fieldset className="sa-choice-grid">
+    <legend>{label}</legend>
+    {entries.map(entry => {
+      const checked = selected.includes(entry.id);
+      const description = describe?.(entry);
+      return <label key={entry.id} className="sa-card">
+        <input type="checkbox" checked={checked} disabled={!checked && selected.length >= count}
+          onChange={() => onChange(checked ? selected.filter(id => id !== entry.id) : [...selected, entry.id])} />
+        <span><strong>{entry.name}</strong>{description && <small>{description}</small>}</span>
+      </label>;
+    })}
+    <p role="status">{selected.length} of {count} selected</p>
+  </fieldset>;
 }
